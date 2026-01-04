@@ -1,0 +1,16 @@
+# ===================================
+# Requirements.txt pour OMB
+# ===================================
+
+# ====== STREAMLIT ======
+streamlit>=1.32.0
+
+# ====== BASE DE DONNÉES ======
+psycopg2-binary>=2.9.0
+
+# ====== MANIPULATION DE DONNÉES ======
+pandas>=2.0.0
+python-dateutil>=2.8.2
+
+# ====== FICHIERS EXCEL ======
+openpyxl>=3.1.0
