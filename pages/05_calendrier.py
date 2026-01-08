@@ -11,6 +11,18 @@ from database import(
   init_db_if_needed
 )
 
+# ========================================
+# 🔐 PROTECTION PAR MOT DE PASSE
+# ========================================
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from auth import check_password
+
+if not check_password():
+    st.stop()
+
 # Helper pour convertir les dates
 def to_date(d):
     from datetime import date as date_type
@@ -111,13 +123,9 @@ st.markdown("""
 </style>          
 """, unsafe_allow_html=True)
 
-# Cache pour les commandes
-@st.cache_data(ttl=60)
-def get_commandes_cached():
-    return get_commandes()
-
 # Récupérer toutes les commandes
-commandes = get_commandes_cached()
+commandes = get_commandes()
+
 
 # Sélecteurs 
 col1, col2 = st.columns([1, 3])
@@ -260,7 +268,7 @@ if vue == "📅 Mois":
         else:
           date_jour = date(annee, mois, numero_jour)
           date_str = date_jour.strftime('%Y-%m-%d')
-          commandes_jour = [c for c in commandes_filtrees if c['date'] == date_str]
+          commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
 
           # Bouton invisible couvrant toute la case
           if st.button(
@@ -295,7 +303,7 @@ if vue == "📅 Mois":
               for cmd in commandes_jour:
                   service_icon = "🌅" if cmd['service'] == 0 else "🌙"
                   service_class = "commande-matin" if cmd['service'] == 0 else "commande-soir"
-                  html += f"<div class='commande-item {service_class}' style='margin: 6px 0;'>{service_icon} {cmd['heure'][:5]} {cmd['client']}</div>"
+                  html += f"<div class='commande-item {service_class}' style='margin: 6px 0;'>{service_icon} {cmd['heure'].strftime('%H:%M')} {cmd['client']}</div>"
               html += "</div>"
           
           else:
@@ -358,7 +366,7 @@ elif vue == "📆 Semaine":
   for i in range(7):
     jour = debut_semaine + timedelta(days=i)
     date_str = jour.strftime('%Y-%m-%d')
-    commandes_jour = [c for c in commandes_filtrees if c['date'] == date_str]
+    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
 
     with cols[i]:
       # Bouton invisible couvrant toute la colonne
@@ -396,7 +404,7 @@ elif vue == "📆 Semaine":
           for cmd in commandes_jour:
                 service_icon = "🌅" if cmd['service'] == 0 else "🌙"
                 service_class = "commande-matin" if cmd['service'] == 0 else "commande-soir"
-                html += f"<div class='commande-item {service_class}' style='margin: 5px 0; width: 100%' >{service_icon} {cmd['heure'][:5]}<br/>{cmd['client']}<br/>{cmd['couverts']} couv.</div>"
+                html += f"<div class='commande-item {service_class}' style='margin: 5px 0; width: 100%' >{service_icon} {cmd['heure'].strftime('%H:%M')}<br/>{cmd['client']}<br/>{cmd['couverts']} couv.</div>"
       else:
           html += "<p style='color: #aaa; text-align: center; font-size: 0.85em; margin-top: 40px;'>Aucune commande</p>"
 
@@ -451,7 +459,7 @@ elif vue == "🗓️ 3 jours":
   for i in range(3):
     jour = date_ref + timedelta(days=i)
     date_str = jour.strftime('%Y-%m-%d')
-    commandes_jour = [c for c in commandes_filtrees if c['date'] == date_str]
+    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
 
     with cols[i]:
       # Bouton invisible couvrant toute la colonne
@@ -491,7 +499,7 @@ elif vue == "🗓️ 3 jours":
           for cmd in commandes_jour:
                 service_icon = "🌅" if cmd['service'] == 0 else "🌙"
                 service_class = "commande-matin" if cmd['service'] == 0 else "commande-soir"
-                html += f"<div class='commande-item {service_class}' style='margin: 10px 0; width: 100%;'>{service_icon} {cmd['heure'][:5]}<br/>{cmd['client']}<br/>{cmd['couverts']} couverts</div>"
+                html += f"<div class='commande-item {service_class}' style='margin: 10px 0; width: 100%;'>{service_icon} {cmd['heure'].strftime('%H:%M')}<br/>{cmd['client']}<br/>{cmd['couverts']} couverts</div>"
       else:
           html += "<p style='color: #aaa; text-align: center; font-size: 0.85em; margin-top: 40px;'>Aucune commande</p>"
 
@@ -519,7 +527,7 @@ elif vue == "📋 Jour":
     
     with col_stats:
       date_str = date_ref.strftime('%Y-%m-%d')
-      commandes_jour = [c for c in commandes_filtrees if c['date'] == date_str]
+      commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
       
       col_s1, col_s2 = st.columns(2)
       with col_s1:
@@ -537,7 +545,7 @@ elif vue == "📋 Jour":
     st.subheader(f"{date_ref.strftime('%A %d %B %Y')}")
     
     date_str = date_ref.strftime('%Y-%m-%d')
-    commandes_jour = [c for c in commandes_filtrees if c['date'] == date_str]
+    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
     
     # Classe CSS
     css_class = "calendar-day-cell-today" if date_ref == date.today() else "calendar-day-cell"
@@ -554,7 +562,7 @@ elif vue == "📋 Jour":
         for cmd in commandes_jour:
             service_icon = "🌅" if cmd['service'] == 0 else "🌙"
             service_class = "commande-matin" if cmd['service'] == 0 else "commande-soir"
-            html += f"<div class='commande-item {service_class}' style='margin: 10px 0; width: 100%; font-size: 2em; padding: 10px'>{service_icon} {cmd['heure'][:5]} {cmd['client']} - {cmd['couverts']} couverts</div>"
+            html += f"<div class='commande-item {service_class}' style='margin: 10px 0; width: 100%; font-size: 2em; padding: 10px'>{service_icon} {cmd['heure'].strftime('%H:%M')} {cmd['client']} - {cmd['couverts']} couverts</div>"
     else:
         html += "<p style='color: #888;'>Aucune commande pour ce jour</p>"
     
@@ -570,7 +578,7 @@ elif vue == "📋 Jour":
         st.subheader("📋 Détails des commandes")
         
         for cmd in sorted(commandes_jour, key=lambda x: x['heure']):
-            with st.expander(f"{'🌅' if cmd['service'] == 0 else '🌙'} {cmd['heure'][:5]} - {cmd['client']} ({cmd['couverts']} couverts)", expanded=False):
+            with st.expander(f"{'🌅' if cmd['service'] == 0 else '🌙'} {cmd['heure'].strftime('%H:%M')} - {cmd['client']} ({cmd['couverts']} couverts)", expanded=False):
                 col1, col2, col3 = st.columns(3)
                 
                 with col1:

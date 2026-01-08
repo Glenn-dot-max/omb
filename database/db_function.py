@@ -121,21 +121,31 @@ def delete_produit(produit_id: int) -> bool:
         return False
 
 # ========== FORMULES =============
-
-def create_formule(nom: str) -> Optional[int]:
+def create_formule(nom: str, type_formule: str = "Non-Brunch") -> Optional[int]:
     try:
         with get_conn() as c:
-            c.execute("INSERT INTO formules (nom_formule) VALUES (%s) RETURNING id", (nom,))
+            c.execute("INSERT INTO formules (nom_formule, type_formule) VALUES (%s, %s) RETURNING id", (nom, type_formule))
             result = c.fetchone()
             return result[0] if result else None
     except:
         return None
-
+    
 def get_formules() -> List[Dict]:
     with get_conn() as c:
-        c.execute("SELECT id, nom_formule, CURRENT_TIMESTAMP as date_creation FROM formules ORDER BY nom_formule")
+        c.execute("SELECT id, nom_formule, CURRENT_TIMESTAMP as date_creation, type_formule FROM formules ORDER BY nom_formule")
         results = c.fetchall()
-        return [{'id': r[0], 'nom': r[1], 'date_creation': r[2]} for r in results]
+        return [{'id': r[0], 'nom': r[1], 'date_creation': r[2], 'type_formule': r[3] if len(r) > 3 else 'Non-Brunch'} for r in results]
+
+def update_formule(formule_id: int, type_formule: str) -> bool:
+    """Met à jour le type d'une formule"""
+    try:
+        with get_conn() as c:
+            c.execute("UPDATE formules SET type_formule = %s WHERE id = %s", (type_formule, formule_id))
+            return True
+    except Exception as e:
+        print(f"Erreur update_formule: {e}")
+        return False
+    
 
 def get_all_formules_with_details() -> Dict[int, Dict]:
     """
@@ -144,7 +154,7 @@ def get_all_formules_with_details() -> Dict[int, Dict]:
     """
     with get_conn() as c:
         # Récupérer toutes les formules
-        c.execute("SELECT id, nom_formule, CURRENT_TIMESTAMP as date_creation FROM formules ORDER BY nom_formule")
+        c.execute("SELECT id, nom_formule, CURRENT_TIMESTAMP as date_creation, type_formule FROM formules ORDER BY nom_formule")
         formules = c.fetchall()
         
         # Récupérer TOUS les produits de TOUTES les formules en 1 requête
@@ -170,6 +180,7 @@ def get_all_formules_with_details() -> Dict[int, Dict]:
                 'id': f[0],
                 'nom': f[1],
                 'date_creation': f[2],
+                'type_formule': f[3] if len(f) > 3 else 'Non-Brunch',
                 'produits': []
             }
         
@@ -369,6 +380,37 @@ def get_produit_by_id(produit_id: int) -> Optional[Dict]:
         return None
 
 def add_produit_to_commande(commande_id: int, produit_id: int, quantite: float, unite_id: int) -> bool:
+    """
+    Ajoute un produit supplémentaire à une commmande
+    """
+    try:
+        with get_conn() as c:
+            # Vérifier si le produit existe déjà pour cette commande
+            c.execute("""
+                SELECT id FROM commande_produits
+                WHERE commande_id = %s AND produit_id = %s
+            """, (commande_id, produit_id))
+            result = c.fetchone()
+
+            if result:
+                # UPDATE si existe déjà
+                c.execute("""
+                    UDPATE commande_produits
+                    SET quantite = %s, unite_id = %s
+                    WHERE commande_id = %s AND produit_id = %s
+                """, (quantite, unite_id, commande_id, produit_id))
+            else:
+                # INSERT sinon
+                c.execute("""
+                    INSERT INTO commande_produits (commande_id, produit_id, quantite, unite_id)
+                    VALUES (%s, %s, %s, %s)
+                """, (commande_id, produit_id, quantite, unite_id))
+        return True
+    except Exception as e:
+        print(f"Erreur add_produit_to_commande: {e}")
+        return False
+
+def add_produit_to_commande_1(commande_id: int, produit_id: int, quantite: float, unite_id: int) -> bool:
     """
     Ajoute un produit supplémentaire à une commande
     """

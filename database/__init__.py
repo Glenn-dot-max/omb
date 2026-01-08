@@ -26,6 +26,7 @@ from .db_function import (
     delete_formule,
     add_produit_to_formule,
     get_formule_details,
+    update_formule,
     remove_produit_from_formule,
     update_quantite_in_formule,
     # Commandes

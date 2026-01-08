@@ -7,7 +7,21 @@ from pathlib import Path
 import calendar
 
 # Pour la première page faire apparaitre un calendrier qui peut passer de mois, à semaine, à 3 jours à jours en particulier
-# Affichage comme sur un carnet outlook. 
+# Affichage comme sur un carnet outlook.
+
+# ========================================
+# 🔐 PROTECTION PAR MOT DE PASSE
+# ========================================
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from auth import check_password
+
+if not check_password():
+    st.stop()
+
+# ======================================== 
 
 # Ajouter le chemin parent pour importer database 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -30,6 +44,18 @@ from database import (
   init_db_if_needed,
   get_produits_formule_avec_calcul
 )
+
+# ========================================
+# 🔐 PROTECTION PAR MOT DE PASSE
+# ========================================
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from auth import check_password
+
+if not check_password():
+    st.stop()
 
 # Configuration
 st.set_page_config(page_title="Commandes", page_icon="📝", layout="wide")
@@ -453,7 +479,7 @@ with tab2:
             
             with col2:
               # Afficher la quantité recommandée (non modifiable)
-              st.metric("", f"{prod['qte_recommandee']}", label_visibility="collapsed")
+              st.metric("Qté recommandée", f"{prod['qte_recommandee']}", label_visibility="collapsed")
 
             with col3:
               # Input pour la quantité finale
@@ -554,14 +580,46 @@ with tab2:
 
       st.divider()
 
+      details = {
+         'formules': st.session_state.get('formules_temp', []),
+         'produits': st.session_state.get('produits_temp', [])
+      }
+
       # Afficher le récapitulatif
+      st.subheader("📦 Récapitulatif de la commande")
+
+      # ============= FORMULES ET LEURS PRODUITS ================
+      if details['formules']:
+         st.markdown("** 🍽️ Formules :**")
+
+         for formule_id, formule_nom, qte_rec, qte_fin in details['formules']:
+            # Afficher la formule
+            st.markdown(f"**• {formule_nom}** : {qte_fin} couverts")
+
+            # Récupérer et afficher les produits de cette formule
+            produits_formule = get_produits(formule_nom, qte_fin)
+            
+            if produits_formule:
+               for prod in produits_formule:
+                  st.markdown(f" └─ {prod['produit']} : {prod['quantite_finale']} {prod['unite']}")
+            
+            st.write("") # Espace entre les formules
+      
+      # ============ PRODUITS SUPPLÉMENTAIRES ============
+      if details['produits']:
+         st.markdown("** 📦 Produits supplémentaires :**")
+
+         for prod in details['produit']:
+          prod_id, prod_nom, qte, unite_id, unite_nom = prod
+          st.markdown(f"• {prod_nom} : {qte} {unite_nom}")
+
       st.write(" 📦 Récapitulatif de la commande")
 
       details = get_commande_details(commande_id)
 
       if details['formules']:
         st.write("**Formules :**")
-        for formule_nom, qte_rec, qte_fin in details['formules']:
+        for formule_id, formule_nom, qte_rec, qte_fin in details['formules']:
           st.write(f"- {formule_nom} : {qte_fin} couverts (reçu: {qte_rec})")
             
       if details['produits']:
@@ -659,21 +717,23 @@ with tab3:
           if details.get('formules'):
             st.subheader("📋 Formules")
             for formule in details['formules']:
+              formule_nom, qte_rec, qte_fin = formule
               col1, col2 = st.columns([3, 1])
               with col1:
-                st.write(f"**{formule['nom']}**")
+                st.write(f"**{formule_nom}**")
               with col2:
-                st.write(f"Qté: {formule['qte_finale']}")
+                st.write(f"Qté: {qte_fin}")
           
           # Produits archivés
           if details.get('produits'):
             st.subheader("📦 Produits supplémentaires")
             for prod in details['produits']:
+              prod_nom, qte_finale, unite = prod
               col1, col2 = st.columns([3, 1])
               with col1:
-                st.write(f"**{prod['nom']}**")
+                st.write(f"**{prod_nom}**")
               with col2:
-                st.write(f"{prod['quantite']} {prod['unite'] or ''}")
+                st.write(f"{qte_finale} {unite}")
         
         except ImportError:
           st.warning("📦 Fonction get_archive_details() à créer dans database.py pour afficher les détails")

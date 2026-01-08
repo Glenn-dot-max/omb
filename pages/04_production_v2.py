@@ -438,7 +438,8 @@ if st.session_state.get('generer_planning', False):
       
       # Titre principal (inclure colonnes TOTAL)
       max_cols_needed = 1 + sum([(len(planning.get(j['date'], {})) + 1) or 2 for j in jours_liste]) + 1  # +1 pour chaque TOTAL jour + 1 pour TOTAL GÉNÉRAL
-      ws.merge_cells(f'A{current_row}:{get_column_letter(max_cols_needed)}{current_row}')      cell = ws[f'A{current_row}']
+      ws.merge_cells(f'A{current_row}:{get_column_letter(max_cols_needed)}{current_row}')
+      cell = ws[f'A{current_row}']
       cell.value = f"Planning de Production - {date_debut.strftime('%d/%m/%Y')} au {date_fin.strftime('%d/%m/%Y')}"
       cell.font = Font(bold=True, size=14)
       cell.alignment = Alignment(horizontal='center')
@@ -460,25 +461,25 @@ if st.session_state.get('generer_planning', False):
         nom_jour = jour_info['nom_jour']
         commandes_jour = planning.get(jour, {})
         nb_commandes = len(commandes_jour) if commandes_jour else 0
-
+        
         # Nombre de colonnes = clients + 1 TOTAL
         nb_cols_total = (nb_commandes + 1) if nb_commandes > 0 else 2
-
+        
         # Fusionner les cellules pour le jour (inclure colonne TOTAL)
         if nb_cols_total > 1:
-          ws.merge_cells(start_row=current_row, start_column=col_idx,
-                         end_row=current_row, end_column=col_idx + nb_cols_total - 1)
-          
+          ws.merge_cells(start_row=current_row, start_column=col_idx, 
+                        end_row=current_row, end_column=col_idx + nb_cols_total - 1)
+        
         cell = ws.cell(current_row, col_idx)
         jour_num = jour[8:10] + '/' + jour[5:7]
         cell.value = f"{jour_num}\n{nom_jour}"
-        cell.fill = PatternFill(start_color="5B98D5", end_color="5B98D5", fill_type="solid")
+        cell.fill = PatternFill(start_color="5B9BD5", end_color="5B9BD5", fill_type="solid")
         cell.font = Font(color="FFFFFF", bold=True, size=11)
         cell.border = border
         cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-
-        col_idx += nb_cols_total
         
+        col_idx += nb_cols_total
+      
       # Colonne TOTAL GÉNÉRAL
       cell = ws.cell(current_row, col_idx)
       cell.value = "TOTAL\nGÉNÉRAL"
@@ -544,7 +545,7 @@ if st.session_state.get('generer_planning', False):
       cell.value = ""
       cell.fill = PatternFill(start_color="F4B084", end_color="F4B084", fill_type="solid")
       cell.border = border
-
+      
       current_row += 1
       
       # ========== POUR CHAQUE CATÉGORIE (SANS EN-TÊTES) ==========
@@ -571,10 +572,15 @@ if st.session_state.get('generer_planning', False):
           cell.border = border
           col_idx += 1
           
+          # Total général pour ce produit
+          total_general = 0
+          unite_produit = ""
+          
           # Quantités par jour/commande
           for jour_info in jours_liste:
             jour = jour_info['date']
             commandes_jour = planning.get(jour, {})
+            total_jour = 0
             
             if commandes_jour:
               for cmd_id in commandes_jour.keys():
@@ -584,7 +590,11 @@ if st.session_state.get('generer_planning', False):
                   info = produits_par_categorie[categorie][prod_nom][jour][cmd_id]
                   qte = info['quantite']
                   unite = info['unite']
-                  cell.value = f"{qte:.1f} {unite}"
+                  unite_produit = unite
+                  total_jour += qte
+                  total_general += qte
+                  
+                  cell.value = int(qte) if qte == int(qte) else round(qte, 1)
                   cell.fill = formule_fill if info['source'] == 'formule' else suppl_fill
                   cell.font = Font(bold=True)
                 else:
@@ -593,12 +603,43 @@ if st.session_state.get('generer_planning', False):
                 cell.border = border
                 cell.alignment = Alignment(horizontal='center', vertical='center')
                 col_idx += 1
+              
+              # Colonne TOTAL du jour
+              cell = ws.cell(current_row, col_idx)
+              if total_jour > 0:
+                cell.value = int(total_jour) if total_jour == int(total_jour) else round(total_jour, 1)
+                cell.fill = PatternFill(start_color="FFE699", end_color="FFE699", fill_type="solid")
+                cell.font = Font(bold=True)
+              else:
+                cell.value = "-"
+              cell.border = border
+              cell.alignment = Alignment(horizontal='center', vertical='center')
+              col_idx += 1
             else:
               cell = ws.cell(current_row, col_idx)
               cell.value = "-"
               cell.border = border
               cell.alignment = Alignment(horizontal='center', vertical='center')
               col_idx += 1
+              
+              # Colonne TOTAL du jour (vide si pas de commande)
+              cell = ws.cell(current_row, col_idx)
+              cell.value = "-"
+              cell.border = border
+              cell.alignment = Alignment(horizontal='center', vertical='center')
+              col_idx += 1
+          
+          # Colonne TOTAL GÉNÉRAL
+          cell = ws.cell(current_row, col_idx)
+          if total_general > 0:
+            val = int(total_general) if total_general == int(total_general) else round(total_general, 1)
+            cell.value = f"{val} {unite_produit}"
+            cell.fill = PatternFill(start_color="F8CBAD", end_color="F8CBAD", fill_type="solid")
+            cell.font = Font(bold=True, color="000000")
+          else:
+            cell.value = "-"
+          cell.border = border
+          cell.alignment = Alignment(horizontal='center', vertical='center')
           
           current_row += 1
         

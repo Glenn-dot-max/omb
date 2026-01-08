@@ -12,10 +12,23 @@ from database import (
   add_produit_to_formule,
   remove_produit_from_formule,
   update_quantite_in_formule,
+  update_formule,
   get_produits,
   get_unites,
   init_db_if_needed
 )
+
+# ========================================
+# 🔐 PROTECTION PAR MOT DE PASSE
+# ========================================
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from auth import check_password
+
+if not check_password():
+    st.stop()
 
 # Configuration
 st.set_page_config(page_title="Formules", page_icon="📋", layout="wide")
@@ -35,12 +48,19 @@ if 'composition_formule_mode' not in st.session_state:
 # Si on n'est pas en mode composition, afficher le formulaire de création
 if not st.session_state.composition_formule_mode:
     with st.expander("➕ Créer une nouvelle formule"):
-        col1, col2 = st.columns([4, 1])
+        col1, col2, col3 = st.columns([3, 2, 1])
 
         with col1:
             nom_formule = st.text_input("Nom de la formule", placeholder="Ex: Menu Petit-déjeuner")
 
         with col2:
+           type_formule = st.selectbox (
+              "Type de formule", 
+              ["Non-Brunch", "Brunch"],
+              help="Classez la formule"
+          )
+           
+        with col3:
             st.write("")
             st.write("")
             if st.button("Créer", type="primary", use_container_width=True):
@@ -183,32 +203,43 @@ if not st.session_state.composition_formule_mode:
 
     if formules:
       # Barre de recherche
-      col1, col2 = st.columns([3, 1])
+      col1, col2, col3 = st.columns([3, 2, 2])
       
       with col1: 
         search_formule = st.text_input("🔎 Rechercher une formule", key="search_formule")
 
       with col2:
+         filtre_type = st.selectbox(
+            "Filter par type", 
+            ["Toutes", "Brunch", "Non-Brunch"],
+            key="filtre_type"
+         )
+
+      with col3:
         tri = st.selectbox("Trier par", ["Nom (A-Z)", "Nom (Z-A)", "Plus récent", "Plus ancien"], key="tri_formule")
 
-      # Filtrer les formules 
+      # Filtrer les formules
+      formules_filtrees = formules
+
+      # Filtre par recherche
       if search_formule:
-        formules_filtrees = [f for f in formules if search_formule.lower() in f['nom'].lower()]
+         formules_filtrees = [f for f in formules_filtrees if search_formule.lower() in f['nom'].lower()]
 
-        if not formules_filtrees:
-          st.warning(f"Aucune formule trouvée pour '{search_formule}'")
+         if not formules_filtrees:
+            st.warning(f"Aucune formule trouvée pour '{search_formule}")
 
-          suggestions = []
-          for f in formules:
-            nom = f['nom'].lower()
-            if len(set(search_formule.lower()) & set(nom)) >= 3:
-              suggestions.append(f['nom'])
-          
-          if suggestions:
-            st.info(f"💡 Suggestions : {', '.join(suggestions[:3])}")  
-
-      else:
-        formules_filtrees = formules
+            suggestions = []
+            for f in formules:
+               nom = f['nom'].lower()
+               if len(set(search_formule.lower()) & set(nom)) >= 3:
+                  suggestions.append(f['nom'])
+            
+            if suggestions:
+               st.info(f"💡 Suggestions : {', '.join(suggestions[:3])}")
+      
+      # Filtre par type
+      if filtre_type != "Toutes":
+        formules_filtrees = [f for f in formules_filtrees if f.get('type_formule', 'Non-Brunch') == filtre_type]
 
       # Appliquer le tri
       if tri == "Nom (A-Z)":
@@ -276,14 +307,43 @@ if not st.session_state.composition_formule_mode:
       formules_a_afficher = formules_filtrees[debut:fin]
 
       for formule in formules_a_afficher:
-        formule_id = formule['id']
-        nom_formule = formule['nom']
-        details = formule['produits']  # ⚡ Déjà chargés !
-        
-        with st.expander(f"📋 {nom_formule} ({len(details)} produits)", expanded=False):
+         formule_id = formule['id']
+         nom_formule = formule['nom']
+         type_formule = formule.get('type_formule', 'Non-Brunch')
+         details = formule['produits']
 
-          if details:
-            st.subheader("Produits dans cette formule")
+         # Icone selon le type
+         icone = "🍳" if type_formule == 'Brunch' else "🍽️"
+         badge = f"[{type_formule}]"
+        
+         with st.expander(f"{icone} {nom_formule} {badge} ({len(details)} produits)", expanded=False):
+
+            # ============ MODIFIER LE TYPE ==========
+            col_type1, col_type2 = st.columns([4, 1])
+            with col_type1:
+               nouveau_type = st.selectbox(
+                  "Type de formule",
+                  ["Non-Brunch", "Brunch"],
+                  index=1 if type_formule == 'Brunch' else 0,
+                  key=f"type_{formule_id}"
+               )
+            
+            with col_type2:
+               st.write("")
+               st.write("")
+               if st.button("💾 MAJ type", key=f"update_type_{formule_id}"):
+                  if update_formule(formule_id, nouveau_type):
+                     st.success("✅ Type mis à jour !")
+                     st.rerun()
+                  else:
+                     st.error("❌ Erreur")
+            
+            st.divider()
+
+            # ==============================================
+
+            if details:
+               st.subheader("Produits dans cette formule")
 
             col1, col2, col3, col4, col5 = st.columns([3, 2, 2, 1, 1])
             with col1:
@@ -330,64 +390,64 @@ if not st.session_state.composition_formule_mode:
                     st.success("Retiré !")
                     st.rerun()
             
-          else:
-            st.info("Aucun produit dans cette formule")
+            else:
+               st.info("Aucun produit dans cette formule")
 
-          st.divider()
+            st.divider()
 
-          # ============= AJOUTER UN PRODUIT ==========
-          st.subheader("➕ Ajouter un produit")
+            # ============= AJOUTER UN PRODUIT ==========
+            st.subheader("➕ Ajouter un produit")
 
-          produits = get_produits()
-          unites = get_unites()
+            produits = get_produits()
+            unites = get_unites()
 
-          if produits and unites:
-            col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+            if produits and unites:
+               col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
 
-            with col1:
-                produit_options = [f"{p['nom']} ({p['categorie'] or 'N/A'})" for p in produits]
-                selected_prod_display = st.selectbox(
-                    "🔎 Produit (tapez pour filtrer)",
-                    options=produit_options,
-                    key=f"prod_select_{formule_id}",
-                    help="Tapez directement dans la liste pour rechercher"
-                )
-                selected_prod_id = produits[produit_options.index(selected_prod_display)]['id']
+               with col1:
+                  produit_options = [f"{p['nom']} ({p['categorie'] or 'N/A'})" for p in produits]
+                  selected_prod_display = st.selectbox(
+                     "🔎 Produit (tapez pour filtrer)",
+                     options=produit_options,
+                     key=f"prod_select_{formule_id}",
+                     help="Tapez directement dans la liste pour rechercher"
+                  )
+                  selected_prod_id = produits[produit_options.index(selected_prod_display)]['id']
 
-            with col2: 
-              quantite = st.number_input(
-                "Quantité",
-                min_value=0.0,
-                value=1.0,
-                step=0.5,
-                key=f"qty_add_{formule_id}"
-              )
-            
-            with col3:
-              unite_options = [u['nom'] for u in unites]
-              selected_unite = st.selectbox(
-                "Unité",
-                options=unite_options,
-                key=f"unite_select_{formule_id}"
-              )
-              selected_unite_id = unites[unite_options.index(selected_unite)]['id']
-            
-            with col4:
-              st.write("")
-              st.write("")
-              if st.button("Ajouter", key=f"add_btn_{formule_id}", use_container_width=True):
-                if add_produit_to_formule(formule_id, selected_prod_id, quantite, selected_unite_id):
-                  st.success("✅ Produit ajouté !")
+               with col2: 
+                  quantite = st.number_input(
+                     "Quantité",
+                     min_value=0.0,
+                     value=1.0,
+                     step=0.5,
+                     key=f"qty_add_{formule_id}"
+                  )
+               
+               with col3:
+                  unite_options = [u['nom'] for u in unites]
+                  selected_unite = st.selectbox(
+                     "Unité",
+                     options=unite_options,
+                     key=f"unite_select_{formule_id}"
+                  )
+                  selected_unite_id = unites[unite_options.index(selected_unite)]['id']
+               
+               with col4:
+                  st.write("")
+                  st.write("")
+                  if st.button("Ajouter", key=f"add_btn_{formule_id}", use_container_width=True):
+                     if add_produit_to_formule(formule_id, selected_prod_id, quantite, selected_unite_id):
+                        st.success("✅ Produit ajouté !")
+                        st.rerun()
+                     else:
+                        st.error("❌ Ce produit est déjà dans la formule")
+            else:
+               st.warning("⚠️ Créez d'abord des produits et des unités")
+
+            if st.button(f"🗑️ Supprimer la formule '{nom_formule}'", key=f"del_formule_{formule_id}", type="secondary"):
+               if delete_formule(formule_id):
+                  st.success("Formule supprimée !")
                   st.rerun()
-                else:
-                  st.error("❌ Ce produit est déjà dans la formule")
-          else:
-            st.warning("⚠️ Créez d'abord des produits et des unités")
-
-          if st.button(f"🗑️ Supprimer la formule '{nom_formule}'", key=f"del_formule_{formule_id}", type="secondary"):
-            if delete_formule(formule_id):
-              st.success("Formule supprimée !")
-              st.rerun()
 
     else:
       st.info("Aucune formule. Créez-en une ci-dessus !")

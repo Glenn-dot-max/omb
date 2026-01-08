@@ -1,6 +1,18 @@
 # app.py
 import streamlit as st
-from database import init_db_if_needed
+from datetime import date, timedelta
+from database import (
+    get_commandes,
+    init_db_if_needed
+)
+
+# ========================================
+# 🔐 PROTECTION PAR MOT DE PASSE
+# ========================================
+from auth import check_password
+
+if not check_password():
+    st.stop()  # Arrête l'exécution si pas authentifié
 
 
 ##### Voir pour faire une page d'import excel des formules, produits et catégories déjà existantes 

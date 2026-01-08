@@ -21,6 +21,19 @@ from database import (
   init_db_if_needed
 )
 
+# ========================================
+# 🔐 PROTECTION PAR MOT DE PASSE
+# ========================================
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from auth import check_password
+
+if not check_password():
+    st.stop()
+
+
 # Configuration de la page
 st.set_page_config(page_title="Produits", page_icon="📦", layout="wide")
 
