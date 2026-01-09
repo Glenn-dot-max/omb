@@ -652,3 +652,117 @@ def restaurer_archive(archive_id: int) -> Optional[int]:
     except Exception as e:
         print(f"Erreur restauration: {e}")
         return None
+    
+# ========== RAPPORTS DE BUGS =============
+# ========== GESTION DES BUGS =============
+
+def save_bug_report(bug_type: str, page_concernee: str, description: str, 
+                    etapes: str = None, contact_email: str = None, 
+                    screenshot_url: str = None) -> Optional[int]:
+    """Enregistre un nouveau rapport de bug"""
+    try:
+        with get_conn() as c:
+            c.execute("""
+                INSERT INTO bug_reports 
+                (bug_type, page_concernee, description, etapes, contact_email, screenshot_url, status)
+                VALUES (%s, %s, %s, %s, %s, %s, 'nouveau')
+                RETURNING id
+            """, (bug_type, page_concernee, description, etapes, contact_email, screenshot_url))
+            result = c.fetchone()
+            return result[0] if result else None
+    except Exception as e:
+        print(f"Erreur save_bug_report: {e}")
+        return None
+
+
+def get_all_bug_reports() -> List[Dict]:
+    """Récupère tous les rapports de bugs"""
+    try:
+        with get_conn() as c:
+            c.execute("""
+                SELECT id, created_at, bug_type, page_concernee, description, 
+                       etapes, contact_email, screenshot_url, status, notes_admin
+                FROM bug_reports
+                ORDER BY created_at DESC
+            """)
+            results = c.fetchall()
+            return [{
+                'id': r[0],
+                'created_at': r[1],
+                'bug_type': r[2],
+                'page_concernee': r[3],
+                'description': r[4],
+                'etapes': r[5],
+                'contact_email': r[6],
+                'screenshot_url': r[7],
+                'status': r[8],
+                'notes_admin': r[9]
+            } for r in results]
+    except Exception as e:
+        print(f"Erreur get_all_bug_reports: {e}")
+        return []
+
+
+def update_bug_status(bug_id: int, new_status: str) -> bool:
+    """Met à jour le statut d'un bug"""
+    try:
+        with get_conn() as c:
+            c.execute("""
+                UPDATE bug_reports 
+                SET status = %s
+                WHERE id = %s
+            """, (new_status, bug_id))
+            return True
+    except Exception as e:
+        print(f"Erreur update_bug_status: {e}")
+        return False
+
+
+def add_admin_notes(bug_id: int, notes: str) -> bool:
+    """Ajoute des notes administrateur à un bug"""
+    try:
+        with get_conn() as c:
+            c.execute("""
+                UPDATE bug_reports 
+                SET notes_admin = %s
+                WHERE id = %s
+            """, (notes, bug_id))
+            return True
+    except Exception as e:
+        print(f"Erreur add_admin_notes: {e}")
+        return False
+
+
+def delete_bug_report(bug_id: int) -> bool:
+    """Supprime un rapport de bug"""
+    try:
+        with get_conn() as c:
+            c.execute("DELETE FROM bug_reports WHERE id = %s", (bug_id,))
+            return True
+    except Exception as e:
+        print(f"Erreur delete_bug_report: {e}")
+        return False
+
+
+def get_bug_stats() -> Dict:
+    """Récupère les statistiques des bugs"""
+    try:
+        with get_conn() as c:
+            c.execute("""
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'nouveau' THEN 1 ELSE 0 END) as nouveau,
+                    SUM(CASE WHEN status = 'en_cours' THEN 1 ELSE 0 END) as en_cours,
+                    SUM(CASE WHEN status = 'resolu' THEN 1 ELSE 0 END) as resolu
+                FROM bug_reports
+            """)
+            result = c.fetchone()
+            return {
+                'total': result[0] or 0,
+                'nouveau': result[1] or 0,
+                'en_cours': result[2] or 0,
+                'resolu': result[3] or 0
+            }
+    except Exception as e:
+        print(f"Erreur get_bug_stats: {e}")
+        return {'total': 0, 'nouveau': 0, 'en_cours': 0, 'resolu': 0}

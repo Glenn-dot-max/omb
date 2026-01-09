@@ -209,7 +209,7 @@ with tab1:
         with col1:
             search = st.text_input("🔍 Rechercher un client", key="search_cmd")
         with col2:
-            filtre_service = st.selectbox("Service", ["Tous", "Matin", "Midi", "Soir"], key="filtre_service")
+            filtre_service = st.selectbox("Service", ["Tous", "Matin", "Soir"], key="filtre_service")
         with col3:
             affichage = st.selectbox("Affichage", ["Toutes les sections", "À faire uniquement", "À venir uniquement", "Passées uniquement"], key="affichage_sections")
 
@@ -224,10 +224,8 @@ with tab1:
 
             if filtre_service == "Matin":
                 filtrees = [c for c in filtrees if c.get('service') == 0]
-            elif filtre_service == "Midi":
-                filtrees = [c for c in filtrees if c.get('service') == 1]
             elif filtre_service == "Soir":
-                filtrees = [c for c in filtrees if c.get('service') == 2]
+                filtrees = [c for c in filtrees if c.get('service') == 1]
 
             return filtrees
 
@@ -249,29 +247,7 @@ with tab1:
 
         # Fonction pour afficher une commande
         def afficher_commande(cmd):
-            # Vérifier si la commande a un service
-            avec_service = cmd.get('avec_service', True)  # True par défaut pour compatibilité
-            
-            # Icônes et badges service (seulement si avec_service)
-            if avec_service and cmd.get('service') is not None:
-                service_val = cmd.get('service', 0)
-                if service_val == 0:
-                    service_icon = "🌅"
-                    service_text = "Matin"
-                    service_color = "#FFE5B4"
-                elif service_val == 1:
-                    service_icon = "☀️"
-                    service_text = "Midi"
-                    service_color = "#FFD700"
-                else:
-                    service_icon = "🌙"
-                    service_text = "Soir"
-                    service_color = "#B0C4DE"
-            else:
-                service_icon = "📦"
-                service_text = "Sans service"
-                service_color = "#E0E0E0"
-            
+            service_icon = "🌅" if cmd.get('service') == 0 else "🌙"
             badge_text, badge_type = get_badge_statut(cmd.get('date_obj'))
 
             # Colorer différemment selon le statut
@@ -288,13 +264,6 @@ with tab1:
             heure_display = cmd.get('heure_str') or ""
 
             with st.expander(f"{title_prefix} {cmd.get('client','')} - {cmd.get('couverts',0)} couverts - {date_display} {heure_display} | {badge_text}", expanded=False):
-                # Badge service visible
-                st.markdown(f"""
-                <div style='display: inline-block; background-color: {service_color}; padding: 5px 15px; border-radius: 15px; margin-bottom: 10px;'>
-                    <strong>{service_icon} {service_text}</strong>
-                </div>
-                """, unsafe_allow_html=True)
-                
                 # Infos principales avec badge
                 col_badge = st.columns(1)[0]
                 with col_badge:
@@ -330,35 +299,19 @@ with tab1:
                     st.error("Erreur lors de la récupération des détails de la commande.")
                     details = {'formules': [], 'produits': []}
 
-                # Formules avec leurs produits
+                # Formules
                 if details.get('formules'):
                     st.subheader("📋 Formules")
                     for formule_id, formule_nom, qte_rec, qte_fin in details['formules']:
-                        with st.container():
-                            col1, col2 = st.columns([3, 1])
-                            with col1:
-                                st.markdown(f"### {formule_nom}")
-                            with col2:
-                                st.write(f"**Quantité: {qte_fin}**")
-                            
-                            # Afficher les produits de cette formule
-                            try:
-                                produits_formule = get_produits_formule_avec_calcul(formule_id, cmd.get('couverts', 1))
-                                if produits_formule:
-                                    st.markdown("**Composition :**")
-                                    for prod in produits_formule:
-                                        prod_nom = prod.get('nom', '')
-                                        qte = prod.get('qte_recommandee', 0)
-                                        unite = prod.get('unite', '')
-                                        st.markdown(f"- {prod_nom} : {qte} {unite}")
-                            except Exception as e:
-                                st.caption("Détails de composition non disponibles")
-                            
-                            st.divider()
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.write(f"**{formule_nom}**")
+                        with col2:
+                            st.write(f"Qté: {qte_fin}")
 
-                # Produits individuels (supplémentaires)
+                # Produits individuels
                 if details.get('produits'):
-                    st.subheader("🛒 Produits supplémentaires")
+                    st.subheader("📦 Produits supplémentaires")
                     for produit_id, prod_nom, qte, unite_nom, unite_id in details['produits']:
                         col1, col2 = st.columns([3, 1])
                         with col1:
@@ -463,18 +416,8 @@ with tab2:
                 nombre_couverts = st.number_input("Nombre de couverts *", min_value=1, value=25, step=5)
 
             with col2:
-                avec_service = st.checkbox("Service ?", value=True, help="Cochez si la commande nécessite un service")
-                
-                if avec_service:
-                    service = st.radio("Moment du service", ["Matin", "Midi", "Soir"], horizontal=True)
-                    if service == "Matin":
-                        service_value = 0
-                    elif service == "Midi":
-                        service_value = 1
-                    else:
-                        service_value = 2
-                else:
-                    service_value = None  # Pas de service
+                service = st.radio("Service", ["Matin", "Soir"], horizontal=True)
+                service_value = 0 if service == "Matin" else 1
 
             st.divider()
 

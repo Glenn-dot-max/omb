@@ -46,7 +46,14 @@ from .db_function import (
     get_archives,
     get_archive_details,
     delete_archive,
-    restaurer_archive
+    restaurer_archive,
+    # Bug Reports
+    save_bug_report,
+    get_all_bug_reports,
+    update_bug_status,
+    add_admin_notes,
+    delete_bug_report,
+    get_bug_stats,
 )
 
 __all__ = [

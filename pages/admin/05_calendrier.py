@@ -268,6 +268,7 @@ if vue == "📅 Mois":
         else:
           date_jour = date(annee, mois, numero_jour)
           date_str = date_jour.strftime('%Y-%m-%d')
+          date_jour = date(annee, mois, numero_jour)
           commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
 
           # Bouton invisible couvrant toute la case
@@ -366,7 +367,7 @@ elif vue == "📆 Semaine":
   for i in range(7):
     jour = debut_semaine + timedelta(days=i)
     date_str = jour.strftime('%Y-%m-%d')
-    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
+    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == jour]
 
     with cols[i]:
       # Bouton invisible couvrant toute la colonne
@@ -459,7 +460,7 @@ elif vue == "🗓️ 3 jours":
   for i in range(3):
     jour = date_ref + timedelta(days=i)
     date_str = jour.strftime('%Y-%m-%d')
-    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
+    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == jour]
 
     with cols[i]:
       # Bouton invisible couvrant toute la colonne
@@ -527,7 +528,7 @@ elif vue == "📋 Jour":
     
     with col_stats:
       date_str = date_ref.strftime('%Y-%m-%d')
-      commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
+      commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_ref]
       
       col_s1, col_s2 = st.columns(2)
       with col_s1:
@@ -545,7 +546,7 @@ elif vue == "📋 Jour":
     st.subheader(f"{date_ref.strftime('%A %d %B %Y')}")
     
     date_str = date_ref.strftime('%Y-%m-%d')
-    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_jour]
+    commandes_jour = [c for c in commandes_filtrees if to_date(c['date']) == date_ref]
     
     # Classe CSS
     css_class = "calendar-day-cell-today" if date_ref == date.today() else "calendar-day-cell"
