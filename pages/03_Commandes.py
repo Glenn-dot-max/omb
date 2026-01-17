@@ -39,6 +39,10 @@ from database import (
     get_produits_formule_avec_calcul
 )
 
+# ============= GESTION DES EXPANDERS OUVERTS ==============
+if 'expander_ouvert' not in st.session_state:
+    st.session_state.expander_ouvert = None
+
 # Configuration
 st.set_page_config(page_title="Commandes", page_icon="📝", layout="wide")
 
@@ -134,7 +138,7 @@ def cached_get_all_commandes():
 def cached_get_commandes_details(commande_id):
     """ Récupérer les détails d'une commande (cache 1 min)"""
     try:
-        return get_commande_details(commande_id) or {'formules': [], 'produits': []}
+        return cached_get_commandes_details(commande_id) or {'formules': [], 'produits': []}
     except Exception:
         return {'formules': [], 'produits': []}
 
@@ -142,7 +146,7 @@ def cached_get_commandes_details(commande_id):
 def cached_get_produits_formule(formule_id, nb_couverts):
     """ Récupérer les produits d'une formule avec calcul (cache 2 min)"""
     try:
-        return get_produits_formule_avec_calcul(formule_id, nb_couverts) or []
+        return cached_get_produits_formule(formule_id, nb_couverts) or []
     except Exception:
         return []
 
@@ -319,8 +323,14 @@ with tab1:
             show_details_key = f"show_details_{cmd['id']}"
             is_editing = st.session_state.get(edit_mode_key, False)
 
-            with st.expander(f"{title_prefix} {cmd.get('client','')} - {cmd.get('couverts',0)} couverts - {date_display} {heure_display} | {badge_text}", expanded=is_editing):
+            est_ouvert = is_editing or (st.session_state.expander_ouvert == cmd['id'])
+
+            with st.expander(f"{title_prefix} {cmd.get('client','')} - {cmd.get('couverts',0)} couverts - {date_display} {heure_display} | {badge_text}", expanded=est_ouvert):
                 
+                # Réinitialiser après affichage pour éviter qu'il reste ouvert indéfiniment 
+                if st.session_state.expander_ouvert == cmd['id']:
+                    st.session_state.expander_ouvert = None
+
                 # Badge service
                 st.markdown(f"""
                 <div style='display: inline-block; background-color: {service_color}; padding: 5px 15px; border-radius: 15px; margin-bottom: 10px;'>
@@ -422,6 +432,7 @@ with tab1:
                                                     try:
                                                         remove_produit_from_commande(cmd['id'], prod_id)
                                                         st.cache_data.clear()
+                                                        st.session_state.expander_ouvert = cmd['id']
                                                         st.rerun()
                                                     except Exception as e:
                                                         st.error(f"Erreur:  {e}")
@@ -433,6 +444,7 @@ with tab1:
                                                         # Mettre à jour la quantité du produit
                                                         update_quantite_produit_commande(cmd['id'], prod_id, new_qte_formule)
                                                         st.cache_data.clear()
+                                                        st.session_state.expander_ouvert = cmd['id']
                                                         st.rerun()
                                                     except Exception as e:
                                                         st.error(f"Erreur:  {e}")
@@ -471,6 +483,7 @@ with tab1:
                                     try:
                                         remove_produit_from_commande(cmd['id'], prod_id)
                                         st.cache_data.clear()
+                                        st.session_state.expander_ouvert = cmd['id']
                                         st.rerun()
                                     except Exception as e:
                                         st.error(f"Erreur:  {e}")
@@ -518,6 +531,7 @@ with tab1:
                                 try: 
                                     add_produit_to_commande(cmd['id'], produit_select[0], qte_add, unite_select)
                                     st.cache_data.clear()
+                                    st.session_state.expander_ouvert = cmd['id']
                                     st.rerun()
                                 except Exception as e: 
                                     st.error(f"Erreur: {e}")
@@ -577,6 +591,7 @@ with tab1:
                                         
                                         st.success("✅ Formule ajoutée à la commande")
                                         st.cache_data.clear()
+                                        st.session_state.expander_ouvert = cmd['id']
                                         st.rerun()
                                     else:
                                         st.error("❌ Échec de l'ajout de la formule")
@@ -617,6 +632,7 @@ with tab1:
                                     st. success("✅ Commande mise à jour !")
                                     st.session_state[edit_mode_key] = False
                                     st.cache_data.clear()
+                                    st.session_state.expander_ouvert = cmd['id']
                                     st.rerun()
                                 else:
                                     st.error("❌ Échec de la mise à jour")

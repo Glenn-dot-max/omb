@@ -21,6 +21,10 @@ from database import (
     init_db_if_needed,
 )
 
+# ========== GESTION DES EXPANDERS ==========
+if 'expander_formule_ouvert' not in st.session_state:
+    st.session_state.expander_formule_ouvert = None
+
 @st.cache_data(ttl=120)
 def cached_get_formules():
     return get_formules() or []
@@ -354,7 +358,14 @@ if not st.session_state.composition_formule_mode:
             icone = "🍳" if type_formule == "Brunch" else "🍽️"
             badge = f"[{type_formule}]"
 
-            with st.expander(f"{icone} {nom_formule} {badge} ({len(details)} produits)", expanded=False):
+            est_ouvert = (st.session_state.expander_formule_ouvert == formule_id)
+
+            with st.expander(f"{icone} {nom_formule} {badge} ({len(details)} produits)", expanded=est_ouvert):
+
+                # Réinitialiser après affichage pour éviter qu'il reste ouvert indéfiniment
+                if st.session_state.expander_formule_ouvert == formule_id:
+                    st.session_state.expander_formule_ouvert = None
+
                 col_type1, col_type2 = st.columns([4, 1])
                 with col_type1:
                     nouveau_type = st.selectbox(
@@ -370,6 +381,7 @@ if not st.session_state.composition_formule_mode:
                         if update_formule(formule_id, nouveau_type):
                             st.success("✅ Type mis à jour !")
                             st.cache_data.clear()
+                            st.session_state.expander_formule_ouvert = formule_id
                             st.rerun()
                         else:
                             st.error("❌ Erreur")
@@ -414,6 +426,7 @@ if not st.session_state.composition_formule_mode:
                                 if update_quantite_in_formule(formule_id, item["produit_id"], new_qty):
                                     st.success("Quantité mise à jour")
                                     st.cache_data.clear()
+                                    st.session_state.expander_formule_ouvert = formule_id
                                     st.rerun()
                                 else:
                                     st.error("Erreur lors de la mise à jour")
@@ -429,6 +442,7 @@ if not st.session_state.composition_formule_mode:
                             if remove_produit_from_formule(formule_id, item["produit_id"]):
                                 st.success("Retiré !")
                                 st.cache_data.clear()
+                                st.session_state.expander_formule_ouvert = formule_id
                                 st.rerun()
 
                 if not details:
@@ -485,6 +499,7 @@ if not st.session_state.composition_formule_mode:
                             if add_produit_to_formule(formule_id, selected_prod_id, quantite, selected_unite_id):
                                 st.success("✅ Produit ajouté !")
                                 st.cache_data.clear()
+                                st.session_state.expander_formule_ouvert = formule_id
                                 st.rerun()
                             else:
                                 st.error("❌ Ce produit est déjà dans la formule")
@@ -495,6 +510,7 @@ if not st.session_state.composition_formule_mode:
                     if delete_formule(formule_id):
                         st.success("Formule supprimée !")
                         st.cache_data.clear()
+
                         st.rerun()
     else:
         st.info("Aucune formule. Créez-en une ci-dessus !")
