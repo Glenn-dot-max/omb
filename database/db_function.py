@@ -19,7 +19,6 @@ def add_category(nom: str) -> bool:
         return False
 
 def delete_category(category_id: int) -> bool:
-    """Supprime une catégorie avec gestion d'erreur améliorée"""
     try:
         with get_conn() as c:
             c.execute("SELECT COUNT(*) FROM produits WHERE categorie_id = %s", (category_id,))
@@ -28,8 +27,7 @@ def delete_category(category_id: int) -> bool:
                 return False
             c.execute("DELETE FROM categories WHERE id = %s", (category_id,))
             return True
-    except Exception as e:
-        print(f"❌ Erreur lors de la suppression de la catégorie {category_id}: {e}")
+    except:
         return False
 
 def update_category(category_id: int, nouveau_nom: str) -> bool:
@@ -57,7 +55,6 @@ def add_type(nom: str) -> bool:
         return False
 
 def delete_type(type_id: int) -> bool:
-    """Supprime un type avec gestion d'erreur améliorée"""
     try:
         with get_conn() as c:
             c.execute("SELECT COUNT(*) FROM produits WHERE type_id = %s", (type_id,))
@@ -66,8 +63,7 @@ def delete_type(type_id: int) -> bool:
                 return False
             c.execute("DELETE FROM types WHERE id = %s", (type_id,))
             return True
-    except Exception as e:
-        print(f"❌ Erreur lors de la suppression du type {type_id}: {e}")
+    except:
         return False
 
 def update_type(type_id: int, nouveau_nom: str) -> bool:
@@ -132,13 +128,11 @@ def add_produit(nom: str, categorie_id: Optional[int], type_id: Optional[int]) -
         return False
 
 def delete_produit(produit_id: int) -> bool:
-    """Supprime un produit avec gestion d'erreur améliorée"""
     try:
         with get_conn() as c:
             c.execute("DELETE FROM produits WHERE id = %s", (produit_id,))
             return True
-    except Exception as e:
-        print(f"❌ Erreur lors de la suppression du produit {produit_id}: {e}")
+    except:
         return False
 
 # ========== FORMULES =============
@@ -221,13 +215,11 @@ def get_all_formules_with_details() -> Dict[int, Dict]:
     
     
 def delete_formule(formule_id: int) -> bool:
-    """Supprime une formule avec gestion d'erreur améliorée"""
     try:
         with get_conn() as c:
             c.execute("DELETE FROM formules WHERE id = %s", (formule_id,))
             return True
-    except Exception as e:
-        print(f"❌ Erreur lors de la suppression de la formule {formule_id}: {e}")
+    except:
         return False
 
 def add_produit_to_formule(formule_id: int, produit_id: int, quantite: float, unite_id: int) -> bool:
@@ -380,13 +372,11 @@ def get_all_commandes_with_details() -> List[Dict]:
 
 
 def delete_commande(commande_id: int) -> bool:
-    """Supprime une commande avec gestion d'erreur améliorée"""
     try:
         with get_conn() as c:
             c.execute("DELETE FROM carnet_commande WHERE id = %s", (commande_id,))
             return True
-    except Exception as e:
-        print(f"❌ Erreur lors de la suppression de la commande {commande_id}: {e}")
+    except:
         return False
 
 def update_commande(commande_id: int, nom_client: str, nb_couverts: int, service: int,
@@ -711,14 +701,13 @@ def get_archive_details(archive_id: int) -> Dict:
 
 def delete_archive(archive_id: int) -> bool:
     """
-    Supprime une archive avec gestion d'erreur améliorée
+    Supprime une archive
     """
     try:
         with get_conn() as c:
             c.execute("DELETE FROM commandes_archivees WHERE id = %s", (archive_id,))
             return True
-    except Exception as e:
-        print(f"❌ Erreur lors de la suppression de l'archive {archive_id}: {e}")
+    except:
         return False
 
 def restaurer_archive(archive_id: int) -> Optional[int]:
