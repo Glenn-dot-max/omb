@@ -102,25 +102,25 @@ def normalize_commandes(raw_commandes):
             continue
     return normalized
 
-@st.cache_data(ttl=300) # Cache for 5 minutes
+@st.cache_data(ttl=300)  # Cache for 5 minutes
 def cached_get_formules():
-    """ Réupère les formules (cache 5 min car change rarement)"""
+    """Récupère les formules (cache 5 min car change rarement)"""
     try:
         return get_formules() or []
     except Exception:
         return []
 
-@st.cache_data(ttl=300) # Cache for 5 minutes
+@st.cache_data(ttl=300)  # Cache for 5 minutes
 def cached_get_produits():
-    """ Réupère les produits (cache 5 min car change rarement)"""
+    """Récupère les produits (cache 5 min car change rarement)"""
     try:
         return get_produits() or []
     except Exception:
         return []
 
-@st.cache_data(ttl=300) # Cache for 5 minutes
+@st.cache_data(ttl=300)  # Cache for 5 minutes
 def cached_get_unites():
-    """ Réupère les unités (cache 5 min car change rarement)"""
+    """Récupère les unités (cache 5 min car change rarement)"""
     try:
         return get_unites() or []
     except Exception:
@@ -128,7 +128,7 @@ def cached_get_unites():
 
 @st.cache_data(ttl=300)
 def cached_get_all_commandes():
-    """ Récupère toutes les commandes avec détails (cache 5 min) """
+    """Récupère toutes les commandes avec détails (cache 5 min)"""
     try:
         return get_all_commandes_with_details() or []
     except Exception:
@@ -136,17 +136,17 @@ def cached_get_all_commandes():
 
 @st.cache_data(ttl=60)
 def cached_get_commandes_details(commande_id):
-    """ Récupérer les détails d'une commande (cache 1 min)"""
+    """Récupérer les détails d'une commande (cache 1 min)"""
     try:
-        return cached_get_commandes_details(commande_id) or {'formules': [], 'produits': []}
+        return get_commande_details(commande_id) or {'formules': [], 'produits': []}
     except Exception:
         return {'formules': [], 'produits': []}
 
 @st.cache_data(ttl=120)
 def cached_get_produits_formule(formule_id, nb_couverts):
-    """ Récupérer les produits d'une formule avec calcul (cache 2 min)"""
+    """Récupérer les produits d'une formule avec calcul (cache 2 min)"""
     try:
-        return cached_get_produits_formule(formule_id, nb_couverts) or []
+        return get_produits_formule_avec_calcul(formule_id, nb_couverts) or []
     except Exception:
         return []
 
@@ -327,9 +327,6 @@ with tab1:
 
             with st.expander(f"{title_prefix} {cmd.get('client','')} - {cmd.get('couverts',0)} couverts - {date_display} {heure_display} | {badge_text}", expanded=est_ouvert):
                 
-                # Réinitialiser après affichage pour éviter qu'il reste ouvert indéfiniment 
-                if st.session_state.expander_ouvert == cmd['id']:
-                    st.session_state.expander_ouvert = None
 
                 # Badge service
                 st.markdown(f"""

@@ -25,6 +25,7 @@ from database import (
 if 'expander_formule_ouvert' not in st.session_state:
     st.session_state.expander_formule_ouvert = None
 
+
 @st.cache_data(ttl=120)
 def cached_get_formules():
     return get_formules() or []
@@ -362,9 +363,6 @@ if not st.session_state.composition_formule_mode:
 
             with st.expander(f"{icone} {nom_formule} {badge} ({len(details)} produits)", expanded=est_ouvert):
 
-                # Réinitialiser après affichage pour éviter qu'il reste ouvert indéfiniment
-                if st.session_state.expander_formule_ouvert == formule_id:
-                    st.session_state.expander_formule_ouvert = None
 
                 col_type1, col_type2 = st.columns([4, 1])
                 with col_type1:
