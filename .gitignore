@@ -41,6 +41,7 @@ MANIFEST
 
 # ====== ENVIRONNEMENTS VIRTUELS ======
 venv/
+.venv/
 env/
 ENV/
 env.bak/
