@@ -125,11 +125,19 @@ else:
                     step=0.5,
                     key=f"qty_add_new_{formule_id}",
                 )
-
+            
             with col3:
+                # Trouver l'index de "unité" pour le mettre par défaut
+                index_unite_defaut = 0
+                for i, u in enumerate(unites):
+                    if u["nom"].lower() == "unité":
+                        index_unite_defaut = i
+                        break
+                
                 selected_unite = st.selectbox(
                     "Unité",
                     options=unites,
+                    index=index_unite_defaut,
                     format_func=lambda u: u["nom"],
                     key=f"unite_select_new_{formule_id}",
                 )
@@ -446,9 +454,17 @@ if not st.session_state.composition_formule_mode:
                         )
 
                     with col3:
+                        # Trouver l'index de "unité" pour le mettre par défaut
+                        index_unite_defaut = 0
+                        for i, u in enumerate(unites):
+                            if u["nom"].lower() == "unité":
+                                index_unite_defaut = i
+                                break
+                        
                         selected_unite = st.selectbox(
                             "Unité",
                             options=unites,
+                            index=index_unite_defaut,
                             format_func=lambda u: u["nom"],
                             key=f"unite_select_{formule_id}",
                         )

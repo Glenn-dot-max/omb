@@ -20,6 +20,45 @@ from database import (
     init_db_if_needed,
 )
 
+@st.cache_data(ttl=120)
+def cached_get_commandes():
+    try:
+        return get_commandes() or []
+    except:
+        return []
+
+@st.cache_data(ttl=120)
+def cached_get_commande_details(commande_id):
+    try:
+        return get_commande_details(commande_id) or {'formules': [], 'produits': []}
+    except:
+        return {'formules': [], 'produits': []}
+
+@st.cache_data(ttl=300)
+def cached_get_produit_by_id(produit_id):
+    try:
+        return get_produit_by_id(produit_id)
+    except:
+        return None
+
+@st.cache_data(ttl=300)
+def cached_get_all_produits():
+    """Charge TOUS les produits en une seule requête et retourne un dict par id"""
+    try:
+        from database import get_produits
+        produits = get_produits() or []
+        return {p['id']: p for p in produits}
+    except:
+        return {}
+
+
+@st.cache_data(ttl=120)
+def cached_get_produits_formule(formule_id, nb_couverts):
+    try:
+        return get_produits_formule_avec_calcul(formule_id, nb_couverts) or []
+    except:
+        return []
+
 # ========================================
 # 🔐 PROTECTION PAR MOT DE PASSE
 # ========================================
@@ -58,7 +97,7 @@ st.title("📊 Planning de production")
 # ======= FILTRES DE PÉRIODES ==========
 st.subheader("Période de production")
 
-col1, col2, col3 = st.columns([2, 2, 1])
+col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
 
 with col1:
     date_debut = st.date_input(
@@ -71,21 +110,30 @@ with col2:
     # Sélection de vue
     vue = st.selectbox(
         "Vue",
-        ["Jour", "3 jours", "Semaine", "2 semaines"],
+        ["Jour", "3 jours", "Semaine", "2 semaines", "Personnalisé"],
         key="vue_prod"
     )
 
-# Initialiser l'état du bouton si absent
-if 'generer_planning' not in st.session_state:
-    st.session_state['generer_planning'] = False
-
 with col3:
+    # Afficher date de fin seuelemnt si "Personalisé"
+    if vue == "Personnalisé":
+        date_fin_custom = st.date_input(
+            "Date de fin",
+            value= date_debut + timedelta(days=7),
+            min_value=date_debut,
+            key="date_fin_prod"
+        )
+    else:
+        date_fin_custom = None
+
+
+with col4:
     st.write("")
     st.write("")
-    # Bouton pour générer le planning
-    generer = st.button("🔄 Générer le planning", type="primary", use_container_width=True)
-    if generer:
-        st.session_state['generer_planning'] = True
+    # Bouton pour actualiser les données (vider le cache)
+    if st.button("🔄 Actualiser les données", type="secondary",use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
 
 # Calculer la date de fin selon la vue
 if vue == "Jour":
@@ -97,9 +145,12 @@ elif vue == "3 jours":
 elif vue == "Semaine":
     date_fin = date_debut + timedelta(days=6)
     nb_jours = 7
-else:  # 2 semaines
+elif vue == "2 semaines":
     date_fin = date_debut + timedelta(days=13)
     nb_jours = 14
+else:  # Personnalisé
+    date_fin = date_fin_custom if date_fin_custom else date_debut + timedelta(days=7)
+    nb_jours = (date_fin - date_debut).days + 1
 
 st.info(f"📅 Période: du {date_debut.strftime('%d/%m/%Y')} au {date_fin.strftime('%d/%m/%Y')}")
 
@@ -132,37 +183,43 @@ with col_p3:
 
 st.divider()
 
-if st.session_state.get('generer_planning', False):
-    st.divider()
+st.divider()
 
-    # =============== RÉCUPÉRATION ET TRAITEMENT DES DONNÉES ===============
+# ================ VÉRIFICATION DES COMMANDES DANS LA PÉRIODE ================
 
-    # Récupérer toutes les commandes (mise en cache possible si besoin)
+# Récupérer toutes les commandes
+try:
+    toutes_commandes = cached_get_commandes()
+except Exception as e:
+    st.error(f"Erreur lors de la récupération des commandes: {e}")
+    st.stop()
+
+# Filtrer les commandes dans la période
+commandes_periode = []
+for cmd in toutes_commandes:
     try:
-        toutes_commandes = get_commandes()
-    except Exception as e:
-        st.error(f"Erreur lors de la récupération des commandes: {e}")
-        st.stop()
+        cmd_date = to_date(cmd['date'])
+    except Exception:
+        continue
+    if date_debut <= cmd_date <= date_fin:
+        commandes_periode.append({
+            **cmd,
+            'date_obj': cmd_date
+        })
 
-    # Filtrer les commandes dans la période
-    commandes_periode = []
-    for cmd in toutes_commandes:
-        try:
-            cmd_date = to_date(cmd['date'])
-        except Exception:
-            continue
-        if date_debut <= cmd_date <= date_fin:
-            commandes_periode.append({
-                **cmd,
-                'date_obj': cmd_date
-            })
+# Si aucune commande dans la période, on arrête
+if not commandes_periode:
+    st.info("📭 Aucune commande dans cette période")
+    st.stop()
+
+# ================ GÉNÉRATION DU PLANNING ================
+with st.spinner("⏳ Génération du planning..."):
+
+    # Précharger tous les produits pour éviter les appels multiples
+    tous_les_produits = cached_get_all_produits()
 
     # Trier par date et heure
     commandes_periode = sorted(commandes_periode, key=lambda x: (x['date_obj'], x.get('heure', '')))
-
-    if not commandes_periode:
-        st.warning("Aucune commande dans cette période")
-        st.stop()
 
     st.success(f"✅ {len(commandes_periode)} commande(s) trouvée(s) dans la période")
 
@@ -183,7 +240,7 @@ if st.session_state.get('generer_planning', False):
 
         # Récupérer le détail de la commande
         try:
-            details = get_commande_details(cmd['id'])
+            details = cached_get_commande_details(cmd['id'])
         except Exception as e:
             st.warning(f"Impossible de récupérer les détails de la commande {cmd['id']}: {e}")
             details = {'formules': [], 'produits': []}
@@ -201,7 +258,7 @@ if st.session_state.get('generer_planning', False):
             for formule_id, formule_nom, qte_recommandee, qte_finale in details['formules']:
                 # Récupérer les produits de cette formule avec calcul
                 try:
-                    produits_formule = get_produits_formule_avec_calcul(formule_id, cmd.get('couverts', 0))
+                    produits_formule = cached_get_produits_formule(formule_id, cmd.get('couverts', 0))
                 except Exception:
                     produits_formule = []
 
@@ -213,7 +270,7 @@ if st.session_state.get('generer_planning', False):
                     unite_nom = prod.get('unite', '') or ''
 
                     # Récupérer la catégorie du produit
-                    produit_info = get_produit_by_id(produit_id) if produit_id is not None else None
+                    produit_info = tous_les_produits.get(produit_id)
                     categorie = produit_info['categorie'] if produit_info and produit_info.get('categorie') else "Sans catégorie"
 
                     # Ajouter ou cumuler la quantité
@@ -231,7 +288,7 @@ if st.session_state.get('generer_planning', False):
         # ========== TRAITER LES PRODUITS SUPPLÉMENTAIRES ==========
         if details.get('produits'):
             for produit_id, prod_nom, qte, unite_nom, unite_id in details['produits']:
-                produit_info = get_produit_by_id(produit_id) if produit_id is not None else None
+                produit_info = tous_les_produits.get(produit_id)
                 categorie = produit_info['categorie'] if produit_info and produit_info.get('categorie') else "Sans catégorie"
 
                 if cmd['id'] in produits_par_categorie[categorie][prod_nom][jour]:
@@ -545,7 +602,7 @@ if st.session_state.get('generer_planning', False):
                 # Fusionner les cellules pour le jour (inclure colonne TOTAL)
                 if nb_cols_total > 1:
                     ws.merge_cells(start_row=current_row, start_column=col_idx,
-                                   end_row=current_row, end_column=col_idx + nb_cols_total - 1)
+                                end_row=current_row, end_column=col_idx + nb_cols_total - 1)
 
                 cell = ws.cell(current_row, col_idx)
                 jour_num = jour[8:10] + '/' + jour[5:7]

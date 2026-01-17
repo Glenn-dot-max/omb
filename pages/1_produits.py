@@ -7,7 +7,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from database import (
-  get_produits, 
+  get_produits,
+  produit_existe, 
   add_produit,
   delete_produit,
   get_categories,
@@ -84,13 +85,18 @@ with tab1:
       st.write("")
       if st.button("Ajouter", type="primary", use_container_width=True):
         if nouveau_produit:
-          if add_produit(nouveau_produit, selected_cat_id, selected_type_id):
-            st.success(f"✅ Produits '{nouveau_produit}' ajouté !")
-            st.rerun()
+          # Vérifier si le produit existe déjà
+          if produit_existe(nouveau_produit):
+            st.error(f"❌ Le produit '{nouveau_produit}' existe déjà !")
           else:
-            st.error("❌ Erreur lors de l'ajout")
+            if add_produit(nouveau_produit, selected_cat_id, selected_type_id):
+              st.success(f"✅ Produit '{nouveau_produit}' ajouté !")
+              st.rerun()
+            else:
+              st.error("❌ Erreur lors de l'ajout")
         else:
           st.warning("⚠️ Veuillez entrer un nom")
+
       
   st.divider()
 

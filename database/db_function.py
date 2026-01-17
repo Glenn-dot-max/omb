@@ -104,6 +104,21 @@ def get_produits() -> List[Dict]:
         results = c.fetchall()
         return [{'id': r[0], 'nom': r[1], 'categorie': r[2], 'type': r[3]} for r in results]
 
+def produit_existe(nom: str) -> bool:
+    """
+    Vérifie un produit avec ce nom existe déjà
+    """
+    try:
+        with get_conn() as c:
+            c.execute("""
+                SELECT COUNT(*) FROM produits
+                WHERE LOWER(produit) = LOWER(%s)
+            """, (nom. strip(),))
+            count = c.fetchone()[0]
+            return count > 0
+    except:
+        return False
+
 def add_produit(nom: str, categorie_id: Optional[int], type_id: Optional[int]) -> bool:
     try:
         with get_conn() as c:
@@ -281,6 +296,81 @@ def get_commandes() -> List[Dict]:
         return [{'id': r[0], 'client': r[1], 'couverts': r[2], 'service': r[3], 
                 'date': r[4], 'heure': r[5], 'notes': r[6]} for r in results]
 
+
+def get_all_commandes_with_details() -> List[Dict]:
+    """
+    Récupère TOUTES les commandes avec leurs formules et produits 
+    en seulement 3 requêtes (au lieu de 3 x N)
+    """
+    with get_conn() as c:
+        # 1. Récupère toutes les commandes
+        c.execute("""
+            SELECT id, nom_client, nombre_couverts, service, delivery_date, delivery_hour, notes
+            FROM carnet_commande
+            ORDER BY delivery_date ASC, delivery_hour ASC
+        """)
+        rows = c.fetchall()
+
+        # Créer un dictionnaire indexé par id
+        commandes = {}
+        for r in rows:
+            commandes[r[0]] = {
+                'id': r[0],
+                'client': r[1],
+                'couverts': r[2],
+                'service': r[3],
+                'date': r[4],
+                'heure': r[5],
+                'notes': r[6],
+                'formules': [],
+                'produits': []
+            }
+
+        if not commandes:
+            return []
+        
+        # 2. Récupérer TOUTES les formules pour TOUTES les commandes (1 seule requête)
+        commande_ids = list(commandes.keys())
+        c.execute("""
+            SELECT cf.commande_id, cf.formule_id, f.nom_formule, 
+                   cf.quantite_recommandee, cf.quantite_finale
+            FROM commande_formules cf
+            JOIN formules f ON cf.formule_id = f.id
+            WHERE cf.commande_id IN %s
+        """, (tuple(commande_ids),))
+
+        for r in c.fetchall():
+            commande_id = r[0]
+            if commande_id in commandes:
+                commandes[commande_id]['formules'].append({
+                    'formule_id': r[1],
+                    'nom': r[2],
+                    'qte_recommandee': r[3],
+                    'qte_finale': r[4]
+                })
+
+        # 3. Récupérer TOUS les produits supplémentaires (1 seule requête)
+        c.execute("""
+            SELECT cp.commande_id, cp.produit_id, p.produit, cp.quantite, u.nom
+            FROM commande_produits cp
+            JOIN produits p ON cp.produit_id = p.id
+            LEFT JOIN unite u ON cp.unite_id = u.id
+            WHERE cp.commande_id IN %s
+        """, (tuple(commande_ids),))
+
+        for r in c.fetchall():
+            commande_id = r[0]
+            if commande_id in commandes:
+                commandes[commande_id]['produits'].append({
+                    'produit_id': r[1],
+                    'nom': r[2],
+                    'quantite': r[3],
+                    'unite': r[4]
+                })
+
+        return list(commandes.values())
+
+
 def delete_commande(commande_id: int) -> bool:
     try:
         with get_conn() as c:
@@ -381,7 +471,7 @@ def get_produit_by_id(produit_id: int) -> Optional[Dict]:
 
 def add_produit_to_commande(commande_id: int, produit_id: int, quantite: float, unite_id: int) -> bool:
     """
-    Ajoute un produit supplémentaire à une commmande
+    Ajoute un produit supplémentaire à une commande
     """
     try:
         with get_conn() as c:
@@ -395,7 +485,7 @@ def add_produit_to_commande(commande_id: int, produit_id: int, quantite: float, 
             if result:
                 # UPDATE si existe déjà
                 c.execute("""
-                    UDPATE commande_produits
+                    UPDATE commande_produits
                     SET quantite = %s, unite_id = %s
                     WHERE commande_id = %s AND produit_id = %s
                 """, (quantite, unite_id, commande_id, produit_id))

@@ -25,6 +25,7 @@ from database import (
     delete_commande,
     update_commande,
     get_commande_details,
+    get_all_commandes_with_details,
     add_formule_to_commande,
     add_produit_to_commande,
     remove_produit_from_commande,
@@ -97,25 +98,51 @@ def normalize_commandes(raw_commandes):
             continue
     return normalized
 
-# Caching wrappers for relatively static lists (reduces DB hits)
-@st.cache_data
+@st.cache_data(ttl=300) # Cache for 5 minutes
 def cached_get_formules():
+    """ Réupère les formules (cache 5 min car change rarement)"""
     try:
         return get_formules() or []
     except Exception:
         return []
 
-@st.cache_data
+@st.cache_data(ttl=300) # Cache for 5 minutes
 def cached_get_produits():
+    """ Réupère les produits (cache 5 min car change rarement)"""
     try:
         return get_produits() or []
     except Exception:
         return []
 
-@st.cache_data
+@st.cache_data(ttl=300) # Cache for 5 minutes
 def cached_get_unites():
+    """ Réupère les unités (cache 5 min car change rarement)"""
     try:
         return get_unites() or []
+    except Exception:
+        return []
+
+@st.cache_data(ttl=300)
+def cached_get_all_commandes():
+    """ Récupère toutes les commandes avec détails (cache 5 min) """
+    try:
+        return get_all_commandes_with_details() or []
+    except Exception:
+        return []
+
+@st.cache_data(ttl=60)
+def cached_get_commandes_details(commande_id):
+    """ Récupérer les détails d'une commande (cache 1 min)"""
+    try:
+        return get_commande_details(commande_id) or {'formules': [], 'produits': []}
+    except Exception:
+        return {'formules': [], 'produits': []}
+
+@st.cache_data(ttl=120)
+def cached_get_produits_formule(formule_id, nb_couverts):
+    """ Récupérer les produits d'une formule avec calcul (cache 2 min)"""
+    try:
+        return get_produits_formule_avec_calcul(formule_id, nb_couverts) or []
     except Exception:
         return []
 
@@ -149,10 +176,10 @@ def archiver_commandes_anciennes():
     return nb
 
 # Exécuter l'archivage automatique au chargement de la page
-nb_archivees = archiver_commandes_anciennes()
-if nb_archivees > 0:
+#nb_archivees = archiver_commandes_anciennes()
+#if nb_archivees > 0:
     # Use st.success instead of st.toast for compatibility
-    st.success(f"✅ {nb_archivees} commande(s) archivée(s) automatiquement", icon="📦")
+    #st.success(f"✅ {nb_archivees} commande(s) archivée(s) automatiquement", icon="📦")
 
 # Tabs
 tab1, tab2, tab3 = st.tabs(["📋 Commandes actives", "➕ Nouvelle commande", "📦 Archives"])
@@ -161,7 +188,7 @@ tab1, tab2, tab3 = st.tabs(["📋 Commandes actives", "➕ Nouvelle commande", "
 # ============== TAB 1 : Commandes Actives ============
 with tab1:
     try:
-        raw_commandes = get_commandes() or []
+        raw_commandes = cached_get_all_commandes()
     except Exception:
         st.error("Erreur lors de la récupération des commandes.")
         raw_commandes = []
@@ -250,11 +277,11 @@ with tab1:
         # Fonction pour afficher une commande
         def afficher_commande(cmd):
             # Vérifier si la commande a un service
-            avec_service = cmd.get('avec_service', True)  # True par défaut pour compatibilité
+            avec_service = cmd.get('avec_service', True)
             
-            # Icônes et badges service (seulement si avec_service)
+            # Icônes et badges service
             if avec_service and cmd.get('service') is not None:
-                service_val = cmd.get('service', 0)
+                service_val = cmd. get('service', 0)
                 if service_val == 0:
                     service_icon = "🌅"
                     service_text = "Matin"
@@ -267,136 +294,439 @@ with tab1:
                     service_icon = "🌙"
                     service_text = "Soir"
                     service_color = "#B0C4DE"
-            else:
+            else: 
                 service_icon = "📦"
                 service_text = "Sans service"
                 service_color = "#E0E0E0"
             
             badge_text, badge_type = get_badge_statut(cmd.get('date_obj'))
 
-            # Colorer différemment selon le statut
+            # Préfixe selon statut
             if badge_type == "error":
                 title_prefix = "🔴"
             elif badge_type == "warning":
                 title_prefix = "🟠"
-            elif "Il y a" in badge_text:
+            elif "Il y a" in badge_text: 
                 title_prefix = "⚠️"
-            else:
+            else: 
                 title_prefix = service_icon
 
             date_display = str(cmd.get('date_obj')) if cmd.get('date_obj') else str(cmd.get('date') or "")
             heure_display = cmd.get('heure_str') or ""
 
-            with st.expander(f"{title_prefix} {cmd.get('client','')} - {cmd.get('couverts',0)} couverts - {date_display} {heure_display} | {badge_text}", expanded=False):
-                # Badge service visible
+            # Clés pour le session_state
+            edit_mode_key = f"edit_mode_{cmd['id']}"
+            show_details_key = f"show_details_{cmd['id']}"
+            is_editing = st.session_state.get(edit_mode_key, False)
+
+            with st.expander(f"{title_prefix} {cmd.get('client','')} - {cmd.get('couverts',0)} couverts - {date_display} {heure_display} | {badge_text}", expanded=is_editing):
+                
+                # Badge service
                 st.markdown(f"""
                 <div style='display: inline-block; background-color: {service_color}; padding: 5px 15px; border-radius: 15px; margin-bottom: 10px;'>
                     <strong>{service_icon} {service_text}</strong>
                 </div>
                 """, unsafe_allow_html=True)
-                
-                # Infos principales avec badge
-                col_badge = st.columns(1)[0]
-                with col_badge:
-                    badge_text_display, badge_type_display = get_badge_statut(cmd.get('date_obj'))
-                    if badge_type_display == "error":
-                        st.error(f"**{badge_text_display}**")
-                    elif badge_type_display == "warning":
-                        st.warning(f"**{badge_text_display}**")
-                    elif "Il y a" in badge_text_display:
-                        st.info(f"**{badge_text_display}**")
-                    else:
-                        st.success(f"**{badge_text_display}**")
 
-                col1, col2, col3, col4 = st.columns(4)
-                with col1:
-                    st.metric("Client", cmd.get('client'))
-                with col2:
-                    st.metric("Couverts", cmd.get('couverts'))
-                with col3:
-                    st.metric("Date", date_display)
-                with col4:
-                    st.metric("Heure", heure_display)
+                if is_editing:
+                    # ========== MODE ÉDITION COMPLET ==========
+                    st. subheader("✏️ Modifier la commande")
+                    
+                    # SECTION 1 :  Infos générales
+                    st.markdown("#### 📋 Informations générales")
+                    col1, col2 = st.columns(2)
 
-                if cmd.get('notes'):
-                    st.info(f"📝 Notes : {cmd['notes']}")
+                    with col1:
+                        new_client = st.text_input(
+                            "Nom du client",
+                            value=cmd.get('client', ''),
+                            key=f"edit_client_{cmd['id']}"
+                        )
+                        new_couverts = st.number_input(
+                            "Nombre de couverts",
+                            min_value=1,
+                            value=cmd.get('couverts', 1),
+                            key=f"edit_couverts_{cmd['id']}"
+                        )
+                        new_service = st.selectbox(
+                            "Service",
+                            options=[0, 1, 2],
+                            index=cmd.get('service', 0) or 0,
+                            format_func=lambda x: ["Matin", "Midi", "Soir"][x],
+                            key=f"edit_service_{cmd['id']}"
+                        )
 
-                st.divider()
+                    with col2:
+                        new_date = st.date_input(
+                            "Date de livraison",
+                            value=cmd.get('date_obj') or date.today(),
+                            key=f"edit_date_{cmd['id']}"
+                        )
+                        new_heure = st.time_input(
+                            "Heure de livraison",
+                            value=time(9, 0),
+                            key=f"edit_heure_{cmd['id']}"
+                        )
+                        new_notes = st.text_area(
+                            "Notes",
+                            value=cmd.get('notes', '') or '',
+                            key=f"edit_notes_{cmd['id']}"
+                        )
 
-                # Détails de la commande
-                try:
-                    details = get_commande_details(cmd['id']) or {'formules': [], 'produits': []}
-                except Exception:
-                    st.error("Erreur lors de la récupération des détails de la commande.")
-                    details = {'formules': [], 'produits': []}
+                    st.divider()
 
-                # Formules avec leurs produits
-                if details.get('formules'):
-                    st.subheader("📋 Formules")
-                    for formule_id, formule_nom, qte_rec, qte_fin in details['formules']:
-                        with st.container():
-                            col1, col2 = st.columns([3, 1])
+                    # SECTION 2 : Contenu de la commande (modifiable)
+                    st.markdown("#### 🛒 Contenu de la commande")
+                    
+                    details = cached_get_commandes_details(cmd['id'])
+                    
+                    # ========== FORMULES ET LEURS PRODUITS (MODIFIABLES) ==========
+                    if details.get('formules'):
+                        st.markdown("**📋 Formules :**")
+                        for f_idx, (formule_id, formule_nom, qte_rec, qte_fin) in enumerate(details['formules']):
+                            with st.container():
+                                st.markdown(f"### 🍽️ {formule_nom}")
+                                st.caption(f"Pour {qte_fin} couverts")
+                                
+                                # Produits de la formule (MODIFIABLES)
+                                try:
+                                    produits_formule = cached_get_produits_formule(formule_id, cmd. get('couverts', 1))
+                                    if produits_formule:
+                                        st.markdown("**Composition (modifiable) :**")
+                                        
+                                        for p_idx, prod in enumerate(produits_formule):
+                                            prod_id = prod.get('id')
+                                            prod_nom = prod.get('nom', '')
+                                            qte_recommandee = prod.get('qte_recommandee', 0)
+                                            unite = prod.get('unite', '')
+                                            unite_id = prod.get('unite_id')
+                                            
+                                            col1, col2, col3, col4, col5 = st.columns([2.5, 1.2, 1.2, 0.8, 0.8])
+                                            with col1:
+                                                st.write(f"**{prod_nom}**")
+                                            with col2:
+                                                st. caption(f"Recommandé: {qte_recommandee}")
+                                            with col3:
+                                                new_qte_formule = st.number_input(
+                                                    "Qté",
+                                                    value=float(qte_recommandee),
+                                                    min_value=0.0,
+                                                    step=0.5,
+                                                    key=f"edit_f_qte_{cmd['id']}_{formule_id}_{prod_id}_{p_idx}",
+                                                    label_visibility="collapsed"
+                                                )
+                                            with col4:
+                                                st.write(f"{unite}")
+                                            with col5:
+                                                if st.button("🗑️", key=f"del_f_prod_{cmd['id']}_{formule_id}_{prod_id}_{p_idx}"):
+                                                    try:
+                                                        remove_produit_from_commande(cmd['id'], prod_id)
+                                                        st.cache_data.clear()
+                                                        st.rerun()
+                                                    except Exception as e:
+                                                        st.error(f"Erreur:  {e}")
+                                            
+                                            # Si quantité modifiée, afficher bouton sauvegarde
+                                            if new_qte_formule != qte_recommandee:
+                                                if st.button(f"💾 Sauvegarder {prod_nom}", key=f"save_f_prod_{cmd['id']}_{formule_id}_{prod_id}_{p_idx}", type="secondary"):
+                                                    try:
+                                                        # Mettre à jour la quantité du produit
+                                                        update_quantite_produit_commande(cmd['id'], prod_id, new_qte_formule)
+                                                        st.cache_data.clear()
+                                                        st.rerun()
+                                                    except Exception as e:
+                                                        st.error(f"Erreur:  {e}")
+                                    else:
+                                        st. caption("Aucun produit dans cette formule")
+                                except Exception as e:
+                                    st. caption(f"Détails non disponibles")
+                                
+                                st.divider()
+                    
+                    # ========== PRODUITS SUPPLÉMENTAIRES (MODIFIABLES) ==========
+                    if details.get('produits'):
+                        st.markdown("**📦 Produits supplémentaires :**")
+                        for idx, prod in enumerate(details['produits']):
+                            try: 
+                                prod_id, prod_nom, qte, unite_nom, unite_id = prod
+                            except: 
+                                continue
+                            
+                            col1, col2, col3, col4 = st.columns([3, 1.5, 1, 1])
                             with col1:
-                                st.markdown(f"### {formule_nom}")
+                                st.write(f"**{prod_nom}**")
                             with col2:
-                                st.write(f"**Quantité: {qte_fin}**")
-                            
-                            # Afficher les produits de cette formule
-                            try:
-                                produits_formule = get_produits_formule_avec_calcul(formule_id, cmd.get('couverts', 1))
-                                if produits_formule:
-                                    st.markdown("**Composition :**")
-                                    for prod in produits_formule:
-                                        prod_nom = prod.get('nom', '')
-                                        qte = prod.get('qte_recommandee', 0)
-                                        unite = prod.get('unite', '')
-                                        st.markdown(f"- {prod_nom} : {qte} {unite}")
-                            except Exception as e:
-                                st.caption("Détails de composition non disponibles")
-                            
-                            st.divider()
+                                new_qte = st.number_input(
+                                    "Qté",
+                                    value=float(qte),
+                                    min_value=0.0,
+                                    step=0.5,
+                                    key=f"edit_qte_{cmd['id']}_{prod_id}_{idx}",
+                                    label_visibility="collapsed"
+                                )
+                            with col3:
+                                st.write(f"{unite_nom or ''}")
+                            with col4:
+                                if st.button("🗑️", key=f"del_prod_{cmd['id']}_{prod_id}_{idx}"):
+                                    try:
+                                        remove_produit_from_commande(cmd['id'], prod_id)
+                                        st.cache_data.clear()
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Erreur:  {e}")
+                    
+                    # Message si vide
+                    if not details. get('formules') and not details.get('produits'):
+                        st. info("📭 Aucun contenu dans cette commande")
 
-                # Produits individuels (supplémentaires)
-                if details.get('produits'):
-                    st.subheader("🛒 Produits supplémentaires")
-                    for produit_id, prod_nom, qte, unite_nom, unite_id in details['produits']:
-                        col1, col2 = st.columns([3, 1])
+                    st.divider()
+
+                    # SECTION 3 :  Ajouter un produit
+                    st.markdown("#### ➕ Ajouter un produit")
+                    produits = cached_get_produits()
+                    unites = cached_get_unites()
+
+                    if produits: 
+                        col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
                         with col1:
-                            st.write(f"**{prod_nom}**")
+                            produit_select = st.selectbox(
+                                "Produit",
+                                options=[(p['id'], p['nom']) for p in produits],
+                                format_func=lambda x: x[1],
+                                key=f"add_prod_select_{cmd['id']}",
+                                label_visibility="collapsed"
+                            )
                         with col2:
-                            st.write(f"{qte} {unite_nom or ''}")
+                            qte_add = st.number_input(
+                                "Qté",
+                                min_value=0.5,
+                                value=1.0,
+                                step=0.5,
+                                key=f"add_prod_qte_{cmd['id']}",
+                                label_visibility="collapsed"
+                            )
+                        with col3:
+                            unite_select = st.selectbox(
+                                "Unité",
+                                options=[u['id'] for u in unites],
+                                format_func=lambda x: next((u['nom'] for u in unites if u['id'] == x), ""),
+                                key=f"add_prod_unite_{cmd['id']}",
+                                label_visibility="collapsed"
+                            )
+                        with col4:
+                            if st.button("➕", key=f"add_prod_btn_{cmd['id']}", type="primary"):
+                                try: 
+                                    add_produit_to_commande(cmd['id'], produit_select[0], qte_add, unite_select)
+                                    st.cache_data.clear()
+                                    st.rerun()
+                                except Exception as e: 
+                                    st.error(f"Erreur: {e}")
 
-                st.divider()
+                    st.divider()
 
-                # Actions
-                col1, col2, col3 = st.columns(3)
+                    # SECTION 4 : Ajouter une formule 
+                    st.markdown("#### ➕ Ajouter une formule")
+                    formules = cached_get_formules()
 
-                with col1:
-                    if st.button("✏️ Modifier", key=f"edit_{cmd['id']}", use_container_width=True):
-                        st.session_state[f"edit_mode_{cmd['id']}"] = True
-                        st.rerun()
+                    if formules:
+                        col1, col2, col3 = st.columns([3, 1, 1])
+                        with col1:
+                            formule_select = st.selectbox(
+                                "Formule",
+                                options=[(f['id'], f['nom']) for f in formules],
+                                format_func=lambda x: x[1],
+                                key=f"add_formule_select_{cmd['id']}",
+                                label_visibility="collapsed"
+                            )
+                        with col2:
+                            nb_couverts_formule = st.number_input(
+                                "Couverts",
+                                min_value=1,
+                                value=cmd.get('couverts', 1),
+                                key=f"add_formule_couverts_{cmd['id']}",
+                                label_visibility="collapsed"
+                            )
+                        with col3:
+                            if st.button("➕", key=f"add_formule_btn_{cmd['id']}", type="secondary"):
+                                try:
+                                    #1, Ajouter la formule à la commande
+                                    success_formule = add_formule_to_commande(
+                                        cmd['id'],
+                                        formule_select[0],
+                                        nb_couverts_formule
+                                    )
 
-                with col2:
-                    if st.button("📦 Archiver (Livrée)", key=f"archive_{cmd['id']}", use_container_width=True, type="primary"):
-                        try:
-                            if archiver_commande(cmd['id'], statut="Livrée"):
-                                st.success("Commande archivée !")
-                                st.rerun()
-                            else:
-                                st.error("Impossible d'archiver la commande.")
-                        except Exception:
-                            st.error("Erreur lors de l'archivage.")
+                                    if success_formule:
+                                        # 2; Récupérer les produits de la formule
+                                        produits_formule = cached_get_produits_formule(
+                                            formule_select[0],
+                                            nb_couverts_formule
+                                        )
 
-                with col3:
-                    if st.button("🗑️ Supprimer", key=f"del_{cmd['id']}", use_container_width=True):
-                        try:
-                            if delete_commande(cmd['id']):
-                                st.success("Commande supprimée !")
-                                st.rerun()
-                            else:
-                                st.error("Impossible de supprimer la commande.")
-                        except Exception:
-                            st.error("Erreur lors de la suppression de la commande.")
+                                        # 3; Ajouter chaque produit à la commande
+                                        for prod in produits_formule:
+                                            try:
+                                                add_produit_to_commande(
+                                                    cmd['id'],
+                                                    prod.get('id'),
+                                                    prod.get('qte_recommandee', 0),
+                                                    prod.get('unite_id')
+                                                )
+                                            except:
+                                                pass
+                                        
+                                        st.success("✅ Formule ajoutée à la commande")
+                                        st.cache_data.clear()
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ Échec de l'ajout de la formule")
+                                except Exception as e:
+                                    st.error(f"Erreur: {e}")
+                        
+                        # Aperçu des produits dans la formule sélectionnée
+                        with st.expander("👁️ Aperçu de la formule sélectionnée", expanded=False):
+                            try:
+                                apercu_produits = cached_get_produits_formule(formule_select[0], nb_couverts_formule)
+                                if apercu_produits:
+                                    for prod in apercu_produits:
+                                        st.markdown(f"• **{prod.get('nom','')}** :  {prod.get('qte_recommandee',0)} {prod.get('unite','')}")
+                                else:
+                                    st.caption("Aucun produit dans cette formule")
+                            except Exception:
+                                st.caption("Détails non disponibles")
+                    
+
+                    st.divider()
+
+                    # Boutons de sauvegarde
+                    col_save, col_cancel = st. columns(2)
+                    
+                    with col_save: 
+                        if st.button("💾 Enregistrer les modifications", type="primary", use_container_width=True, key=f"save_{cmd['id']}"):
+                            try:
+                                success = update_commande(
+                                    cmd['id'],
+                                    nom_client=new_client,
+                                    nb_couverts=new_couverts,
+                                    service=new_service,
+                                    date=new_date. strftime('%Y-%m-%d'),
+                                    heure=new_heure.strftime('%H:%M'),
+                                    notes=new_notes
+                                )
+                                if success:
+                                    st. success("✅ Commande mise à jour !")
+                                    st.session_state[edit_mode_key] = False
+                                    st.cache_data.clear()
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Échec de la mise à jour")
+                            except Exception as e: 
+                                st.error(f"❌ Erreur :  {e}")
+                    
+                    with col_cancel:
+                        if st.button("❌ Fermer", use_container_width=True, key=f"cancel_{cmd['id']}"):
+                            st. session_state[edit_mode_key] = False
+                            st.rerun()
+
+                else:
+                    # ========== MODE AFFICHAGE NORMAL ==========
+                    
+                    # Infos de base
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Client", cmd.get('client'))
+                    with col2:
+                        st.metric("Couverts", cmd.get('couverts'))
+                    with col3:
+                        st. metric("Date", date_display)
+                    with col4:
+                        st.metric("Heure", heure_display)
+
+                    if cmd.get('notes'):
+                        st.info(f"📝 Notes :  {cmd['notes']}")
+
+                    st.divider()
+
+                    # Bouton pour voir les détails (lazy loading)
+                    show_details = st.checkbox(
+                        "📋 Voir les détails de la commande",
+                        value=st.session_state.get(show_details_key, False),
+                        key=f"details_cmd{cmd['id']}"
+                    )
+                    # Mettre à jour le session_state
+                    st.session_state[show_details_key] = show_details
+
+                    # Afficher les détails seulement si demandé
+                    if show_details:
+                        details = cached_get_commandes_details(cmd['id'])
+                        
+                        # FORMULES ET LEURS PRODUITS
+                        if details.get('formules'):
+                            st.subheader("📋 Formules")
+                            for formule_id, formule_nom, qte_rec, qte_fin in details['formules']: 
+                                with st.container():
+                                    st.markdown(f"### 🍽️ {formule_nom}")
+                                    st.caption(f"Pour {qte_fin} couverts")
+                                    
+                                    try:
+                                        produits_formule = cached_get_produits_formule(formule_id, cmd.get('couverts', 1))
+                                        if produits_formule: 
+                                            st.markdown("**Composition :**")
+                                            for prod in produits_formule:
+                                                prod_nom = prod.get('nom', '')
+                                                qte = prod.get('qte_recommandee', 0)
+                                                unite = prod.get('unite', '')
+                                                st.markdown(f"  └─ {prod_nom} :  **{qte}** {unite}")
+                                        else:
+                                            st. caption("Aucun produit dans cette formule")
+                                    except Exception: 
+                                        st.caption("Détails de composition non disponibles")
+                                    
+                                    st.divider()
+                        
+                        # PRODUITS SUPPLÉMENTAIRES
+                        if details.get('produits'):
+                            st.subheader("🛒 Produits supplémentaires")
+                            for prod in details['produits']:
+                                try:
+                                    if len(prod) >= 4:
+                                        prod_id, prod_nom, qte, unite_nom = prod[0], prod[1], prod[2], prod[3]
+                                        st.markdown(f"• **{prod_nom}** :  {qte} {unite_nom or ''}")
+                                except: 
+                                    continue
+                        
+                        # Message si aucun contenu
+                        if not details. get('formules') and not details.get('produits'):
+                            st.info("📭 Aucune formule ou produit dans cette commande")
+
+                    st.divider()
+
+                    # Boutons d'actions
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        if st.button("✏️ Modifier", key=f"edit_{cmd['id']}", use_container_width=True):
+                            st.session_state[edit_mode_key] = True
+                            st.rerun()
+
+                    with col2:
+                        if st.button("📦 Archiver", key=f"archive_{cmd['id']}", use_container_width=True, type="primary"):
+                            try:
+                                if archiver_commande(cmd['id'], statut="Livrée"):
+                                    st.cache_data.clear()
+                                    st.rerun()
+                            except: 
+                                st.error("Erreur lors de l'archivage")
+
+                    with col3:
+                        if st.button("🗑️ Supprimer", key=f"del_{cmd['id']}", use_container_width=True):
+                            try:
+                                if delete_commande(cmd['id']):
+                                    st.cache_data.clear()
+                                    st.rerun()
+                            except:
+                                st. error("Erreur lors de la suppression")
+                                
 
         # ============= SECTION 1 : À FAIRE (3 JOURS) =============
         if affichage in ["Toutes les sections", "À faire uniquement"]:
@@ -474,7 +804,7 @@ with tab2:
                     else:
                         service_value = 2
                 else:
-                    service_value = None  # Pas de service
+                    service_value = 0 # par défaut si pas de service
 
             st.divider()
 
@@ -539,7 +869,7 @@ with tab2:
 
         # Récupérer les infos de la commande
         try:
-            raw_commandes = get_commandes() or []
+            raw_commandes = cached_get_all_commandes()
         except Exception:
             raw_commandes = []
 
@@ -766,7 +1096,7 @@ with tab2:
 
                     # Récupérer et afficher les produits de cette formule (use correct helper)
                     try:
-                        produits_formule = get_produits_formule_avec_calcul(formule_id, qte_fin) or []
+                        produits_formule = cached_get_produits_formule(formule_id, cmd.get('couverts', 1))
                     except Exception:
                         produits_formule = []
 
@@ -957,7 +1287,7 @@ with tab3:
 # Statistiques 
 st.divider()
 try:
-    raw_commandes = get_commandes() or []
+    raw_commandes = cached_get_all_commandes()
 except Exception:
     raw_commandes = []
 commandes = normalize_commandes(raw_commandes)

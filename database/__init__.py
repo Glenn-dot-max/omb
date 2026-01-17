@@ -17,6 +17,7 @@ from .db_function import (
     add_unite,
     # Produits
     get_produits,
+    produit_existe,
     add_produit,
     delete_produit,
     # Formules
@@ -32,6 +33,7 @@ from .db_function import (
     # Commandes
     create_commande,
     get_commandes,
+    get_all_commandes_with_details,
     delete_commande,
     update_commande,
     add_formule_to_commande,
@@ -70,6 +72,7 @@ __all__ = [
     'get_unites',
     'add_unite',
     'get_produits',
+    'produit_existe',
     'get_produit_by_id',
     'add_produit',
     'delete_produit',
@@ -83,6 +86,7 @@ __all__ = [
     'get_all_formules_with_details',
     'create_commande',
     'get_commandes',
+    'get_all_commandes_with_details',
     'delete_commande',
     'update_commande',
     'add_formule_to_commande',
