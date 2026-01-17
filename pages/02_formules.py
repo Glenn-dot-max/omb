@@ -64,14 +64,6 @@ if "composition_formule_mode" not in st.session_state:
     st.session_state.composition_formule_mode = False
     st.session_state.current_formule_id = None
 
-# Initialiser le state pour les confirmations de suppression
-if 'confirm_delete_formule' not in st.session_state:
-    st.session_state.confirm_delete_formule = None
-if 'confirm_delete_produit_formule_new' not in st.session_state:
-    st.session_state.confirm_delete_produit_formule_new = None
-if 'confirm_delete_produit_formule' not in st.session_state:
-    st.session_state.confirm_delete_produit_formule = None
-
 # ========== CREATE FORMULA ==========
 if not st.session_state.composition_formule_mode:
     with st.expander("➕ Créer une nouvelle formule"):
@@ -227,26 +219,9 @@ else:
 
                 with col4:
                     if st.button("🗑️", key=f"del_prod_new_{formule_id}_{item['produit_id']}"):
-                        st.session_state.confirm_delete_produit_formule_new = (formule_id, item['produit_id'])
-                        st.rerun()
-                
-                # Afficher la confirmation si demandée
-                if st.session_state.confirm_delete_produit_formule_new == (formule_id, item['produit_id']):
-                    st.warning(f"⚠️ Êtes-vous sûr de vouloir retirer '{item['nom']}' de cette formule ?")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("✅ Oui, retirer", key=f"confirm_yes_prod_new_{formule_id}_{item['produit_id']}", type="primary"):
-                            if remove_produit_from_formule(formule_id, item["produit_id"]):
-                                st.success("Retiré !")
-                                st.session_state.confirm_delete_produit_formule_new = None
-                                st.cache_data.clear()
-                                st.rerun()
-                            else:
-                                st.error("❌ Erreur lors du retrait")
-                                st.session_state.confirm_delete_produit_formule_new = None
-                    with col2:
-                        if st.button("❌ Annuler", key=f"confirm_no_prod_new_{formule_id}_{item['produit_id']}"):
-                            st.session_state.confirm_delete_produit_formule_new = None
+                        if remove_produit_from_formule(formule_id, item["produit_id"]):
+                            st.success("Retiré !")
+                            st.cache_data.clear()
                             st.rerun()
         else:
             st.info("Aucun produit ajouté pour le moment")
@@ -464,27 +439,10 @@ if not st.session_state.composition_formule_mode:
 
                     with col5:
                         if st.button("🗑️", key=f"del_prod_{formule_id}_{item['produit_id']}"):
-                            st.session_state.confirm_delete_produit_formule = (formule_id, item['produit_id'])
-                            st.rerun()
-                    
-                    # Afficher la confirmation si demandée
-                    if st.session_state.confirm_delete_produit_formule == (formule_id, item['produit_id']):
-                        st.warning(f"⚠️ Êtes-vous sûr de vouloir retirer '{item['nom']}' de cette formule ?")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if st.button("✅ Oui, retirer", key=f"confirm_yes_prod_{formule_id}_{item['produit_id']}", type="primary"):
-                                if remove_produit_from_formule(formule_id, item["produit_id"]):
-                                    st.success("Retiré !")
-                                    st.session_state.confirm_delete_produit_formule = None
-                                    st.cache_data.clear()
-                                    st.session_state.expander_formule_ouvert = formule_id
-                                    st.rerun()
-                                else:
-                                    st.error("❌ Erreur lors du retrait")
-                                    st.session_state.confirm_delete_produit_formule = None
-                        with col2:
-                            if st.button("❌ Annuler", key=f"confirm_no_prod_{formule_id}_{item['produit_id']}"):
-                                st.session_state.confirm_delete_produit_formule = None
+                            if remove_produit_from_formule(formule_id, item["produit_id"]):
+                                st.success("Retiré !")
+                                st.cache_data.clear()
+                                st.session_state.expander_formule_ouvert = formule_id
                                 st.rerun()
 
                 if not details:
@@ -549,27 +507,11 @@ if not st.session_state.composition_formule_mode:
                     st.warning("⚠️ Créez d'abord des produits et des unités")
 
                 if st.button(f"🗑️ Supprimer la formule '{nom_formule}'", key=f"del_formule_{formule_id}", type="secondary"):
-                    st.session_state.confirm_delete_formule = formule_id
-                    st.rerun()
-                
-                # Afficher la confirmation si demandée
-                if st.session_state.confirm_delete_formule == formule_id:
-                    st.warning(f"⚠️ Êtes-vous sûr de vouloir supprimer la formule '{nom_formule}' ?")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("✅ Oui, supprimer", key=f"confirm_yes_formule_{formule_id}", type="primary"):
-                            if delete_formule(formule_id):
-                                st.success("Formule supprimée !")
-                                st.session_state.confirm_delete_formule = None
-                                st.cache_data.clear()
-                                st.rerun()
-                            else:
-                                st.error("❌ Erreur lors de la suppression")
-                                st.session_state.confirm_delete_formule = None
-                    with col2:
-                        if st.button("❌ Annuler", key=f"confirm_no_formule_{formule_id}"):
-                            st.session_state.confirm_delete_formule = None
-                            st.rerun()
+                    if delete_formule(formule_id):
+                        st.success("Formule supprimée !")
+                        st.cache_data.clear()
+
+                        st.rerun()
     else:
         st.info("Aucune formule. Créez-en une ci-dessus !")
 

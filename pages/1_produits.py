@@ -57,14 +57,6 @@ init_db_if_needed()
 # Titre
 st.title("📦 Gestion des Produits")
 
-# Initialiser le state pour les confirmations de suppression
-if 'confirm_delete_produit' not in st.session_state:
-    st.session_state.confirm_delete_produit = None
-if 'confirm_delete_category' not in st.session_state:
-    st.session_state.confirm_delete_category = None
-if 'confirm_delete_type' not in st.session_state:
-    st.session_state.confirm_delete_type = None
-
 # Tabs principales
 tab1, tab2, tab3 = st.tabs(["🛒 Produits", "📁 Catégories", "📁 Types"])
 
@@ -209,26 +201,9 @@ with tab1:
                 st.write(produit['type'] or "-")
             with col4:
                 if st.button("🗑️", key=f"del_prod_{produit['id']}"):
-                    st.session_state.confirm_delete_produit = produit['id']
-                    st.rerun()
-            
-            # Afficher la confirmation si demandée
-            if st.session_state.confirm_delete_produit == produit['id']:
-                st.warning(f"⚠️ Êtes-vous sûr de vouloir supprimer '{produit['nom']}' ?")
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("✅ Oui, supprimer", key=f"confirm_yes_prod_{produit['id']}", type="primary"):
-                        if delete_produit(produit['id']):
-                            st.success("Supprimé !")
-                            st.session_state.confirm_delete_produit = None
-                            st.cache_data.clear()
-                            st.rerun()
-                        else:
-                            st.error("❌ Erreur lors de la suppression")
-                            st.session_state.confirm_delete_produit = None
-                with col2:
-                    if st.button("❌ Annuler", key=f"confirm_no_prod_{produit['id']}"):
-                        st.session_state.confirm_delete_produit = None
+                    if delete_produit(produit['id']):
+                        st.success("Supprimé !")
+                        st.cache_data.clear()
                         st.rerun()
 
     else:
@@ -288,27 +263,12 @@ with tab2:
 
                 with col3:
                     if st.button("🗑️", key=f"del_cat_{cat_id}"):
-                        st.session_state.confirm_delete_category = cat_id
-                        st.rerun()
-                
-                # Afficher la confirmation si demandée
-                if st.session_state.confirm_delete_category == cat_id:
-                    st.warning(f"⚠️ Êtes-vous sûr de vouloir supprimer la catégorie '{cat_nom}' ?")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("✅ Oui, supprimer", key=f"confirm_yes_cat_{cat_id}", type="primary"):
-                            if delete_category(cat_id):
-                                st.success("Supprimée !")
-                                st.session_state.confirm_delete_category = None
-                                st.cache_data.clear()
-                                st.rerun()
-                            else:
-                                st.error("❌ Catégorie utilisée par des produits")
-                                st.session_state.confirm_delete_category = None
-                    with col2:
-                        if st.button("❌ Annuler", key=f"confirm_no_cat_{cat_id}"):
-                            st.session_state.confirm_delete_category = None
+                        if delete_category(cat_id):
+                            st.success("Supprimée !")
+                            st.cache_data.clear()
                             st.rerun()
+                        else:
+                            st.error("❌ Catégorie utilisée par des produits")
     else:
         st.info("Aucune catégorie.  Créez-en une ci-dessus !")
 
@@ -366,27 +326,12 @@ with tab3:
 
                 with col3:
                     if st.button("🗑️", key=f"del_type_{type_id}"):
-                        st.session_state.confirm_delete_type = type_id
-                        st.rerun()
-                
-                # Afficher la confirmation si demandée
-                if st.session_state.confirm_delete_type == type_id:
-                    st.warning(f"⚠️ Êtes-vous sûr de vouloir supprimer le type '{type_nom}' ?")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("✅ Oui, supprimer", key=f"confirm_yes_type_{type_id}", type="primary"):
-                            if delete_type(type_id):
-                                st.success("Supprimé !")
-                                st.session_state.confirm_delete_type = None
-                                st.cache_data.clear()
-                                st.rerun()
-                            else:
-                                st.error("❌ Type utilisé par des produits")
-                                st.session_state.confirm_delete_type = None
-                    with col2:
-                        if st.button("❌ Annuler", key=f"confirm_no_type_{type_id}"):
-                            st.session_state.confirm_delete_type = None
+                        if delete_type(type_id):
+                            st.success("Supprimé !")
+                            st.cache_data.clear()
                             st.rerun()
+                        else:
+                            st.error("❌ Type utilisé par des produits")
 
     else:
         st.info("Aucun type.  Créez-en un ci-dessus !")

@@ -52,16 +52,6 @@ init_db_if_needed()
 # Title
 st.title("📝 Carnet de Commandes")
 
-# Initialiser le state pour les confirmations de suppression
-if 'confirm_delete_commande' not in st.session_state:
-    st.session_state.confirm_delete_commande = None
-if 'confirm_delete_produit_commande' not in st.session_state:
-    st.session_state.confirm_delete_produit_commande = None
-if 'confirm_delete_produit_formule_commande' not in st.session_state:
-    st.session_state.confirm_delete_produit_formule_commande = None
-if 'confirm_delete_archive' not in st.session_state:
-    st.session_state.confirm_delete_archive = None
-
 # --- Helpers -----------------------------------------------------------------
 def safe_date_from(value):
     """Return a date object from a date or an ISO-string. Returns None if invalid."""
@@ -439,28 +429,13 @@ with tab1:
                                                 st.write(f"{unite}")
                                             with col5:
                                                 if st.button("🗑️", key=f"del_f_prod_{cmd['id']}_{formule_id}_{prod_id}_{p_idx}"):
-                                                    st.session_state.confirm_delete_produit_formule_commande = (cmd['id'], formule_id, prod_id, p_idx)
-                                                    st.rerun()
-                                            
-                                            # Afficher la confirmation si demandée
-                                            if st.session_state.confirm_delete_produit_formule_commande == (cmd['id'], formule_id, prod_id, p_idx):
-                                                st.warning(f"⚠️ Êtes-vous sûr de vouloir retirer '{prod_nom}' ?")
-                                                col1, col2 = st.columns(2)
-                                                with col1:
-                                                    if st.button("✅ Oui, retirer", key=f"confirm_yes_f_prod_{cmd['id']}_{formule_id}_{prod_id}_{p_idx}", type="primary"):
-                                                        try:
-                                                            remove_produit_from_commande(cmd['id'], prod_id)
-                                                            st.session_state.confirm_delete_produit_formule_commande = None
-                                                            st.cache_data.clear()
-                                                            st.session_state.expander_ouvert = cmd['id']
-                                                            st.rerun()
-                                                        except Exception as e:
-                                                            st.error(f"Erreur:  {e}")
-                                                            st.session_state.confirm_delete_produit_formule_commande = None
-                                                with col2:
-                                                    if st.button("❌ Annuler", key=f"confirm_no_f_prod_{cmd['id']}_{formule_id}_{prod_id}_{p_idx}"):
-                                                        st.session_state.confirm_delete_produit_formule_commande = None
+                                                    try:
+                                                        remove_produit_from_commande(cmd['id'], prod_id)
+                                                        st.cache_data.clear()
+                                                        st.session_state.expander_ouvert = cmd['id']
                                                         st.rerun()
+                                                    except Exception as e:
+                                                        st.error(f"Erreur:  {e}")
                                             
                                             # Si quantité modifiée, afficher bouton sauvegarde
                                             if new_qte_formule != qte_recommandee:
@@ -505,28 +480,13 @@ with tab1:
                                 st.write(f"{unite_nom or ''}")
                             with col4:
                                 if st.button("🗑️", key=f"del_prod_{cmd['id']}_{prod_id}_{idx}"):
-                                    st.session_state.confirm_delete_produit_commande = (cmd['id'], prod_id, idx)
-                                    st.rerun()
-                            
-                            # Afficher la confirmation si demandée
-                            if st.session_state.confirm_delete_produit_commande == (cmd['id'], prod_id, idx):
-                                st.warning(f"⚠️ Êtes-vous sûr de vouloir retirer '{prod_nom}' ?")
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    if st.button("✅ Oui, retirer", key=f"confirm_yes_prod_{cmd['id']}_{prod_id}_{idx}", type="primary"):
-                                        try:
-                                            remove_produit_from_commande(cmd['id'], prod_id)
-                                            st.session_state.confirm_delete_produit_commande = None
-                                            st.cache_data.clear()
-                                            st.session_state.expander_ouvert = cmd['id']
-                                            st.rerun()
-                                        except Exception as e:
-                                            st.error(f"Erreur:  {e}")
-                                            st.session_state.confirm_delete_produit_commande = None
-                                with col2:
-                                    if st.button("❌ Annuler", key=f"confirm_no_prod_{cmd['id']}_{prod_id}_{idx}"):
-                                        st.session_state.confirm_delete_produit_commande = None
+                                    try:
+                                        remove_produit_from_commande(cmd['id'], prod_id)
+                                        st.cache_data.clear()
+                                        st.session_state.expander_ouvert = cmd['id']
                                         st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Erreur:  {e}")
                     
                     # Message si vide
                     if not details. get('formules') and not details.get('produits'):
@@ -776,27 +736,12 @@ with tab1:
 
                     with col3:
                         if st.button("🗑️ Supprimer", key=f"del_{cmd['id']}", use_container_width=True):
-                            st.session_state.confirm_delete_commande = cmd['id']
-                            st.rerun()
-                    
-                    # Afficher la confirmation si demandée
-                    if st.session_state.confirm_delete_commande == cmd['id']:
-                        st.warning(f"⚠️ Êtes-vous sûr de vouloir supprimer la commande de '{cmd['client']}' ?")
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            if st.button("✅ Oui, supprimer", key=f"confirm_yes_cmd_{cmd['id']}", type="primary"):
-                                try:
-                                    if delete_commande(cmd['id']):
-                                        st.session_state.confirm_delete_commande = None
-                                        st.cache_data.clear()
-                                        st.rerun()
-                                except:
-                                    st.error("Erreur lors de la suppression")
-                                    st.session_state.confirm_delete_commande = None
-                        with col2:
-                            if st.button("❌ Annuler", key=f"confirm_no_cmd_{cmd['id']}"):
-                                st.session_state.confirm_delete_commande = None
-                                st.rerun()
+                            try:
+                                if delete_commande(cmd['id']):
+                                    st.cache_data.clear()
+                                    st.rerun()
+                            except:
+                                st. error("Erreur lors de la suppression")
                                 
 
         # ============= SECTION 1 : À FAIRE (3 JOURS) =============
@@ -1349,27 +1294,7 @@ with tab3:
                     st.info("ℹ️ Les archives sont en lecture seule")
                 with col2:
                     if st.button("🗑️ Supprimer définitivement", key=f"del_archive_{cmd['id']}", use_container_width=True):
-                        st.session_state.confirm_delete_archive = cmd['id']
-                        st.rerun()
-                
-                # Afficher la confirmation si demandée
-                if st.session_state.confirm_delete_archive == cmd['id']:
-                    st.warning(f"⚠️ Êtes-vous sûr de vouloir supprimer définitivement l'archive de '{cmd['client']}' ?")
-                    st.caption("⚠️ Cette action est irréversible !")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("✅ Oui, supprimer", key=f"confirm_yes_archive_{cmd['id']}", type="primary"):
-                            st.warning("📦 Fonction delete_archive() à créer dans database.py")
-                            st.session_state.confirm_delete_archive = None
-                            # Une fois la fonction créée, décommenter:
-                            # if delete_archive(cmd['id']):
-                            #     st.success("Archive supprimée !")
-                            #     st.cache_data.clear()
-                            #     st.rerun()
-                    with col2:
-                        if st.button("❌ Annuler", key=f"confirm_no_archive_{cmd['id']}"):
-                            st.session_state.confirm_delete_archive = None
-                            st.rerun()
+                        st.warning("📦 Fonction delete_archive() à créer dans database.py")
     else:
         st.info("📭 Aucune commande archivée pour le moment.")
         st.write("Les commandes seront automatiquement archivées 7 jours après leur date de livraison.")
