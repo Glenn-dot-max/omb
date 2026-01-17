@@ -915,7 +915,7 @@ with tab2:
                     if st.button("📋 Voir les produits", type="secondary", use_container_width=True):
                         # Récupérer les produits de la formule avec calculs
                         try:
-                            produits_formule = get_produits_formule_avec_calcul(formule_selectionnee[0], nb_couverts_formule) or []
+                            produits_formule = cached_get_produits_formule(formule_selectionnee[0], nb_couverts_formule) or []
                         except Exception:
                             produits_formule = []
                         st.session_state.formule_en_cours = {
@@ -1083,7 +1083,7 @@ with tab2:
             # Afficher le récapitulatif depuis la DB
             st.subheader("📦 Récapitulatif de la commande")
             try:
-                details = get_commande_details(commande_id) or {'formules': [], 'produits': []}
+                details = cached_get_commandes_details(commande_id) or {'formules': [], 'produits': []}
             except Exception:
                 details = {'formules': [], 'produits': []}
 

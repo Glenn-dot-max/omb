@@ -22,43 +22,35 @@ def get_connection_string():
         st.error("❌ Erreur : secrets non configurés ! Veuillez configurer les secrets de la base de données.")
         raise e
 
-def get_pool():
+@st.cache_resource
+def get_connection_pool():
     """
-    Retourne le pool de connexions (singleton).
+    Pool de connexion réutilisables.
     """
-    global _coonnection_pool
-    if _connection_pool is None:
-        try:
-            _connection_pool = pool.ThreadedConnectionPool(
-                minconn=1,
-                maxconn=10,
-                dsn=get_connection_string()
-            )
-        except Exception as e:
-            st.error(f"❌ Erreur connexion base de données : {e}")
-            raise
-    return _connection_pool
+    connection_string = get_connection_string()
+    return pool.ThreadedConnectionPool(
+        minconn=2,
+        maxconn=10,
+        dsn=connection_string
+    )
 
 @contextmanager
 def get_conn():
     """
     Context manager avec pooling de connexions.
     """
-    conn = None
+    connection_pool = get_connection_pool()
+    conn = connection_pool.getconn()
     try:
-        conn = get_pool().getconn()
         cursor = conn.cursor()
         yield cursor
         conn.commit()
     except Exception as e:
-        if conn:
-            conn.rollback()
-        print(f"Erreur dans la transaction : {e}")
+        conn.rollback()
         raise e
     finally:
-        if conn:
-            cursor.close()
-            get_pool().putconn(conn)
+        cursor.close()
+        connection_pool.putconn(conn)
 
 def test_connection():
     """

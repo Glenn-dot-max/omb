@@ -22,6 +22,21 @@ from database import (
   init_db_if_needed
 )
 
+@st.cache_data(ttl=120)
+def cached_get_produits():
+    """ Récupère les produits avec cache """
+    return get_produits() or []
+
+@st.cache_data(ttl=300)
+def cached_get_categories():
+    """ Récupère les catégories avec cache """
+    return get_categories() or []
+
+@st.cache_data(ttl=300)
+def cached_get_types():
+    """ Récupère les types avec cache """
+    return get_types() or []
+
 # ========================================
 # 🔐 PROTECTION PAR MOT DE PASSE
 # ========================================
@@ -59,7 +74,7 @@ with tab1:
       nouveau_produit = st.text_input("Nom du produit", key="new_prod")
 
     with col2:
-      categories = get_categories()
+      categories = cached_get_categories()
       if categories:
         cat_options = {cat['nom']: cat['id'] for cat in categories}
         cat_options["(Aucune)"] = None
@@ -70,7 +85,7 @@ with tab1:
         selected_cat_id = None
 
     with col3:
-      types = get_types()
+      types = cached_get_types()
       if types:
         type_options = {typ['nom']: typ['id'] for typ in types}
         type_options["(Aucune)"] = None
@@ -91,6 +106,7 @@ with tab1:
           else:
             if add_produit(nouveau_produit, selected_cat_id, selected_type_id):
               st.success(f"✅ Produit '{nouveau_produit}' ajouté !")
+              st.cache_data.clear()
               st.rerun()
             else:
               st.error("❌ Erreur lors de l'ajout")
@@ -101,7 +117,7 @@ with tab1:
   st.divider()
 
   # Afficher les produits
-  produits = get_produits()
+  produits = cached_get_produits()
 
   if produits:
     # Filtres
@@ -133,6 +149,7 @@ with tab1:
         if st.button("🗑️", key=f"del_prod_{produit['id']}"):
           if delete_produit(produit['id']):
             st.success("Supprimé !")
+            st.cache_data.clear()
             st.rerun()
 
   else:
@@ -153,6 +170,7 @@ with tab2:
       if nouvelle_cat:
         if add_category(nouvelle_cat):
           st.success("✅ Catégorie ajoutée !")
+          st.cache_data.clear()
           st.rerun()
         else:
           st.error("❌ Cette catégorie existe déjà")
@@ -162,7 +180,7 @@ with tab2:
   st.divider()
 
   # Afficher les catégories
-  categories = get_categories()
+  categories = cached_get_categories()
 
   if categories:
       with st.expander(f"📋 Consulter les catégories ({len(categories)})"):
@@ -181,17 +199,19 @@ with tab2:
             )
             if new_name != cat_nom:
               if update_category(cat_id, new_name):
+                st.cache_data.clear()
                 st.rerun()
 
           with col2:
             # Compter les produits
-            produits_count = len([p for p in get_produits() if p['categorie'] == cat_nom])
+            produits_count = len([p for p in cached_get_produits() if p['categorie'] == cat_nom])
             st.write(f"📦 {produits_count}")
           
           with col3:
             if st.button("🗑️", key=f"del_cat_{cat_id}"):
               if delete_category(cat_id):
                 st.success("Supprimée !")
+                st.cache_data.clear()
                 st.rerun()
               else:
                 st.error("❌ Catégorie utilisée par des produits")
@@ -213,6 +233,7 @@ with tab3:
       if nouveau_type:
         if add_type(nouveau_type):
           st.success("✅ Type ajouté!")
+          st.cache_data.clear()
           st.rerun()
         else:
           st.error("❌ Ce type existe déjà")
@@ -222,7 +243,7 @@ with tab3:
   st.divider()
 
   # Afficher les types
-  types = get_types()
+  types = cached_get_types()
 
   if types:
     with st.expander(f"🏷️ Consulter les types ({len(types)})"):
@@ -241,17 +262,19 @@ with tab3:
           )
           if new_name != type_nom:
             if update_type(type_id, new_name):
+              st.cache_data.clear()
               st.rerun()
         
         with col2:
           # Compter les produits
-          produits_count = len([p for p in get_produits() if p['type'] == type_nom])
+          produits_count = len([p for p in cached_get_produits() if p['type'] == type_nom])
           st.write(f"📦 {produits_count}")
         
         with col3:
           if st.button("🗑️", key=f"del_type_{type_id}"):
             if delete_type(type_id):
               st.success("Supprimé !")
+              st.cache_data.clear()
               st.rerun()
             else:
               st.error("❌ Type utilisé par des produits")
@@ -263,8 +286,8 @@ with tab3:
 st.divider()
 col1, col2, col3 = st.columns(3)
 with col1:
-  st.metric("Total Produits", len(get_produits()))
+  st.metric("Total Produits", len(cached_get_produits()))
 with col2:
-  st.metric("Total Catégories", len(get_categories()))
+  st.metric("Total Catégories", len(cached_get_categories()))
 with col3:
-  st.metric("Total Types", len(get_types()))
+  st.metric("Total Types", len(cached_get_types()))

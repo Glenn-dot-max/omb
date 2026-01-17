@@ -21,6 +21,26 @@ from database import (
     init_db_if_needed,
 )
 
+@st.cache_data(ttl=120)
+def cached_get_formules():
+    return get_formules() or []
+
+@st.cache_data(ttl=120)
+def cached_get_produits():
+    return get_produits() or []
+
+@st.cache_data(ttl=300)
+def cached_get_unites():
+    return get_unites() or []
+
+@st.cache_data(ttl=60)
+def cached_get_all_formules_with_details():
+    return get_all_formules_with_details() or {}
+
+@st.cache_data(ttl=60)
+def cached_get_formule_details(formule_id):
+    return get_formule_details(formule_id) or []
+
 # Authentication (stop the app early if unauthorized)
 from auth import check_password
 
@@ -39,19 +59,6 @@ st.title("📋 Gestion des Formules")
 if "composition_formule_mode" not in st.session_state:
     st.session_state.composition_formule_mode = False
     st.session_state.current_formule_id = None
-
-# Caching wrappers to avoid repeated DB calls on small reruns
-@st.cache_data
-def cached_get_produits():
-    return get_produits() or []
-
-@st.cache_data
-def cached_get_unites():
-    return get_unites() or []
-
-@st.cache_data
-def cached_get_all_formules_with_details():
-    return get_all_formules_with_details() or {}
 
 # ========== CREATE FORMULA ==========
 if not st.session_state.composition_formule_mode:
@@ -82,6 +89,7 @@ if not st.session_state.composition_formule_mode:
                         st.success(f"✅ Formule '{nom_formule}' créée !")
                         st.session_state.composition_formule_mode = True
                         st.session_state.current_formule_id = formule_id
+                        st.cache_data.clear()
                         st.rerun()
                     else:
                         st.error("❌ Cette formule existe déjà")
@@ -91,7 +99,7 @@ else:
     formule_id = st.session_state.current_formule_id
 
     # Get current formule info
-    formules = get_formules()
+    formules = cached_get_formules()
     formule_info = next((f for f in formules if f["id"] == formule_id), None)
 
     if formule_info:
@@ -160,7 +168,7 @@ else:
         st.divider()
 
         st.write("### 📦 Récapitulatif de la formule")
-        details = get_formule_details(formule_id) or []
+        details = cached_get_formule_details(formule_id) or []
 
         if details:
             col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
