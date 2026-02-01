@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commandes - Oh My Brunch</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <h1>🥐 Commandes - Oh My Brunch</h1>
+      <ul class="nav-links">
+        <li><a href="produits.html">Produits</a></li>
+        <li><a href="formules.html">Formules</a></li>
+        <li><a href="commandes.html">Commandes</a></li>
+      </ul>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container">
+      <h2>🛒 Gestion des commandes</h2>
+
+      <!-- Actions principales -->
+      <div class="actions-bar">
+        <button id="open-create-modal" class="btn btn-primary">
+          ➕ Ajouter une commande
+        </button>
+        <div class="stats">
+          <span id="commandes-count">0 commandes</span>
+        </div>
+      </div>
+
+      <!-- Filtres et recherche -->
+      <div class="filters-section">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="🔍 Rechercher un client..."
+          class="search-input"
+        />
+        <select id="filter-date" class="filter-select">
+          <option value="">Toutes les dates</option>
+          <option value="today">Aujourd'hui</option>
+          <option value="tomorrow">Demain</option>
+          <option value="week">Cette semaine</option>
+        </select>
+        <button id="reset-filters" class="btn-secondary">
+          ♻️ Réinitialiser
+        </button>
+      </div>
+
+      <!-- Liste des commandes -->
+      <div id="commandes-list" class="products-grid">
+        <p>Chargement des commandes...</p>
+      </div>
+    </main>
+
+    <!-- Scripts JavaScript -->
+    <script src="../js/toast.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/commandes.js"></script>
+  </body>
+</html>
