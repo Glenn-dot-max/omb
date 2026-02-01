@@ -23,6 +23,10 @@ async def get_produit(produit_id: str):
 @router.post("/")  # ← "/" au lieu de ""
 async def create_produit(produit: ProduitCreate):
     """Create a new produit"""
+    # Vérifier di un produit avec le même nom existe déjà
+    existing = supabase.table("produits").select("*").eq("name", produit.name).execute()
+    if existing.data:
+        raise HTTPException(status_code=409, detail="Un produit avec ce nom existe déjà")
     response = supabase.table("produits").insert(produit.model_dump()).execute()
     if not response.data:
         raise HTTPException(status_code=400, detail="Failed to create Produit")

@@ -22,10 +22,15 @@
       <h2>🍳 Gestion des Formules</h2>
 
       <!-- Formulaire d'ajout-->
-      <div class="form-card">
-        <h3>Ajouter une formule</h3>
-        <p>Créez une nouvelle formule avec ses produits</p>
-        <button class="btn" id="open-create-modal">+ Créer une formule</button>
+      <div class="formule-actions-container">
+        <!-- Carte : Ajouter avec détails -->
+        <div class="form-card">
+          <h3>Créer une formule complète</h3>
+          <p>Créez une nouvelle formule avec ses produits</p>
+          <button class="btn" id="open-create-modal">
+            + Créer une formule
+          </button>
+        </div>
       </div>
 
       <!-- Barre de recherche et filtres-->
@@ -111,17 +116,14 @@
                   id="produit-quantite"
                   min="1"
                   value="1"
-                  step="0.1"
+                  step="0.5"
                 />
               </div>
               <div>
                 <label>Unité</label>
-                <input
-                  type="text"
-                  id="produit-unite"
-                  placeholder="kg, L, pièces..."
-                  value="pièces"
-                />
+                <select id="produit-unite">
+                  <option value="unité">--Sélectionner--</option>
+                </select>
               </div>
               <div class="form-actions">
                 <button
@@ -224,12 +226,9 @@
               </div>
               <div>
                 <label>Unité</label>
-                <input
-                  type="text"
-                  id="create-produit-unite"
-                  placeholder="kg, L, pièces..."
-                  value="pièces"
-                />
+                <select id="create-produit-unite">
+                  <option value="unité">--Sélectionner--</option>
+                </select>
               </div>
               <div class="form-actions">
                 <button

@@ -280,7 +280,13 @@ async function handleAddProduit(event) {
     alert("Produit ajouté avec succès !");
   } catch (error) {
     console.error("Erreur lors de l'ajout du produit :", error);
-    alert("Erreur lors de l'ajout du produit.");
+
+    // Vérifier si c'est une erreur de duplication
+    if (error.message && error.message.includes("existe déjà")) {
+      alert("❌ Ce produit existe déjà dans la base de données.");
+    } else {
+      alert("Erreur lors de l'ajout du produit.");
+    }
   }
 }
 

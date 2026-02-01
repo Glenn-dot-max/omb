@@ -13,6 +13,8 @@ let currentSearchTerm = "";
 let currentEditingFormule = null;
 let tempProduitsToCreate = [];
 
+let allUnite = [];
+
 // ===========================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
 // ===========================================
@@ -24,6 +26,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadInitialData() {
   await loadFormules();
+  await loadUnite();
+}
+
+// ============================================
+// CHARGEMENT DES UNITÉS
+// ============================================
+
+async function loadUnite() {
+  try {
+    allUnite = await getUnite();
+    populateUniteSelects();
+  } catch (error) {
+    console.error("Erreur lors du chargement des unités :", error);
+  }
+}
+
+function populateUniteSelects() {
+  const selects = [
+    document.getElementById("produit-unite"),
+    document.getElementById("create-produit-unite"),
+  ];
+
+  selects.forEach((select) => {
+    if (select) {
+      select.innerHTML = '<option value="">--Sélectionner--</option>';
+      allUnite.forEach((unite) => {
+        const option = document.createElement("option");
+        option.value = unite.nom;
+        option.textContent = unite.nom;
+        select.appendChild(option);
+      });
+
+      // Sélectionner "pièces" par défaut si disponible
+      if (select.querySelector('option[value="pièces"]')) {
+        select.value = "pièces";
+      }
+    }
+  });
 }
 
 // ===========================================
@@ -131,11 +171,17 @@ function setupEventListeners() {
   const resetBtn = document.getElementById("reset-filters");
   resetBtn.addEventListener("click", handleResetFilters);
 
-  // Modale de détails
-  const closeModal = document.querySelector(".close-modal");
-  if (closeModal) {
-    closeModal.addEventListener("click", closeDetailsModal);
-  }
+  // Fermer tous les modales avec X
+  const closeButtons = document.querySelectorAll(".close-modal");
+  closeButtons.forEach((btn, index) => {
+    btn.addEventListener("click", () => {
+      if (index === 0) {
+        closeDetailsModal();
+      } else if (index === 1) {
+        closeCreateFormuleModal();
+      }
+    });
+  });
 
   const cancelDetails = document.getElementById("cancel-details");
   if (cancelDetails) {
@@ -166,11 +212,6 @@ function setupEventListeners() {
   const openCreateModal = document.getElementById("open-create-modal");
   if (openCreateModal) {
     openCreateModal.addEventListener("click", handleOpenCreateModal);
-  }
-
-  const closeCreateModal = document.querySelector(".close-create-modal");
-  if (closeCreateModal) {
-    closeCreateModal.addEventListener("click", closeCreateFormuleModal);
   }
 
   const cancelCreate = document.getElementById("cancel-create");

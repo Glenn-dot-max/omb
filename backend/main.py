@@ -4,7 +4,7 @@ from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 import json
 from config import CORS_ORIGINS
-from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types
+from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite
 
 class UUIDEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -37,6 +37,7 @@ app.include_router(commande_formules.router)
 app.include_router(commande_produits.router)
 app.include_router(categories.router)
 app.include_router(types.router)
+app.include_router(unite.router)
 
 # Route de test
 @app.get("/")

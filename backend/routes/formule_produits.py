@@ -9,8 +9,21 @@ supabase = get_supabase_client()
 @router.get("/formule/{formule_id}")
 async def get_produits_by_formule(formule_id: str):
     """Get all produits for a formule"""
-    response = supabase.table("formule_produits").select("*").eq("formule_id", formule_id).execute()
-    return response.data
+    response = supabase.table("formule_produits").select("*, produits(name)").eq("formule_id", formule_id).execute()
+
+    # Transformer les données pour aplatir la structure
+    result = []
+    for item in response.data:
+        result.append({
+            "id": item["id"],
+            "formule_id": item["formule_id"],
+            "produit_id": item["produit_id"],
+            "quantite": item.get("quantite", 1),
+            "unite": item.get("unite", "pièces"),
+            "produit_name": item["produits"]["name"] if item.get("produits") else "Produit inconnu"
+        })
+    
+    return result
 
 @router.post("/")
 async def create_formule_produit(formule_produit: FormuleProduitCreate):

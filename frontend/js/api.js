@@ -31,7 +31,11 @@ async function createProduit(produit) {
       body: JSON.stringify(produit),
     });
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Récupérer le message d'erreur du serveur
+      const errorData = await response.json();
+      throw new Error(
+        errorData.detail || `HTTP error! status: ${response.status}`,
+      );
     }
     const data = await response.json();
     return data;
@@ -124,7 +128,7 @@ async function deleteFormule(formuleId) {
 async function updateFormule(formuleId, formule) {
   try {
     const response = await fetch(`${API_URL}/formules/${formuleId}`, {
-      method: "PATCH",
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formule),
     });
@@ -253,6 +257,21 @@ async function getTypes() {
     return await response.json();
   } catch (error) {
     console.error("Erreur API getTypes:", error);
+    return [];
+  }
+}
+
+// ===========================================
+// UNITÉS
+// ===========================================
+
+async function getUnite() {
+  try {
+    const response = await fetch(`${API_URL}/unite/`);
+    if (!response.ok) throw new Error("Erreur récupération unités");
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API getUnites:", error);
     return [];
   }
 }
