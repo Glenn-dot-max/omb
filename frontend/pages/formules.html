@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formules - Oh My Brunch</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!--Navigation-->
+    <nav class="navbar">
+      <h1>🥐 Oh My Brunch</h1>
+      <ul class="nav-links">
+        <li><a href="produits.html" class="active">Produits</a></li>
+        <li><a href="formules.html">Formules</a></li>
+        <li><a href="commandes.html">Commandes</a></li>
+      </ul>
+    </nav>
+
+    <!--Contenu principal-->
+    <main class="container">
+      <h2>🍳 Gestion des Formules</h2>
+
+      <!-- Formulaire d'ajout-->
+      <div class="form-card">
+        <h3>Ajouter une formule</h3>
+        <p>Créez une nouvelle formule avec ses produits</p>
+        <button class="btn" id="open-create-modal">+ Créer une formule</button>
+      </div>
+
+      <!-- Barre de recherche et filtres-->
+      <div class="search-and-filters">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="🔍 Rechercher une formule..."
+        />
+
+        <select id="filter-type">
+          <option value="">-- Filtrer par type --</option>
+          <option value="Brunch">Brunch</option>
+          <option value="Non-Brunch">Non-Brunch</option>
+        </select>
+
+        <button id="reset-filters" class="btn-secondary">Réinitialiser</button>
+      </div>
+
+      <!-- Liste des formules-->
+      <div id="formules-list" class="products-list">
+        <!-- Les formules seront affichées ici dynamiquement -->
+      </div>
+    </main>
+
+    <!-- Modale détaillée de formule -->
+    <div id="details-modal" class="modal">
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h3>Détails de la formule</h3>
+          <span class="close-modal">&times;</span>
+        </div>
+
+        <div class="modal-body">
+          <!-- Informations générales -->
+          <section class="modal-section">
+            <h4>📋 Informations</h4>
+            <div class="form-grid">
+              <div>
+                <label>Nom de la formule</label>
+                <input
+                  type="text"
+                  id="detail-formule-name"
+                  placeholder="Nom de la formule"
+                />
+              </div>
+              <div>
+                <label>Nombre de couverts</label>
+                <input type="number" id="detail-formule-couverts" min="1" />
+              </div>
+              <div>
+                <label>Type de formule</label>
+                <select id="detail-formule-type">
+                  <option value="Brunch">Brunch</option>
+                  <option value="Non-Brunch">Non-Brunch</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <!-- Liste des produits -->
+          <section class="modal-section">
+            <h4>📦 Produits inclus (<span id="produits-count">0</span>)</h4>
+            <div id="produits-list" class="produits-list">
+              <p class="empty-state">Aucun produit dans cette formule.</p>
+            </div>
+          </section>
+
+          <!-- Ajouter un produit -->
+          <section class="modal-section">
+            <h4>➕ Ajouter un produit</h4>
+            <div class="form-grid">
+              <div>
+                <label>Produits</label>
+                <select id="produit-select">
+                  <option value="">-- Sélectionner un produit --</option>
+                </select>
+              </div>
+              <div>
+                <label>Quantité</label>
+                <input
+                  type="number"
+                  id="produit-quantite"
+                  min="1"
+                  value="1"
+                  step="0.1"
+                />
+              </div>
+              <div>
+                <label>Unité</label>
+                <input
+                  type="text"
+                  id="produit-unite"
+                  placeholder="kg, L, pièces..."
+                  value="pièces"
+                />
+              </div>
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-small"
+                  id="add-produit-btn"
+                >
+                  + Ajouter
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Actions finales -->
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancel-details">
+            Annuler
+          </button>
+          <button type="button" class="btn" id="save-formule-details">
+            Enregistrer les modifications
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modale de création de formule -->
+
+    <div id="create-modal" class="modal">
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h3>Créer une nouvelle formule</h3>
+          <span class="close-modal">&times;</span>
+        </div>
+
+        <div class="modal-body">
+          <!-- Informations générales -->
+          <section class="modal-section">
+            <h4>📋 Informations</h4>
+            <div class="form-grid">
+              <div>
+                <label>Nom de la formule</label>
+                <input
+                  type="text"
+                  id="create-formule-name"
+                  placeholder="Nom de la formule"
+                  required
+                />
+              </div>
+              <div>
+                <label>Nombre de couverts</label>
+                <input
+                  type="number"
+                  id="create-formule-couverts"
+                  min="1"
+                  value="1"
+                />
+              </div>
+              <div>
+                <label>Type de formule</label>
+                <select id="create-formule-type">
+                  <option value="Brunch">Brunch</option>
+                  <option value="Non-Brunch">Non-Brunch</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <!-- Liste des produits à ajouter -->
+          <section class="modal-section">
+            <h4>
+              📦 Produits à inclure (<span id="create-produits-count">0</span>)
+            </h4>
+            <div id="create-produits-list" class="produits-list">
+              <p class="empty-state">
+                Aucun produit ajouté. Ajoutez-en ci-dessous.
+              </p>
+            </div>
+          </section>
+
+          <!-- Ajouter un produit -->
+          <section class="modal-section">
+            <h4>➕ Ajouter un produit</h4>
+            <div class="form-grid">
+              <div>
+                <label>Produits</label>
+                <select id="create-produit-select">
+                  <option value="">-- Sélectionner un produit --</option>
+                </select>
+              </div>
+              <div>
+                <label>Quantité</label>
+                <input
+                  type="number"
+                  id="create-produit-quantite"
+                  min="1"
+                  value="1"
+                  step="0.5"
+                />
+              </div>
+              <div>
+                <label>Unité</label>
+                <input
+                  type="text"
+                  id="create-produit-unite"
+                  placeholder="kg, L, pièces..."
+                  value="pièces"
+                />
+              </div>
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-small"
+                  id="create-add-produit-btn"
+                >
+                  + Ajouter
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Actions finales -->
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancel-create">
+            Annuler
+          </button>
+          <button type="button" class="btn" id="save-create-formule">
+            Créer la formule
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script JS-->
+    <script src="../js/api.js"></script>
+    <script src="../js/formules.js"></script>
+  </body>
+</html>

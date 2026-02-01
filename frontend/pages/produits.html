@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Produits - Oh My Brunch</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <h1>🥐 Oh My Brunch</h1>
+      <ul class="nav-links">
+        <li><a href="produits.html">Produits</a></li>
+        <li><a href="formules.html">Formules</a></li>
+        <li><a href="commandes.html">Commandes</a></li>
+      </ul>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container">
+      <h2>📦 Gestion des Produits</h2>
+
+      <!-- Formulaire d'ajout -->
+      <div class="form-card">
+        <h3>Ajouter un produit</h3>
+        <form id="add-product-form">
+          <input
+            type="text"
+            id="product-name"
+            placeholder="Nom du produit"
+            required
+          />
+          <select id="product-category">
+            <option value="">-- Catégorie --</option>
+          </select>
+          <select id="product-type">
+            <option value="">-- Type --</option>
+          </select>
+          <button type="submit" class="btn">Ajouter</button>
+        </form>
+      </div>
+
+      <!-- Barre de recherche et filtres -->
+      <div class="search-card">
+        <h3>Rechercher et filtrer</h3>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="🔍 Rechercher un produit..."
+        />
+        <select id="filter-category">
+          <option value="">-- Filtrer par catégorie --</option>
+        </select>
+        <select id="filter-type">
+          <option value="">-- Filtrer par type --</option>
+        </select>
+
+        <button id="reset-filters" class="btn-secondary">
+          Effacer les filtres
+        </button>
+      </div>
+
+      <!-- Liste des produits -->
+      <div id="products-list" class="products-list">
+        <!-- Les produits s'afficheront ici dynamiquement -->
+      </div>
+    </main>
+
+    <!-- Modale de modification -->
+    <div id="edit-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Modifier le produit</h3>
+          <span class="close-modal">&times;</span>
+        </div>
+
+        <form id="edit-product-form">
+          <input
+            type="text"
+            id="edit-product-name"
+            placeholder="Nom du produit"
+            required
+          />
+          <select id="edit-product-category">
+            <option value="">-- Catégorie --</option>
+          </select>
+          <select id="edit-product-type">
+            <option value="">-- Type --</option>
+          </select>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="cancel-edit">
+              Annuler
+            </button>
+            <button type="submit" class="btn">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts JavaScript -->
+    <script src="../js/api.js"></script>
+    <script src="../js/produits.js"></script>
+  </body>
+</html>
