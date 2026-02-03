@@ -9,11 +9,11 @@
   <body>
     <!-- Navigation -->
     <nav class="navbar">
-      <h1>🥐 Commandes - Oh My Brunch</h1>
+      <h1>🥐 Oh My Brunch</h1>
       <ul class="nav-links">
         <li><a href="produits.html">Produits</a></li>
         <li><a href="formules.html">Formules</a></li>
-        <li><a href="commandes.html">Commandes</a></li>
+        <li><a href="commandes.html" class="active">Commandes</a></li>
       </ul>
     </nav>
 
@@ -24,10 +24,10 @@
       <!-- Actions principales -->
       <div class="actions-bar">
         <button id="open-create-modal" class="btn btn-primary">
-          ➕ Ajouter une commande
+          ➕ Nouvelle commande
         </button>
         <div class="stats">
-          <span id="commandes-count">0 commandes</span>
+          <span id="commandes-count">0 commande</span>
         </div>
       </div>
 
@@ -55,6 +55,177 @@
         <p>Chargement des commandes...</p>
       </div>
     </main>
+
+    <!-- MODALE DE CRÉATION DE COMMANDE -->
+    <div id="create-modal" class="modal">
+      <div class="modal-content modal-large">
+        <!-- En-tête de la modale -->
+        <div class="modal-header">
+          <h3>➕ Créer une nouvelle commande</h3>
+          <button class="close-modal" id="close-create-modal">&times;</button>
+        </div>
+
+        <!-- Corps de la modale -->
+        <div class="modal-body">
+          <!-- SECTION 1 : Informations générales -->
+          <div class="form-section">
+            <h4>📋 Informations générales</h4>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="create-nom-client">Nom du client *</label>
+                <input
+                  type="text"
+                  id="create-nom-client"
+                  placeholder="Ex: Hotel Marriott"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="create-delivery-date">Date de livraison *</label>
+                <input type="date" id="create-delivery-date" required />
+              </div>
+
+              <div class="form-group">
+                <label for="create-delivery-hour">Heure de livraison *</label>
+                <input
+                  type="time"
+                  id="create-delivery-hour"
+                  value="10:00"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="create-nombre-couverts">Nombre de couverts *</label>
+                <input
+                  type="number"
+                  id="create-nombre-couverts"
+                  min="1"
+                  value="1"
+                  required
+                />
+              </div>
+
+              <div class="form-group form-group-checkbox">
+                <label>
+                  <input type="checkbox" id="create-avec-service" checked />
+                  <span>✅ Avec service sur place</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="create-notes">Notes / Commentaires</label>
+                <textarea
+                  id="create-notes"
+                  rows="3"
+                  placeholder="Ex: Allergies, préférences, instructions spéciales..."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2 : Formules -->
+          <div class="form-section">
+            <h4>🍽��� Formules (<span id="formules-count">0</span>)</h4>
+
+            <!-- Liste des formules ajoutées -->
+            <div id="formules-list" class="items-list">
+              <p class="empty-state">
+                Aucune formule ajoutée. Ajoutez-en ci-dessous.
+              </p>
+            </div>
+
+            <!-- Formulaire d'ajout de formule -->
+            <div class="add-item-form">
+              <select id="formule-select" class="form-select">
+                <option value="">-- Sélectionner une formule --</option>
+              </select>
+              <input
+                type="number"
+                id="formule-couverts"
+                placeholder="Nb couverts"
+                min="1"
+                value="1"
+                class="form-input-small"
+              />
+              <button
+                type="button"
+                id="add-formule-btn"
+                class="btn btn-secondary"
+              >
+                ➕ Ajouter
+              </button>
+            </div>
+          </div>
+
+          <!-- SECTION 3 : Produits individuels -->
+          <div class="form-section">
+            <h4>
+              📦 Produits individuels (<span id="produits-count">0</span>)
+            </h4>
+            <p class="section-hint">
+              Optionnel : Ajoutez des produits en dehors des formules
+            </p>
+
+            <!-- Liste des produits ajoutés -->
+            <div id="produits-list" class="items-list">
+              <p class="empty-state">Aucun produit ajouté.</p>
+            </div>
+
+            <!-- Formulaire d'ajout de produit -->
+            <div class="add-item-form">
+              <select id="produit-select" class="form-select">
+                <option value="">-- Sélectionner un produit --</option>
+              </select>
+              <input
+                type="number"
+                id="produit-quantite"
+                placeholder="Quantité"
+                min="1"
+                step="0.5"
+                value="1"
+                class="form-input-small"
+              />
+              <select id="produit-unite" class="form-select-small">
+                <option value="">Unité</option>
+              </select>
+              <button
+                type="button"
+                id="add-produit-btn"
+                class="btn btn-secondary"
+              >
+                ➕ Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Fin modal-body -->
+
+        <!-- Pied de la modale -->
+        <div class="modal-footer">
+          <button type="button" id="cancel-create" class="btn btn-secondary">
+            Annuler
+          </button>
+          <button
+            type="button"
+            id="save-create-commande"
+            class="btn btn-primary"
+          >
+            ✅ Créer la commande
+          </button>
+        </div>
+      </div>
+      <!-- Fin modal-content -->
+    </div>
+    <!-- Fin create-modal -->
 
     <!-- Scripts JavaScript -->
     <script src="../js/toast.js"></script>

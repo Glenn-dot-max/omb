@@ -184,6 +184,62 @@ async function deleteCommande(commandeId) {
   }
 }
 
+/**
+ * Crée un lien entre une commande et une formule
+ * @param {Object} data - {commande_id, formule_id, quantite_recommandee, quantite_finale}
+ * @returns {Promise<Object>} - La réponse de l'API
+ */
+
+async function createCommandeFormule(data) {
+  try {
+    const response = await fetch(`${API_URL}/commande-formules/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Erreur API createCommandeFormule:", errorData);
+      throw new Error(
+        `Erreur ${response.status}: ${JSON.stringify(errorData)}`,
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API createCommandeFormule:", error);
+    throw error;
+  }
+}
+
+// ===========================================
+// COMMANDES - PRODUITS
+// ===========================================
+
+async function createCommandeProduit(data) {
+  try {
+    const response = await fetch(`${API_URL}/commande-produits/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Erreur API createCommandeProduit:", errorData);
+      throw new Error(
+        `Erreur ${response.status}: ${JSON.stringify(errorData)}`,
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API createCommandeProduit:", error);
+    throw error;
+  }
+}
+
 // ===========================================
 // FORMULE - PRODUITS
 // ===========================================

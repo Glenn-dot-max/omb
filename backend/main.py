@@ -1,22 +1,35 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from uuid import UUID
 import json
 from config import CORS_ORIGINS
 from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite
+from datetime import date, datetime
 
 class UUIDEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, UUID):
             return str(obj)
+        if isinstance(obj, (date, datetime)):
+            return obj.isoformat()
         return json.JSONEncoder.default(self, obj)
+    
+class CustomJSONResponse(JSONResponse):
+    def render(self, content) -> bytes:
+        return json.dumps(
+            jsonable_encoder(content),
+            cls=UUIDEncoder,
+            ensure_ascii=False,
+        ).encode("utf-8")
 
 # Créer l'application FastAPI
 app = FastAPI(
     title="Oh My Brunch API",
     description="API pour gérer les produits, formules et commandes d'Oh My Brunch",
-    version="1.0.0"
+    version="1.0.0",
+    default_response_class=CustomJSONResponse,
 )
 
 # Configurer les middleware CORS
