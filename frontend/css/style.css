@@ -1301,3 +1301,74 @@ body {
     justify-content: flex-end;
   }
 }
+
+/* Details Modal Styles */
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.detail-item {
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item strong {
+  display: block;
+  color: #495057;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.detail-item span {
+  color: #212529;
+  font-size: 1rem;
+}
+
+.empty-list {
+  padding: 1rem;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.formule-composition {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-left: 3px solid #007bff;
+  border-radius: 4px;
+}
+
+.formule-composition strong {
+  display: block;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.composition-list {
+  list-style: none;
+  padding-left: 1rem;
+  margin: 0;
+}
+
+.composition-list li {
+  padding: 0.25rem 0;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.composition-list li::before {
+  content: "• ";
+  color: #007bff;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}

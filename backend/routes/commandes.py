@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from database import get_supabase_client
 from models import CarnetCommandeCreate, CarnetCommandeUpdate
-from datetime import datetime, date
+from datetime import datetime, date, time
 from uuid import UUID
 
 router = APIRouter(prefix="/commandes", tags=["commandes"])
@@ -12,7 +12,7 @@ def serialize_commande(commande):
     if isinstance(commande, dict):
         result = {}
         for key, value in commande.items():
-            if isinstance(value, (date, datetime)):
+            if isinstance(value, (date, datetime, time)):
                 result[key] = value.isoformat()
             elif isinstance(value, UUID):
                 result[key] = str(value)
@@ -38,8 +38,10 @@ async def get_commande(commande_id: str):
 @router.post("/")
 async def create_commande(commande: CarnetCommandeCreate):
     """Create a new commande"""
-    response = supabase.table("carnet_commande").insert(commande.model_dump()).execute()
+    commande_data = serialize_commande(commande.model_dump())
+    response = supabase.table("carnet_commande").insert(commande_data).execute()
     return serialize_commande(response.data[0])
+
 
 @router.put("/{commande_id}")
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate):

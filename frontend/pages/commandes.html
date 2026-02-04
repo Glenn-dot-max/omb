@@ -227,6 +227,165 @@
     </div>
     <!-- Fin create-modal -->
 
+    <!-- Modale de visualisation des détails -->
+     <div id="detail-modal" class="modal">
+        <div class="modal-content modal-large">
+          <!-- En-tête de la modale -->
+          <div class="modal-header">
+            <h3>📋 Détails de la commande</h3>
+            <button class="close-modal" id="close-detail-modal">&times;</button>
+          </div>
+
+          <!-- contenu de la modale -->
+          <div class ="modal-body">
+            <!-- Informations générales -->
+            <div class="form-section">
+              <h4>📋 Informations générales</h4>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <strong>Client :</strong>
+                  <span id="detail-nom-client"></span>
+                </div>
+                <div class="detail-item">
+                  <strong>Date de livraison :</strong>
+                  <span id="detail-delivery-date"></span>
+                </div>
+                <div class="detail-item">
+                  <strong>Heure de livraison :</strong>
+                  <span id="detail-delivery-hour"></span>
+                </div>
+                <div class="detail-item">
+                  <strong>Nombre de couverts :</strong>
+                  <span id="detail-nombre-couverts"></span>
+                </div>
+                <div class="detail-item">
+                  <strong>Avec service :</strong>
+                  <span id="detail-avec-service"></span>
+                </div>
+                <div class="detail-item">
+                  <strong>Notes :</strong>
+                  <span id="detail-notes"></span> 
+                </div>
+              </div>
+            </div>
+
+            <!-- Formules -->
+            <div class="form-section">
+              <h4>🍽️ Formules <span class="badge" id="detail-formules-count">0</span></h4>
+              <div id="detail-formules-list"></div>
+            </div>
+
+            <!-- Produits individuels -->
+            <div class="form-section">
+              <h4>📦 Produits individuels <span class="badge" id="detail-produits-count">0</span></h4>
+              <div id="detail-produits-list"></div>
+            </div>
+          </div>
+
+          <!-- Pied de la modale -->
+          <div class="modal-footer">
+            <button type="button" id="close-detail-btn" class="btn btn-secondary">Fermer</button>
+          </div>
+        </div>
+      </div>
+     
+      <!-- MODAL D'ÉDITION DE COMMANDE -->
+      <div id="edit-modal" class="modal">
+        <div class="modal-content modal-large">
+          <!-- En-tête de la modale -->
+          <div class="modal-header">
+            <h3>✏️ Éditer la commande</h3>
+            <button class="close-modal" id="close-edit-modal">&times;</button>
+          </div>
+
+          <!-- Corps -->
+          <div class="modal-body">
+            <!-- SECTION 1 : Informations générales -->
+            <div class="form-section">
+              <h4>📋 Informations générales</h4>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-nom-client">Nom du client *</label>
+                  <input type="text" id="edit-nom-client" required />
+                </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-delivery-date">Date de livraison *</label>
+                <input type="date" id="edit-delivery-date" required />
+              </div>
+
+              <div class="form-group">
+                <label for="edit-delivery-hour">Heure de livraison *</label>
+                <input type="time" id="edit-delivery-hour" required />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-nombre-couverts">Nombre de couverts *</label>
+                  <input
+                    type="number"
+                    id="edit-nombre-couverts"
+                    min="1"
+                    required
+                  />
+              </div>
+
+              <div class="form-group form-group-checkbox">
+                <label>
+                  <input type="checkbox" id="edit-avec-service" />
+                  <span>✅ Avec service</span>
+                </label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-notes">Notes / Commentaires</label>
+              <textarea
+                id="edit-notes"
+                rows="3"
+                placeholder="Ex: Allergies, préférences, instructions spéciales..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2 : FORMULES -->
+        <div class="form-section">
+          <h4>🍽️ Formules <span class="badge" id="edit-formules-count">0</span></h4>
+          <div id="edit-formules-list"></div>
+
+          <div class="add-item-form">
+            <select id="edit-formule-select" class="form-select-small"></select>
+              <input type="number" id="edit-formule-couverts" min="1" value="1" placeholder="Couverts" class="form-input-small" />
+              <button type="button" id="edit-add-formule-btn" class="btn btn-secondary">➕ Ajouter</button>
+          </div>
+        </div>
+
+        <!-- SECTION 3 : PRODUITS INDIVIDUELS -->
+        <div class="form-section">
+          <h4>📦 Produits individuels <span class="badge" id="edit-produits-count">0</span></h4>
+          <div id="edit-produits-list"></div>
+
+          <div class="add-item-form">
+            <select id="edit-produit-select" class="form-select-small"></select>
+            <input type="number" id="edit-produit-quantite" min="1" step="0.5" value="1" placeholder="Quantité" class="form-input-small" />
+            <select id="edit-produit-unite" class="form-select-small"></select>
+            <button type="button" id="edit-add-produit-btn" class="btn btn-secondary">➕ Ajouter</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pied de la modale -->
+      <div class="modal-footer">
+        <button type="button" id="cancel-edit" class="btn btn-secondary">Annuler</button>
+        <button type="button" id="save-edit-commande" class="btn btn-primary">✅ Sauvegarder les modifications</button>
+      </div>
+    </div>
+
     <!-- Scripts JavaScript -->
     <script src="../js/toast.js"></script>
     <script src="../js/api.js"></script>

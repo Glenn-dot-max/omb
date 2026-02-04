@@ -288,6 +288,81 @@ async function deleteFormuleProduit(formuleProduitId) {
 }
 
 // ===========================================
+// COMMANDES - GET FORMULES ET PRODUITS
+// ===========================================
+
+async function getCommandeFormules(commandeId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-formules/commande/${commandeId}/`,
+    );
+    if (!response.ok) throw new Error("Erreur récupération formules commande");
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API getCommandeFormules:", error);
+    return [];
+  }
+}
+
+async function getCommandeProduits(commandeId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-produits/commande/${commandeId}/`,
+    );
+    if (!response.ok) throw new Error("Erreur récupération produits commande");
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API getCommandeProduits:", error);
+    return [];
+  }
+}
+
+async function updateCommande(commandeId, commande) {
+  try {
+    const response = await fetch(`${API_URL}/commandes/${commandeId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(commande),
+    });
+    if (!response.ok) throw new Error("Erreur mise à jour commande");
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API updateCommande:", error);
+    throw error;
+  }
+}
+
+async function deleteCommandeFormule(commandeFormuleId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-formules/${commandeFormuleId}/`,
+      {
+        method: "DELETE",
+      },
+    );
+    if (!response.ok) throw new Error("Erreur suppression commande-formule");
+  } catch (error) {
+    console.error("Erreur API deleteCommandeFormule:", error);
+    throw error;
+  }
+}
+
+async function deleteCommandeProduit(commandeProduitId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-produits/${commandeProduitId}/`,
+      {
+        method: "DELETE",
+      },
+    );
+    if (!response.ok) throw new Error("Erreur suppression commande-produit");
+  } catch (error) {
+    console.error("Erreur API deleteCommandeProduit:", error);
+    throw error;
+  }
+}
+
+// ===========================================
 // CATÉGORIES
 // ===========================================
 

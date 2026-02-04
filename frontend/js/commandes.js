@@ -12,6 +12,9 @@ let tempProduits = [];
 let allFormules = [];
 let allProduits = [];
 let allUnites = [];
+let currentEditingCommande = null;
+let editFormules = [];
+let editProduits = [];
 
 // ===============================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -78,7 +81,7 @@ function createCommandeElement(commande) {
 
   // Détails
   const detailsDiv = document.createElement("div");
-  detailsDiv.className = "product-details";
+  detailsDiv.className = "product-detail";
 
   // Badge date avec indicateur d'urgence
   const dateBadge = document.createElement("span");
@@ -214,6 +217,41 @@ function setupEventListeners() {
   const addProduitbtn = document.getElementById("add-produit-btn");
   addProduitbtn.addEventListener("click", handleAddProduit);
 
+  // Fermer le modal avec le X
+  const closeDetailModalBtn = document.getElementById("close-detail-modal");
+  closeDetailModalBtn.addEventListener("click", closeDetailModal);
+
+  // Fermer le bouton Fermer
+  const closeDetailBtnFooter = document.getElementById("close-detail-btn");
+  closeDetailBtnFooter.addEventListener("click", closeDetailModal);
+
+  // Sauvegarder
+  const saveEdit = document.getElementById("save-edit-commande");
+  saveEdit.addEventListener("click", handleSaveEditCommande);
+
+  // Ajouter formule
+  const addEditFormule = document.getElementById("edit-add-formule-btn");
+  addEditFormule.addEventListener("click", handleAddEditFormule);
+
+  // Ajouter produit
+  const addEditProduit = document.getElementById("edit-add-produit-btn");
+  addEditProduit.addEventListener("click", handleAddEditProduit);
+
+  // Fermer en cliquant sur le fond gris
+  const editModalElement = document.getElementById("edit-modal");
+  editModalElement.addEventListener("click", (event) => {
+    if (event.target === editModalElement) {
+      closeEditModal();
+    }
+  });
+
+  const detailModal = document.getElementById("detail-modal");
+  detailModal.addEventListener("click", (event) => {
+    if (event.target === detailModal) {
+      closeDetailModal();
+    }
+  });
+
   // Fermer en cliquant sur le fond gris
   const createModal = document.getElementById("create-modal");
   createModal.addEventListener("click", (event) => {
@@ -325,14 +363,584 @@ function closeCreateCommandeModal() {
   tempProduits = [];
 }
 
-function handleViewDetails(commande) {
-  console.log("Voir les détails de la commande :", commande);
-  showToast("Fonction de visualisation des détails non implémentée.", "info");
+async function handleViewDetails(commande) {
+  try {
+    if (allFormules.length === 0 || allProduits.length === 0) {
+      await loadDataForModal();
+    }
+
+    document.getElementById("detail-nom-client").textContent =
+      commande.nom_client;
+    document.getElementById("detail-delivery-date").textContent = new Date(
+      commande.delivery_date,
+    ).toLocaleDateString("fr-FR");
+    document.getElementById("detail-delivery-hour").textContent =
+      commande.delivery_hour;
+    document.getElementById("detail-nombre-couverts").textContent =
+      `${commande.nombre_couverts} personne${commande.nombre_couverts > 1 ? "s" : ""}`;
+
+    document.getElementById("detail-avec-service").textContent =
+      commande.avec_service ? "✅ Oui" : "⭕ Non";
+    document.getElementById("detail-notes").textContent =
+      commande.notes || "Aucune note";
+
+    const formules = await getCommandeFormules(commande.id);
+    const produits = await getCommandeProduits(commande.id);
+
+    await displayDetailsFormules(formules);
+    displayDetailsProduits(produits);
+
+    document.getElementById("detail-modal").style.display = "block";
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des détails de la commande :",
+      error,
+    );
+    showToast(
+      "Erreur lors de la récupération des détails de la commande.",
+      "error",
+    );
+  }
 }
 
-function handleEditCommande(commande) {
-  console.log("Modifier la commande :", commande);
-  showToast("Fonction de modification de commande non implémentée.", "info");
+async function displayDetailsFormules(formules) {
+  const container = document.getElementById("detail-formules-list");
+  const count = document.getElementById("detail-formules-count");
+
+  count.textContent = formules.length;
+
+  if (formules.length === 0) {
+    container.innerHTML = '<p class="empty-list">Aucune formule.</p>';
+    return;
+  }
+
+  container.innerHTML = "";
+
+  for (const formule of formules) {
+    const div = document.createElement("div");
+    div.className = "item-row";
+
+    const formuleData = allFormules.find((f) => f.id === formule.formule_id);
+    const formuleName = formuleData ? formuleData.name : "Formule Inconnue";
+
+    const formuleProduits = await getFormuleProduits(formule.formule_id);
+
+    let produitsHTML = "";
+    if (formuleProduits.length > 0) {
+      produitsHTML = '<div class="formule-composition">';
+      produitsHTML += "<strong>📦 Composition :</strong>";
+      produitsHTML += '<ul class="composition-list">';
+
+      for (const fp of formuleProduits) {
+        const produitData = allProduits.find((p) => p.id === fp.produit_id);
+        const produitName = produitData ? produitData.name : "Produit Inconnu";
+
+        const totalQuantite =
+          fp.quantite_par_personne * formule.quantite_finale;
+
+        produitsHTML += `<li>${produitName} - ${totalQuantite} ${fp.unite}</li>`;
+      }
+
+      produitsHTML += "</ul></div>";
+    }
+
+    div.innerHTML = `
+      <div class="item-info">
+        <div class="item-name">${formuleName}</div>
+        <div class="item-detail">Quantité : ${formule.quantite_finale} couverts</div>
+        ${produitsHTML}
+      </div>
+    `;
+
+    container.appendChild(div);
+  }
+}
+
+function displayDetailsProduits(produits) {
+  const container = document.getElementById("detail-produits-list");
+  const count = document.getElementById("detail-produits-count");
+
+  count.textContent = produits.length;
+
+  if (produits.length === 0) {
+    container.innerHTML = '<p class="empty-list">Aucun produit.</p>';
+    return;
+  }
+
+  container.innerHTML = "";
+
+  produits.forEach((produit) => {
+    const div = document.createElement("div");
+    div.className = "item-row";
+
+    const produitData = allProduits.find((p) => p.id === produit.produit_id);
+    const produitName = produitData ? produitData.name : "Produit Inconnu";
+
+    div.innerHTML = `
+      <div class="item-info">
+        <div class="item-name">${produitName}</div>
+        <div class="item-detail">Quantité : ${produit.quantite} ${produit.unite}</div>
+      </div>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+function closeDetailModal() {
+  document.getElementById("detail-modal").style.display = "none";
+}
+
+async function handleEditCommande(commande) {
+  console.log("✏️ Modification la commande :", commande);
+
+  try {
+    // 1. Store the command being edited
+    currentEditingCommande = commande;
+
+    // 2. Load data for the selectors
+    if (allFormules.length === 0 || allProduits.length === 0) {
+      await loadDataForModal();
+    }
+
+    // 3. Fill basic from fields with existing data
+    document.getElementById("edit-nom-client").value = commande.nom_client;
+    document.getElementById("edit-delivery-date").value =
+      commande.delivery_date;
+    document.getElementById("edit-delivery-hour").value =
+      commande.delivery_hour;
+    document.getElementById("edit-nombre-couverts").value =
+      commande.nombre_couverts;
+    document.getElementById("edit-avec-service").checked =
+      commande.avec_service;
+    document.getElementById("edit-notes").value = commande.notes || "";
+
+    // 4. Load existing formules and products from API
+    const [formules, produits] = await Promise.all([
+      getCommandeFormules(commande.id),
+      getCommandeProduits(commande.id),
+    ]);
+
+    // 5. Convert to edit format
+    editFormules = formules.map((f) => {
+      const formuleData = allFormules.find((form) => form.id === f.formule_id);
+      return {
+        id: f.id,
+        formule_id: f.formule_id,
+        formule_name: formuleData ? formuleData.name : "Formule Inconnue",
+        formule_type: formuleData ? formuleData.type_formule : "",
+        couverts: f.quantite_finale,
+      };
+    });
+
+    editProduits = produits.map((p) => {
+      const produitData = allProduits.find((prod) => prod.id === p.produit_id);
+      return {
+        id: p.id,
+        produit_id: p.produit_id,
+        produit_name: produitData ? produitData.name : "Produit Inconnu",
+        quantite: p.quantite,
+        unite: p.unite,
+      };
+    });
+
+    // 6. Populate selectors
+    populateEditFormuleSelector();
+    populateEditProduitSelector();
+    populateEditUniteSelect();
+
+    // 7. Display existing items
+    displayEditFormules();
+    displayEditProduits();
+
+    // 8. Show the edit modal
+    document.getElementById("edit-modal").style.display = "block";
+  } catch (error) {
+    console.error("Erreur lors de l'ouverture de l'édition:", error);
+    showToast(
+      "Erreur lors de l'ouverture de l'édition de la commande.",
+      "error",
+    );
+  }
+}
+
+function populateEditFormuleSelector() {
+  const select = document.getElementById("edit-formule-select");
+  select.innerHTML = '<option value="">-- Sélectionner une formule --</option>';
+
+  allFormules.forEach((formule) => {
+    const option = document.createElement("option");
+    option.value = formule.id;
+    option.textContent = `${formule.name} - (${formule.type_formule})`;
+    select.appendChild(option);
+  });
+}
+
+function populateEditProduitSelector() {
+  const select = document.getElementById("edit-produit-select");
+  select.innerHTML = '<option value="">-- Sélectionner un produit --</option>';
+
+  allProduits.forEach((produit) => {
+    const option = document.createElement("option");
+    option.value = produit.id;
+    option.textContent = produit.name;
+    select.appendChild(option);
+  });
+}
+
+function populateEditUniteSelect() {
+  const select = document.getElementById("edit-produit-unite");
+  select.innerHTML = '<option value="">-- Unité --</option>';
+
+  allUnites.forEach((unite) => {
+    const option = document.createElement("option");
+    option.value = unite.nom;
+    option.textContent = unite.nom;
+    select.appendChild(option);
+  });
+}
+
+function displayEditFormules() {
+  const container = document.getElementById("edit-formules-list");
+  const count = document.getElementById("edit-formules-count");
+
+  count.textContent = editFormules.length;
+
+  if (editFormules.length === 0) {
+    container.innerHTML = '<p class="empty-state">Aucune formule ajoutée.</p>';
+    return;
+  }
+
+  container.innerHTML = "";
+
+  editFormules.forEach((formule, index) => {
+    const div = document.createElement("div");
+    div.className = "item-row";
+
+    div.innerHTML = `
+      <div class="item-info">
+        <div class="item-name">${formule.formule_name}</div>
+        <div class="item-detail">${formule.formule_type} • ${formule.couverts} couverts</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn-icon" onclick="handleEditRemoveFormule(${index})" title="Retirer">🗑️</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function displayEditProduits() {
+  const container = document.getElementById("edit-produits-list");
+  const count = document.getElementById("edit-produits-count");
+
+  count.textContent = editProduits.length;
+
+  if (editProduits.length === 0) {
+    container.innerHTML = '<p class="empty-state">Aucun produit ajouté.</p>';
+    return;
+  }
+
+  container.innerHTML = "";
+
+  editProduits.forEach((produit, index) => {
+    const div = document.createElement("div");
+    div.className = "item-row";
+
+    div.innerHTML = `
+      <div class="item-info">
+        <div class="item-name">${produit.produit_name}</div>
+        <div class="item-detail">${produit.quantite} ${produit.unite}</div>
+      </div>
+      <div class="item-actions">
+        <button class="btn-icon" onclick="handleRemoveEditProduit(${index})" title="Retirer">🗑️</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function handleRemoveEditFormule(index) {
+  const formule = editFormules[index];
+
+  if (formule.id) {
+    try {
+      await deleteCommandeFormule(formule.id);
+      // ✅ Will show toast at the end
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la formule :", error);
+      showToast("Erreur lors de la suppression de la formule.", "error");
+      return;
+    }
+  }
+
+  editFormules.splice(index, 1);
+  displayEditFormules();
+
+  // ✅ One toast for both cases
+  showToast("Formule retirée.", "success");
+}
+
+async function handleEditRemoveFormule(index) {
+  const formule = editFormules[index];
+  if (formule.id) {
+    try {
+      await deleteCommandeFormule(formule.id);
+      // ✅ Will show toast at the end
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la formule :", error);
+      showToast("Erreur lors de la suppression de la formule.", "error");
+      return;
+    }
+  }
+  editFormules.splice(index, 1);
+  displayEditFormules();
+  showToast("Formule retirée.", "success");
+}
+
+async function handleRemoveEditProduit(index) {
+  const produit = editProduits[index];
+  if (produit.id) {
+    try {
+      await deleteCommandeProduit(produit.id);
+      // ✅ Will show toast at the end
+    } catch (error) {
+      console.error("Erreur lors de la suppression du produit :", error);
+      showToast("Erreur lors de la suppression du produit.", "error");
+      return;
+    }
+  }
+  editProduits.splice(index, 1);
+  displayEditProduits();
+  showToast("Produit retiré.", "success");
+}
+
+function handleAddEditFormule() {
+  const select = document.getElementById("edit-formule-select");
+  const formuleId = select.value;
+  const couverts = parseInt(
+    document.getElementById("edit-formule-couverts").value,
+  );
+
+  if (!formuleId) {
+    showToast("Veuillez sélectionner une formule.", "warning");
+    return;
+  }
+
+  if (!couverts || couverts < 1) {
+    showToast("Le nombre de couverts doit être au moins de 1.", "warning");
+    return;
+  }
+
+  const dejaAjoute = editFormules.find((f) => f.formule_id === formuleId);
+  if (dejaAjoute) {
+    showToast("Cette formule a déjà été ajoutée.", "warning");
+    return;
+  }
+
+  const formule = allFormules.find((f) => f.id === formuleId);
+
+  if (!formule) {
+    showToast("Erreur : Formule introuvable.", "error");
+    return;
+  }
+
+  editFormules.push({
+    formule_id: formule.id,
+    formule_name: formule.name,
+    formule_type: formule.type_formule,
+    couverts: couverts,
+  });
+
+  displayEditFormules();
+
+  select.value = "";
+  document.getElementById("edit-formule-couverts").value = "1";
+
+  showToast("Formule ajoutée.", "success");
+}
+
+function handleAddEditProduit() {
+  const select = document.getElementById("edit-produit-select");
+  const produitId = select.value;
+  const quantite = parseFloat(
+    document.getElementById("edit-produit-quantite").value,
+  );
+  const unite = document.getElementById("edit-produit-unite").value;
+
+  if (!produitId) {
+    showToast("Veuillez sélectionner un produit.", "warning");
+    return;
+  }
+
+  if (!quantite || quantite < 1) {
+    showToast("La quantité doit être au moins de 1.", "warning");
+    return;
+  }
+
+  if (!unite) {
+    showToast("Veuillez sélectionner une unité.", "warning");
+    return;
+  }
+
+  const dejaAjoute = editProduits.find((p) => p.produit_id === produitId);
+  if (dejaAjoute) {
+    showToast("Ce produit a déjà été ajouté.", "warning");
+    return;
+  }
+
+  const produit = allProduits.find((p) => p.id === produitId);
+
+  if (!produit) {
+    showToast("Erreur : Produit introuvable.", "error");
+    return;
+  }
+
+  editProduits.push({
+    produit_id: produit.id,
+    produit_name: produit.name,
+    quantite: quantite,
+    unite: unite,
+  });
+
+  displayEditProduits();
+
+  select.value = "";
+  document.getElementById("edit-produit-quantite").value = "1";
+  document.getElementById("edit-produit-unite").value = "";
+
+  showToast("Produit ajouté.", "success");
+}
+
+async function handleSaveEditCommande() {
+  console.log("💾 Sauvegarde de la commande...");
+
+  try {
+    // ===============================================
+    // STEP 1 : Get form values
+    // ===============================================
+
+    const nomClient = document.getElementById("edit-nom-client").value.trim();
+    const deliveryDate = document.getElementById("edit-delivery-date").value;
+    const deliveryHour = document.getElementById("edit-delivery-hour").value;
+    const nombreCouverts = parseInt(
+      document.getElementById("edit-nombre-couverts").value,
+    );
+    const avecService = document.getElementById("edit-avec-service").checked;
+    const notes = document.getElementById("edit-notes").value.trim();
+
+    // ===============================================
+    // STEP 2 : Validate inputs
+    // ===============================================
+    if (!nomClient) {
+      showToast("Le nom du client est requis.", "warning");
+      return;
+    }
+
+    if (!deliveryDate) {
+      showToast("La date de livraison est requise.", "warning");
+      return;
+    }
+
+    if (!deliveryHour) {
+      showToast("L'heure de livraison est requise.", "warning");
+      return;
+    }
+
+    if (!nombreCouverts || nombreCouverts < 1) {
+      showToast("Le nombre de couverts doit être au moins de 1.", "warning");
+      return;
+    }
+
+    // ===============================================
+    // STEP 3 : Update the commande
+    // ===============================================
+
+    const commandeData = {
+      nom_client: nomClient,
+      delivery_date: deliveryDate,
+      delivery_hour: deliveryHour,
+      nombre_couverts: nombreCouverts,
+      avec_service: avecService,
+      notes: notes,
+    };
+
+    console.log("📝 Mise à jour commande:", commandeData);
+    await updateCommande(currentEditingCommande.id, commandeData);
+    console.log("✅ Commande mise à jour.");
+
+    // ===============================================
+    // STEP 4 : CREATE NEW formules
+    // ===============================================
+
+    const newFormules = editFormules.filter((f) => !f.id);
+
+    if (newFormules.length > 0) {
+      console.log(
+        `➕ Ajout de ${newFormules.length} nouvelle(s) formule(s):`,
+        newFormules,
+      );
+
+      for (const formule of newFormules) {
+        const formuleData = {
+          commande_id: currentEditingCommande.id,
+          formule_id: formule.formule_id,
+          quantite_finale: formule.couverts,
+        };
+        await createCommandeFormule(formuleData);
+      }
+
+      console.log("✅ Nouvelles formules ajoutées.");
+    }
+
+    // ===============================================
+    // STEP 5 : CREATE NEW produits
+    // ===============================================
+
+    const newProduits = editProduits.filter((p) => !p.id);
+
+    if (newProduits.length > 0) {
+      console.log(
+        `➕ Ajout de ${newProduits.length} nouveau(x) produit(s):`,
+        newProduits,
+      );
+
+      for (const produit of newProduits) {
+        const produitData = {
+          commande_id: currentEditingCommande.id,
+          produit_id: produit.produit_id,
+          quantite: produit.quantite,
+          unite: produit.unite,
+        };
+        await createCommandeProduit(produitData);
+      }
+
+      console.log("✅ Nouveaux produits ajoutés.");
+    }
+
+    // ===============================================
+    // STEP 6 : Finalize
+    // ===============================================
+    console.log("🔄 Rafraîchissement des données...");
+    await loadCommandes();
+
+    closeEditModal();
+
+    showToast(`Commande "${nomClient}" mise à jour avec succès.`, "success");
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde de la commande :", error);
+    showToast("Erreur lors de la sauvegarde de la commande.", "error");
+  }
+}
+
+function closeEditModal() {
+  // Cacher la modale
+  document.getElementById("edit-modal").style.display = "none";
+
+  // Réinitialiser les données
+  currentEditingCommande = null;
+  editFormules = [];
+  editProduits = [];
 }
 
 async function handleDeleteCommande(commandeId) {
@@ -448,7 +1056,7 @@ function displayTempFormules() {
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${formule.formule_name}</div>
-        <div class="item-details">${formule.formule_type} • ${formule.couverts} couverts</div>
+        <div class="item-detail">${formule.formule_type} • ${formule.couverts} couverts</div>
       </div>
       <div class="item-actions">
         <button class="btn-icon" onclick="handleRemoveFormule(${index})" title="Retirer">🗑️</button>
@@ -491,7 +1099,7 @@ function displayTempProduits() {
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${produit.produit_name}</div>
-        <div class="item-details">${produit.quantite} ${produit.unite}</div>
+        <div class="item-detail">${produit.quantite} ${produit.unite}</div>
       </div>
       <div class="item-actions">
         <button class="btn-icon" onclick="handleRemoveProduit(${index})" title="Retirer">🗑️</button>

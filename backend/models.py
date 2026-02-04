@@ -78,19 +78,18 @@ class CommandeFormuleUpdate(BaseModel):
     quantite_finale: Optional[float] = None
 
 # ================ COMMANDE_PRODUITS MODELS ================
-
 class CommandeProduitBase(UUIDModel):
     commande_id: UUID
     produit_id: UUID
     quantite: float = 0
-    unite_id: Optional[int] = None
+    unite: Optional[str] = None
 
 class CommandeProduitCreate(CommandeProduitBase):
     pass
 
 class CommandeProduitUpdate(BaseModel):
     quantite: Optional[float] = None
-    unite_id: Optional[int] = None
+    unite: Optional[str] = None
 
 # ================ FORMULE_PRODUITS MODELS ================
 
@@ -98,11 +97,11 @@ class FormuleProduitBase(UUIDModel):
     formule_id: UUID
     produit_id: UUID
     quantite: float = 0
-    unite_id: Optional[int] = 11
+    unite: Optional[str] = None
 
 class FormuleProduitCreate(FormuleProduitBase):
     pass
 
 class FormuleProduitUpdate(BaseModel):
     quantite: Optional[float] = None
-    unite_id: Optional[int] = None
+    unite: Optional[str] = None
