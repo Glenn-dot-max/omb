@@ -236,6 +236,16 @@ function createSection({
 
   section.appendChild(header);
 
+  const commandesGroup = document.createElement("div");
+  commandesGroup.className = "commandes-group";
+
+  commandes.forEach((commande) => {
+    const commandeCard = createCommandeElement(commande, urgent);
+    commandesGroup.appendChild(commandeCard);
+  });
+
+  section.appendChild(commandesGroup);
+
   return section;
 }
 
@@ -245,25 +255,28 @@ function getDateLabel(date) {
   return date.toLocaleDateString("fr-FR", options);
 }
 
-function createCommandeElement(commande) {
+function createCommandeElement(commande, isUrgent = false) {
   const div = document.createElement("div");
-  div.className = "product-item";
+  div.className = `product-item ${isUrgent ? "urgent-item" : ""}`;
 
   // Nom du client
   const nameSpan = document.createElement("span");
   nameSpan.className = "product-name";
   nameSpan.textContent = commande.nom_client;
 
-  // Détails
+  // Bandeau
+  const bandeau = document.createElement("div");
+  bandeau.className = "product-bandeau";
+
+  // Heure de livraison dans le bandeau
+  const heureSpan = document.createElement("span");
+  heureSpan.textContent = `⏰ ${commande.delivery_hour}`;
+  bandeau.appendChild(heureSpan);
+
+  // DÉTAILS (badges)
+
   const detailsDiv = document.createElement("div");
   detailsDiv.className = "product-detail";
-
-  // Badge date avec indicateur d'urgence
-  const dateBadge = document.createElement("span");
-  const dateInfo = getDateInfo(commande.delivery_date);
-  dateBadge.className = `badge category ${dateInfo.urgent ? "badge-urgent" : ""}`;
-  dateBadge.textContent = `📅 ${dateInfo.text} à ${commande.delivery_hour}`;
-  detailsDiv.appendChild(dateBadge);
 
   // Badge couverts
   const couvertsBadge = document.createElement("span");
@@ -286,9 +299,6 @@ function createCommandeElement(commande) {
     const notesP = document.createElement("p");
     notesP.className = "product-notes";
     notesP.textContent = `📝 ${commande.notes}`;
-    notesP.style.fontSize = "0.9em";
-    notesP.style.color = "#666";
-    notesP.style.marginTop = "0.5rem";
     detailsDiv.appendChild(notesP);
   }
 
@@ -317,6 +327,7 @@ function createCommandeElement(commande) {
 
   // Assembler l'élément commande
   div.appendChild(nameSpan);
+  div.appendChild(bandeau);
   div.appendChild(detailsDiv);
   div.appendChild(actionsDiv);
 

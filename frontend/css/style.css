@@ -1490,7 +1490,7 @@ body {
 }
 
 /* ===============================================
-   CONTAINER DES CARTES
+   CONTAINER DES CARTES - 3 COLONNES
    =============================================== */
 
 .commandes-group {
@@ -1498,11 +1498,13 @@ body {
   padding: 1.5rem;
   border-radius: 0 0 12px 12px;
   box-shadow: 0 4px 12px rgba(80, 50, 36, 0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
   border: 1px solid #e8e0d5;
   border-top: none;
+
+  /* ✅ GRILLE 3 COLONNES */
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
 }
 
 /* ===============================================
@@ -1513,111 +1515,76 @@ body {
   background: white;
   border: 2px solid #e8e0d5;
   border-radius: 10px;
-  padding: 1.2rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+  overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 2px 6px rgba(80, 50, 36, 0.08);
+
+  /* ✅ FLEX VERTICAL */
+  display: flex;
+  flex-direction: column;
 }
 
 .product-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(80, 50, 36, 0.15);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(80, 50, 36, 0.15);
   border-color: #f5c842;
 }
 
-/* Items urgents */
-.urgent-item {
-  border-left: 5px solid #f5c842 !important;
-  background: linear-gradient(to right, #fff8e7 0%, white 100%) !important;
-  position: relative;
-}
+/* ===============================================
+   NOM DU CLIENT (en haut)
+   =============================================== */
 
-.urgent-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
-  background: linear-gradient(180deg, #f5c842, #e6b636);
-  animation: pulse-gold 2s infinite;
-}
-
-@keyframes pulse-gold {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(245, 196, 66, 0.5);
-  }
-  50% {
-    opacity: 0.7;
-    box-shadow: 0 0 20px rgba(245, 196, 66, 0.8);
-  }
-}
-
-.urgent-item:hover {
-  transform: translateX(8px) translateY(-3px);
-  box-shadow: 0 6px 20px rgba(245, 196, 66, 0.3) !important;
-}
-
-/* Nom du client */
 .product-name {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #503224;
-  min-width: 200px;
+  padding: 1rem 1.2rem 0.8rem 1.2rem;
+  text-align: center;
+  background: white;
 }
 
-/* Détails */
+/* ===============================================
+   BANDEAU CHOCOLAT (nouveau!)
+   =============================================== */
+
+.product-bandeau {
+  background: linear-gradient(135deg, #503224 0%, #6b4233 100%);
+  color: #f5c842;
+  padding: 0.8rem 1.2rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  border-top: 1px solid #3d2419;
+  border-bottom: 3px solid #f5c842;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ===============================================
+   DÉTAILS (badges et notes)
+   =============================================== */
+
 .product-detail {
+  padding: 1.2rem;
   display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.8rem;
   flex: 1;
+  background: white;
 }
 
 /* Badges */
 .badge {
-  padding: 0.4rem 0.9rem;
+  padding: 0.5rem 0.8rem;
   border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
-  white-space: nowrap;
+  text-align: center;
   border: 1.5px solid;
   transition: all 0.2s ease;
 }
 
 .badge:hover {
   transform: scale(1.05);
-}
-
-/* Badge heure/date */
-.badge.category {
-  background: #503224;
-  color: #f5c842;
-  border-color: #503224;
-}
-
-.badge-urgent {
-  background: #f5c842 !important;
-  color: #503224 !important;
-  border-color: #e6b636 !important;
-  font-weight: 700;
-  animation: badge-pulse 2s infinite;
-}
-
-@keyframes badge-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(245, 196, 66, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(245, 196, 66, 0);
-  }
 }
 
 /* Badge couverts */
@@ -1640,60 +1607,36 @@ body {
   border-color: #ddd;
 }
 
-/* Badges type de formule */
-.badge.formule-type {
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.formule-brunch {
-  background: #f5c842;
-  color: #503224;
-  border-color: #e6b636;
-}
-
-.formule-non-brunch {
-  background: #8b6f5c;
-  color: #fff8e7;
-  border-color: #6b4233;
-}
-
-.formule-mixte {
-  background: linear-gradient(135deg, #f5c842 0%, #8b6f5c 100%);
-  color: white;
-  border-color: #503224;
-}
-
-.formule-sans {
-  background: #e8e0d5;
-  color: #503224;
-  border-color: #d4bfa8;
-}
-
 /* Notes */
 .product-notes {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
   color: #6b4233;
   font-style: italic;
-  padding: 0.5rem;
+  padding: 0.6rem;
   background: #fff8e7;
   border-radius: 6px;
   border-left: 3px solid #f5c842;
 }
 
-/* Actions */
+/* ===============================================
+   ACTIONS (boutons en bas)
+   =============================================== */
+
 .product-actions {
+  padding: 0 1.2rem 1.2rem 1.2rem;
   display: flex;
   gap: 0.6rem;
-  align-items: center;
+  justify-content: space-between;
+  background: white;
 }
 
 .edit-btn,
 .delete-btn {
-  padding: 0.6rem 1.2rem;
+  flex: 1;
+  padding: 0.7rem 0.5rem;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -1726,78 +1669,75 @@ body {
   box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
 }
 
-/* Animation d'apparition */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* ===============================================
+   ITEMS URGENTS
+   =============================================== */
 
-/* Alerte jour chargé */
-.section-header.busy-day {
+.urgent-item {
+  border: 3px solid #f5c842 !important;
+  box-shadow: 0 4px 12px rgba(245, 196, 66, 0.3) !important;
   position: relative;
 }
 
-.section-header.busy-day::after {
-  content: "⚠️ JOUR CHARGÉ";
+.urgent-item::before {
+  content: "🔥 URGENT";
   position: absolute;
-  top: -12px;
-  right: 20px;
+  top: -10px; /* ✅ Moins haut */
+  right: 10px;
   background: #d32f2f;
   color: white;
-  padding: 0.3rem 1rem;
-  border-radius: 25px;
-  font-size: 0.75rem;
+  padding: 0.2rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
   font-weight: 700;
-  box-shadow: 0 3px 8px rgba(211, 47, 47, 0.4);
-  border: 2px solid white;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(211, 47, 47, 0.4);
 }
 
-/* Responsive */
+.urgent-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 24px rgba(245, 196, 66, 0.4) !important;
+}
+
+/* ===============================================
+   RESPONSIVE - 2 colonnes sur tablette
+   =============================================== */
+
+@media (max-width: 1200px) {
+  .commandes-group {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===============================================
+   RESPONSIVE - 1 colonne sur mobile
+   =============================================== */
+
 @media (max-width: 768px) {
-  .section-header {
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-    padding: 1.2rem 1rem;
-  }
-
-  .section-title h3 {
-    font-size: 1.1rem;
-  }
-
-  .section-subtitle {
-    font-size: 0.85rem;
-  }
-
-  .section-stats {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .product-item {
-    flex-direction: column;
-    align-items: flex-start;
+  .commandes-group {
+    grid-template-columns: 1fr;
     padding: 1rem;
   }
 
-  .product-name {
-    min-width: auto;
-    width: 100%;
+  .product-item {
+    max-width: 100%;
   }
 
-  .product-detail {
-    width: 100%;
+  .product-name {
+    font-size: 1.1rem;
+  }
+
+  .product-bandeau {
+    font-size: 0.9rem;
+    padding: 0.6rem;
   }
 
   .product-actions {
+    flex-direction: column;
+  }
+
+  .edit-btn,
+  .delete-btn {
     width: 100%;
-    justify-content: space-between;
   }
 }
