@@ -47,6 +47,9 @@ async def create_commande(commande: CarnetCommandeCreate):
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate):
     """Update an existing commande"""
     update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
+
+    update_data = serialize_commande(update_data)
+
     response = supabase.table("carnet_commande").update(update_data).eq("id", commande_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")

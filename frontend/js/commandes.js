@@ -62,12 +62,187 @@ function displayCommandes(commandes) {
     return;
   }
 
-  commandesList.innerHTML = "";
+  // ==============================================
+  // SÉPARER ET TRIER LES COMMANDES
+  // ==============================================
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
+  const in7Days = new Date(today);
+  in7Days.setDate(in7Days.getDate() + 7);
+
+  const in14Days = new Date(today);
+  in14Days.setDate(in14Days.getDate() + 14);
+
+  // Créer les groupes
+  const commandesAujourdHui = [];
+  const commandesDemain = [];
+  const commandesCetteSemaine = [];
+  const commandesSemaineProchaine = [];
+  const commandesPlusTard = [];
 
   commandes.forEach((commande) => {
-    const commandeItem = createCommandeElement(commande);
-    commandesList.appendChild(commandeItem);
+    const commandeDate = new Date(commande.delivery_date);
+    commandeDate.setHours(0, 0, 0, 0);
+
+    if (commandeDate.getTime() === today.getTime()) {
+      commandesAujourdHui.push(commande);
+    } else if (commandeDate.getTime() === tomorrow.getTime()) {
+      commandesDemain.push(commande);
+    } else if (commandeDate > dayAfterTomorrow && commandeDate <= in7Days) {
+      commandesCetteSemaine.push(commande);
+    } else if (commandeDate > in7Days && commandeDate <= in14Days) {
+      commandesSemaineProchaine.push(commande);
+    } else if (commandeDate > in14Days) {
+      commandesPlusTard.push(commande);
+    }
   });
+
+  // Fonction pour trier par heure
+  const sortByTime = (a, b) => {
+    const timeA = a.delivery_hour || "00:00";
+    const timeB = b.delivery_hour || "00:00";
+    return timeA.localeCompare(timeB);
+  };
+
+  // Fonction pour trier par date puis heure
+  const sortByDateTime = (a, b) => {
+    const dateA = new Date(a.delivery_date);
+    const dateB = new Date(b.delivery_date);
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA - dateB;
+    }
+    return sortByTime(a, b);
+  };
+
+  // Trier par chaque groupe
+  commandesAujourdHui.sort(sortByTime);
+  commandesDemain.sort(sortByTime);
+  commandesCetteSemaine.sort(sortByDateTime);
+  commandesSemaineProchaine.sort(sortByDateTime);
+  commandesPlusTard.sort(sortByDateTime);
+
+  // Fonction pour calculer le total de couverts
+  const getTotalCouverts = (commandes) => {
+    return commandes.reduce(
+      (total, cmd) => total + (cmd.nombre_couverts || 0),
+      0,
+    );
+  };
+
+  // ==============================================
+  // AFFICHER LES SECTIONS
+  // ==============================================
+
+  commandesList.innerHTML = "";
+
+  // Section Aujourd'hui
+  if (commandesAujourdHui.length > 0) {
+    const section = createSection({
+      title: "🚨 Aujourd'hui",
+      subtitle: getDateLabel(today),
+      commandes: commandesAujourdHui,
+      totalCouverts: getTotalCouverts(commandesAujourdHui),
+      className: "today-section",
+      urgent: true,
+    });
+    commandesList.appendChild(section);
+  }
+
+  // Section Demain
+  if (commandesDemain.length > 0) {
+    const section = createSection({
+      title: "⚠️ Demain",
+      subtitle: getDateLabel(tomorrow),
+      commandes: commandesDemain,
+      totalCouverts: getTotalCouverts(commandesDemain),
+      className: "tomorrow-section",
+      urgent: true,
+    });
+    commandesList.appendChild(section);
+  }
+
+  // Section Cette semaine
+  if (commandesCetteSemaine.length > 0) {
+    const section = createSection({
+      title: "📅 CETTE SEMAINE (J+2 à J+7)",
+      subtitle: `${getDateLabel(dayAfterTomorrow)} - ${getDateLabel(in7Days)}`,
+      commandes: commandesCetteSemaine,
+      totalCouverts: getTotalCouverts(commandesCetteSemaine),
+      className: "week-section",
+      urgent: false,
+    });
+    commandesList.appendChild(section);
+  }
+
+  // Section Semaine prochaine
+  if (commandesSemaineProchaine.length > 0) {
+    const section = createSection({
+      title: "📅 SEMAINE PROCHAINE (J+8 à J+14)",
+      subtitle: `${getDateLabel(new Date(in7Days.getTime() + 24 * 60 * 60 * 1000))} - ${getDateLabel(in14Days)}`,
+      commandes: commandesSemaineProchaine,
+      totalCouverts: getTotalCouverts(commandesSemaineProchaine),
+      className: "next-week-section",
+      urgent: false,
+    });
+    commandesList.appendChild(section);
+  }
+
+  // Section Plus tard
+  if (commandesPlusTard.length > 0) {
+    const section = createSection({
+      title: "📆 PLUS TARD (Au-delà de J+14)",
+      subtitle: "Commandes futures",
+      commandes: commandesPlusTard,
+      totalCouverts: getTotalCouverts(commandesPlusTard),
+      className: "later-section",
+      urgent: false,
+    });
+    commandesList.appendChild(section);
+  }
+}
+
+// Fonction helper pour créer une section de commandes
+function createSection({
+  title,
+  subtitle,
+  commandes,
+  totalCouverts,
+  className,
+  urgent,
+}) {
+  const section = document.createElement("div");
+  section.className = `commandes-section ${className}`;
+
+  const header = document.createElement("div");
+  header.className = `section-header ${urgent ? "urgent-header" : "future-header"}`;
+  header.innerHTML = `
+    <div class="section-title">
+      <h3>${title}</h3>
+      <p class="section-subtitle">${subtitle}</p>
+    </div>
+    <div class="section-stats">
+      <span class="section-count">📦 ${commandes.length} commande${commandes.length > 1 ? "s" : ""}</span>
+      <span class="section-couverts">🍽️ ${totalCouverts} couvert${totalCouverts > 1 ? "s" : ""}</span>
+    </div>
+  `;
+
+  section.appendChild(header);
+
+  return section;
+}
+
+// Fonction helper pour formater les dates
+function getDateLabel(date) {
+  const options = { weekday: "long", day: "numeric", month: "long" };
+  return date.toLocaleDateString("fr-FR", options);
 }
 
 function createCommandeElement(commande) {
@@ -197,33 +372,60 @@ function setupEventListeners() {
   const openCreateModal = document.getElementById("open-create-modal");
   openCreateModal.addEventListener("click", handleOpenCreateModal);
 
-  // Fermer le modal avec le X
+  // ===============================================
+  // CREATE MODAL EVENT LISTENERS
+  // ===============================================
+
   const closeCreateModal = document.getElementById("close-create-modal");
   closeCreateModal.addEventListener("click", closeCreateCommandeModal);
 
-  // Fermer le bouton Annuler
   const cancelCreate = document.getElementById("cancel-create");
   cancelCreate.addEventListener("click", closeCreateCommandeModal);
 
-  // Créer la commande
   const saveCreate = document.getElementById("save-create-commande");
   saveCreate.addEventListener("click", handleCreateCommande);
 
-  // Ajouter une formule
   const addFormulebtn = document.getElementById("add-formule-btn");
   addFormulebtn.addEventListener("click", handleAddFormule);
 
-  // Ajouter un produit
   const addProduitbtn = document.getElementById("add-produit-btn");
   addProduitbtn.addEventListener("click", handleAddProduit);
 
-  // Fermer le modal avec le X
+  const createModal = document.getElementById("create-modal");
+  createModal.addEventListener("click", (event) => {
+    if (event.target === createModal) {
+      closeCreateCommandeModal();
+    }
+  });
+
+  // ===============================================
+  // DETAIL MODAL EVENT LISTENERS
+  // ===============================================
+
   const closeDetailModalBtn = document.getElementById("close-detail-modal");
   closeDetailModalBtn.addEventListener("click", closeDetailModal);
 
-  // Fermer le bouton Fermer
   const closeDetailBtnFooter = document.getElementById("close-detail-btn");
   closeDetailBtnFooter.addEventListener("click", closeDetailModal);
+
+  const detailModal = document.getElementById("detail-modal");
+  detailModal.addEventListener("click", (event) => {
+    if (event.target === detailModal) {
+      closeDetailModal();
+    }
+  });
+
+  // ===============================================
+  // ✅ EDIT MODAL EVENT LISTENERS (AJOUTE ÇA!)
+  // ===============================================
+
+  // Fermer avec le X
+  const closeEditModalBtn = document.getElementById("close-edit-modal");
+  closeEditModalBtn.addEventListener("click", closeEditModal);
+
+  // Annuler
+  const cancelEdit = document.getElementById("cancel-edit");
+  cancelEdit.addEventListener("click", closeEditModal);
 
   // Sauvegarder
   const saveEdit = document.getElementById("save-edit-commande");
@@ -238,25 +440,10 @@ function setupEventListeners() {
   addEditProduit.addEventListener("click", handleAddEditProduit);
 
   // Fermer en cliquant sur le fond gris
-  const editModalElement = document.getElementById("edit-modal");
-  editModalElement.addEventListener("click", (event) => {
-    if (event.target === editModalElement) {
+  const editModal = document.getElementById("edit-modal");
+  editModal.addEventListener("click", (event) => {
+    if (event.target === editModal) {
       closeEditModal();
-    }
-  });
-
-  const detailModal = document.getElementById("detail-modal");
-  detailModal.addEventListener("click", (event) => {
-    if (event.target === detailModal) {
-      closeDetailModal();
-    }
-  });
-
-  // Fermer en cliquant sur le fond gris
-  const createModal = document.getElementById("create-modal");
-  createModal.addEventListener("click", (event) => {
-    if (event.target === createModal) {
-      closeCreateCommandeModal();
     }
   });
 }
@@ -623,7 +810,7 @@ function displayEditFormules() {
         <div class="item-detail">${formule.formule_type} • ${formule.couverts} couverts</div>
       </div>
       <div class="item-actions">
-        <button class="btn-icon" onclick="handleEditRemoveFormule(${index})" title="Retirer">🗑️</button>
+        <button class="btn-icon" onclick="handleRemoveEditFormule(${index})" title="Retirer">🗑️</button>
       </div>
     `;
     container.appendChild(div);
@@ -678,23 +865,6 @@ async function handleRemoveEditFormule(index) {
   displayEditFormules();
 
   // ✅ One toast for both cases
-  showToast("Formule retirée.", "success");
-}
-
-async function handleEditRemoveFormule(index) {
-  const formule = editFormules[index];
-  if (formule.id) {
-    try {
-      await deleteCommandeFormule(formule.id);
-      // ✅ Will show toast at the end
-    } catch (error) {
-      console.error("Erreur lors de la suppression de la formule :", error);
-      showToast("Erreur lors de la suppression de la formule.", "error");
-      return;
-    }
-  }
-  editFormules.splice(index, 1);
-  displayEditFormules();
   showToast("Formule retirée.", "success");
 }
 
@@ -862,7 +1032,8 @@ async function handleSaveEditCommande() {
       delivery_hour: deliveryHour,
       nombre_couverts: nombreCouverts,
       avec_service: avecService,
-      notes: notes,
+      service: avecService,
+      notes: notes || null,
     };
 
     console.log("📝 Mise à jour commande:", commandeData);
