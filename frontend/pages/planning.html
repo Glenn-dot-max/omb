@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planning de Production - Oh My Brunch</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <h1>🥐 Oh My Brunch</h1>
+      <ul class="nav-links">
+        <li><a href="produits.html">Produits</a></li>
+        <li><a href="formules.html">Formules</a></li>
+        <li><a href="commandes.html">Commandes</a></li>
+        <li><a href="planning.html" class="active">Planning</a></li>
+      </ul>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container">
+      <h2>📊 Planning de Production</h2>
+
+      <!-- Barre d'actions -->
+      <div class="actions-bar">
+        <button id="generate-planning" class="btn btn-primary">
+          🔄 Générer le planning
+        </button>
+        <button
+          id="export-excel"
+          class="btn btn-secondary"
+          style="display: none"
+        >
+          📥 Exporter en Excel
+        </button>
+      </div>
+
+      <!-- Section Filtres -->
+      <div class="filters-section">
+        <div class="form-group">
+          <label for="date-debut">Date de début</label>
+          <input type="date" id="date-debut" class="filter-select" />
+        </div>
+
+        <div class="form-group">
+          <label for="date-fin">Date de fin</label>
+          <input type="date" id="date-fin" class="filter-select" />
+        </div>
+
+        <div class="form-group">
+          <label for="type-formule">Type de formule</label>
+          <select id="type-formule" class="filter-select">
+            <option value="toutes">Toutes</option>
+            <option value="brunch">Brunch</option>
+            <option value="non-brunch">Non-Brunch</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="afficher-totaux" checked />
+            Afficher les totaux
+          </label>
+        </div>
+      </div>
+
+      <!-- Containes pour les tableaux -->
+      <div id="planning-container">
+        <p style="text-align: center; color: #999">
+          Sélectionnez une période et cliquez sur "Générer le planning"
+        </p>
+      </div>
+    </main>
+
+    <!-- ============== Bibliothèsque pour générer Excel ============= -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <!-- ============== SCRIPT SECTION ============= -->
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/planning.js"></script>
+  </body>
+</html>

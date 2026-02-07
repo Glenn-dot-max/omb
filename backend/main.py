@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from uuid import UUID
 import json
 from config import CORS_ORIGINS
-from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite
+from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning
 from datetime import date, datetime
 
 class UUIDEncoder(json.JSONEncoder):
@@ -51,6 +51,7 @@ app.include_router(commande_produits.router)
 app.include_router(categories.router)
 app.include_router(types.router)
 app.include_router(unite.router)
+app.include_router(planning.router)
 
 # Route de test
 @app.get("/")
