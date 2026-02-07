@@ -12,7 +12,7 @@ const API_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:8000"
-    : "https://TO_BE_REPLACED_AFTER_DEPLOYMENT";
+    : "https://omb-backend.onrender.com";
 
 // Logs de débogage
 console.log("🌍 Environnement détecté :", window.location.hostname);
