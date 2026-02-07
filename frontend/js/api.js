@@ -1,9 +1,6 @@
 // js/api.js
 // This module handles API requests for the application.
-
-const API_URL = window.APP_CONFIG
-  ? window.APP_CONFIG.API_URL
-  : "http://127.0.0.1:8000";
+// API_URL est défini dans config.js
 
 // ===========================================
 // FONCTIONS API - PRODUITS
