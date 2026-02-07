@@ -14,11 +14,13 @@ API_PORT = 8000
 API_RELOAD = True
 
 # CORS Configuration
-CORS_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-    "null"
-]
+CORS_ORIGINS_ENV = os.getenv("CORS_ORIGINS", "*")
 
+# Convertir la chaîne en liste si nécessaire
+if isinstance(CORS_ORIGINS_ENV, str):
+  if CORS_ORIGINS_ENV == "*":
+      CORS_ORIGINS = ["*"]
+  else:
+      CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_ENV.split(",")]
+else:
+  CORS_ORIGINS = ["*"]
