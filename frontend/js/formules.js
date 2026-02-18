@@ -51,16 +51,20 @@ function populateUniteSelects() {
   selects.forEach((select) => {
     if (select) {
       select.innerHTML = '<option value="">--Sélectionner--</option>';
+
       allUnite.forEach((unite) => {
         const option = document.createElement("option");
-        option.value = unite.nom;
-        option.textContent = unite.nom;
+        // Nettoyer la valeur
+        const nomPropre = unite.nom.trim();
+        option.value = nomPropre;
+        option.textContent = nomPropre;
         select.appendChild(option);
       });
 
-      // Sélectionner "pièces" par défaut si disponible
-      if (select.querySelector('option[value="pièces"]')) {
-        select.value = "pièces";
+      // Sélectionner "unité" par défault si disponible
+      if (select.querySelector('option[value="unité"]')) {
+        select.value = "unité";
+        console.log(`✅ "unité" sélectionné par défaut dans ${select.id}`);
       }
     }
   });
@@ -424,7 +428,7 @@ async function handleAddProduitToFormule(event) {
     // Réinitialiser le formulaire
     document.getElementById("produit-select").value = "";
     document.getElementById("produit-quantite").value = "1";
-    document.getElementById("produit-unite").value = "pièces";
+    document.getElementById("produit-unite").value = "unité";
 
     alert("Produit ajouté à la formule !");
   } catch (error) {
@@ -542,10 +546,30 @@ async function handleOpenCreateModal() {
   // Charger la liste des produits pour le select
   await loadProduitsForCreateSelect();
 
+  // S'assurer que les unités sont chargées
+  if (allUnite.length === 0) {
+    await loadUnite();
+  } else {
+    populateUniteSelects();
+  }
+
   // Réinitialiser les champs
   document.getElementById("create-formule-name").value = "";
   document.getElementById("create-formule-couverts").value = "1";
   document.getElementById("create-formule-type").value = "Brunch";
+
+  // Réinitialiser le quantité et unité
+  document.getElementById("create-produit-quantite").value = "1";
+
+  // Sélectionner 'unité' par défault
+  const uniteSelect = document.getElementById("create-produit-unite");
+  if (uniteSelect) {
+    setTimeout(() => {
+      if (uniteSelect.querySelector('option[value="unité"]')) {
+        uniteSelect.value = "unité";
+      }
+    }, 100);
+  }
 
   // Vider la liste des produits
   displayCreateProduitsList();
@@ -611,7 +635,7 @@ function handleAddProduitToCreate(event) {
   // Réinitialiser le formulaire d'ajout
   document.getElementById("create-produit-select").value = "";
   document.getElementById("create-produit-quantite").value = "1";
-  document.getElementById("create-produit-unite").value = "pièces";
+  document.getElementById("create-produit-unite").value = "unité";
 }
 
 function displayCreateProduitsList() {
