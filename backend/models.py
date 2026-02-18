@@ -1,4 +1,3 @@
-from email.policy import default
 from pydantic import BaseModel, EmailStr, field_serializer
 from typing import Optional
 from uuid import UUID

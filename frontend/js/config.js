@@ -5,7 +5,7 @@
 /**
  * Détecte automatiquement l'environnement et configure l'URL de l'API
  * En développement (local) : http://localhost:8000
- * En production (Render): hhtps://[votre-backend].onrender.com
+ * En production (Render): https://[votre-backend].onrender.com
  */
 
 const API_URL =
