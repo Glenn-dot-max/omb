@@ -135,7 +135,7 @@
 
           <!-- SECTION 2 : Formules -->
           <div class="form-section">
-            <h4>🍽��� Formules (<span id="formules-count">0</span>)</h4>
+            <h4>🍽 Formules (<span id="formules-count">0</span>)</h4>
 
             <!-- Liste des formules ajoutées -->
             <div id="formules-list" class="items-list">
@@ -152,10 +152,12 @@
               <input
                 type="number"
                 id="formule-couverts"
-                placeholder="Nb couverts"
+                placeholder="💡 Suggéré"
                 min="1"
                 value="1"
                 class="form-input-small"
+                title="Suggestion basée sur le nombre de couverts de la commande (modifiable)"
+                style="border: 2px dashed #f5c05c"
               />
               <button
                 type="button"
@@ -361,7 +363,16 @@
 
           <div class="add-item-form">
             <select id="edit-formule-select" class="form-select-small"></select>
-              <input type="number" id="edit-formule-couverts" min="1" value="1" placeholder="Couverts" class="form-input-small" />
+              <input
+                type="number" 
+                id="edit-formule-couverts" 
+                min="1" 
+                value="1" 
+                placeholder="💡 Suggéré" 
+                class="form-input-small"
+                title="Suggestion basée sur le nombre de couverts de la commande (modifiable)"
+                style="border: 2px dashed #f5c05c;" 
+              />
               <button type="button" id="edit-add-formule-btn" class="btn btn-secondary">➕ Ajouter</button>
           </div>
         </div>

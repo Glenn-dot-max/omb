@@ -1682,7 +1682,7 @@ body {
 .urgent-item::before {
   content: "🔥 URGENT";
   position: absolute;
-  top: -10px; /* ✅ Moins haut */
+  top: 8px; /* ✅ Moins haut */
   right: 10px;
   background: #d32f2f;
   color: white;

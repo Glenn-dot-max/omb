@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadInitialData() {
   await loadCommandes();
+  await loadDataForModal();
 }
 
 // ===============================================
@@ -363,7 +364,7 @@ function getDateInfo(dateString) {
 
 function updateCommandesCount() {
   const count = document.getElementById("commandes-count");
-  count.textContent = `${allCommandes.length} commandes${allCommandes.length > 1 ? "s" : ""}`;
+  count.textContent = `${allCommandes.length} commande${allCommandes.length > 1 ? "s" : ""}`;
 }
 
 // ===============================================
@@ -543,6 +544,7 @@ async function handleOpenCreateModal() {
   document.getElementById("create-nombre-couverts").value = "1";
   document.getElementById("create-avec-service").checked = true;
   document.getElementById("create-notes").value = "";
+  document.getElementById("formule-couverts").value = "1";
 
   // 4. Afficher les listes vides
   displayTempFormules();
@@ -712,6 +714,8 @@ async function handleEditCommande(commande) {
     document.getElementById("edit-avec-service").checked =
       commande.avec_service;
     document.getElementById("edit-notes").value = commande.notes || "";
+    document.getElementById("edit-formule-couverts").value =
+      commande.nombre_couverts;
 
     // 4. Load existing formules and products from API
     const [formules, produits] = await Promise.all([
@@ -792,10 +796,16 @@ function populateEditUniteSelect() {
 
   allUnites.forEach((unite) => {
     const option = document.createElement("option");
-    option.value = unite.nom;
-    option.textContent = unite.nom;
+    option.value = unite.nom.trim();
+    option.textContent = unite.nom.trim();
     select.appendChild(option);
   });
+
+  // Sélectionner "unité" par défaut
+  if (select.querySelector('option[value="unité"]')) {
+    select.value = "unité";
+    console.log('✅ "unité" sélectionnée par défaut dans produit-unité');
+  }
 }
 
 function displayEditFormules() {
@@ -936,7 +946,8 @@ function handleAddEditFormule() {
   displayEditFormules();
 
   select.value = "";
-  document.getElementById("edit-formule-couverts").value = "1";
+  const nombreCouverts = document.getElementById("edit-nombre-couverts").value;
+  document.getElementById("edit-formule-couverts").value = nombreCouverts;
 
   showToast("Formule ajoutée.", "success");
 }
@@ -988,8 +999,12 @@ function handleAddEditProduit() {
 
   select.value = "";
   document.getElementById("edit-produit-quantite").value = "1";
-  document.getElementById("edit-produit-unite").value = "";
 
+  // Remettre "unité" par défaut
+  const uniteSelect = document.getElementById("edit-produit-unite");
+  if (uniteSelect.querySelector('option[value="unité"]')) {
+    uniteSelect.value = "unité";
+  }
   showToast("Produit ajouté.", "success");
 }
 
@@ -1177,7 +1192,7 @@ function populateFormuleSelector() {
   allFormules.forEach((formule) => {
     const option = document.createElement("option");
     option.value = formule.id;
-    option.textContent = `${formule.name} - (${formule.type_formule})`;
+    option.textContent = `${formule.name.trim()} - (${formule.type_formule.trim()})`;
     select.appendChild(option);
   });
 }
@@ -1189,7 +1204,7 @@ function populateProduitSelector() {
   allProduits.forEach((produit) => {
     const option = document.createElement("option");
     option.value = produit.id;
-    option.textContent = produit.name;
+    option.textContent = produit.name.trim();
     select.appendChild(option);
   });
 }
@@ -1200,10 +1215,16 @@ function populateUniteSelect() {
 
   allUnites.forEach((unite) => {
     const option = document.createElement("option");
-    option.value = unite.nom;
-    option.textContent = unite.nom;
+    option.value = unite.nom.trim();
+    option.textContent = unite.nom.trim();
     select.appendChild(option);
   });
+
+  // Sélectionner "unité" par défaut
+  if (select.querySelector('option[value="unité"]')) {
+    select.value = "unité";
+    console.log('✅ "unité" sélectionnée par défaut dans produit-unité');
+  }
 }
 
 function getTodayDate() {
@@ -1338,7 +1359,11 @@ function handleAddFormule() {
 
   // Réinitialiser le formulaire
   formulesSelect.value = "";
-  document.getElementById("formule-couverts").value = "1";
+
+  const nombreCouverts = document.getElementById(
+    "create-nombre-couverts",
+  ).value;
+  document.getElementById("formule-couverts").value = nombreCouverts;
 
   showToast("Formule ajoutée.", "success");
 }
@@ -1396,8 +1421,12 @@ function handleAddProduit() {
   // Réinitialiser le formulaire
   produitSelect.value = "";
   document.getElementById("produit-quantite").value = "1";
-  document.getElementById("produit-unite").value = "";
 
+  // Remettre "unité" par défaut
+  const uniteSelect = document.getElementById("produit-unite");
+  if (uniteSelect.querySelector('option[value="unité"]')) {
+    uniteSelect.value = "unité";
+  }
   showToast("Produit ajouté.", "success");
 }
 
