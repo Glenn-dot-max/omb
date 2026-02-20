@@ -1,12 +1,4 @@
 // =======================================================
-// CONFIGURATION API
-// =======================================================
-
-const API_URL = window.APP_CONFIG
-  ? window.APP_CONFIG.API_URL
-  : "http://127.0.0.1:8000";
-
-// =======================================================
 // VARIABLES GLOBALES
 // =======================================================
 
@@ -297,7 +289,7 @@ function generateExcelData(
       if (commandes.length > 0) {
         commandes.forEach((cmd) => {
           headerRow2.push(
-            `${(cmd.client || "").substring(0, 20)} ${cmd.heure || ""}`,
+            `${(cmd.client || "").substring(0, 20)}\n${cmd.heure || ""}`,
           );
         });
 
@@ -338,7 +330,13 @@ function generateExcelData(
 
     for (const produitId in produits) {
       const produit = produits[produitId];
-      const row = [produit.nom];
+
+      // Produit + Type sur 2 lignes dans la même cellule
+      const produitNom = produit.nom || "Sans nom";
+      const produitType = produit.type || "Type inconnu";
+      const celluleNom = `${produitNom}\n(${produitType})`;
+
+      const row = [celluleNom];
       let totalGeneral = 0;
 
       // Pour chaque date
@@ -386,13 +384,17 @@ function generateExcelData(
       currentRow++;
     }
 
-    return {
-      data: data,
-      colWidths: colWidths,
-      merges: merges,
-    };
+    data.push([]); // Ligne vide après chaque catégorie
+    currentRow++;
   }
+
+  return {
+    data: data,
+    colWidths: colWidths,
+    merges: merges,
+  };
 }
+
 // ===========================================
 // AFFICHER LE PLANNING
 // ===========================================
@@ -470,6 +472,7 @@ function organizeProduitsByCategorie(data) {
         result[categorie][produitId] = {
           id: produitId,
           nom: produit.nom,
+          type: produit.type || "Type inconnu",
           unite: produit.unite,
           categorie: categorie,
         };
@@ -584,7 +587,9 @@ function generateTableBody(produits, dates, planning, afficherTotaux) {
     // Colonne Produit
     html += `
       <td style="padding:0.75rem; font-weight:600; border:1px solid #ddd; background:#FFF2CC;">
-        ${produit.nom}
+
+        ${produit.nom}<br/>
+        <span style="font-size:0.85rem; color:#666; font-weight:normal;">[${produit.type || "Type inconnu"}]</span>
       </td>
     `;
 
