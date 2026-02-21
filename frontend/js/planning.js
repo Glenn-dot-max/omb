@@ -119,9 +119,9 @@ async function handleGeneratePlanning() {
 }
 
 // =======================================================
-// GÉNÉRER L'EXPORT EXCEL
+// GÉNÉRER L'EXPORT EXCEL AVEC EXCELJS (TYPE + CATÉGORIE)
 // =======================================================
-function handleExportExcel() {
+async function handleExportExcel() {
   console.log("📤 Export Excel...");
 
   if (!planningData || !planningData.planning) {
@@ -132,121 +132,101 @@ function handleExportExcel() {
   }
 
   try {
-    // Créer un nouveau workbook
-    const wb = XLSX.utils.book_new();
+    // Créer un nouveau workbook avec ExcelJS
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Planning Production");
 
     // Extraire les dates
     const dates = Object.keys(planningData.planning).sort();
 
-    // Organiser par catégorie
-    const produitsByCategorie = organizeProduitsByCategorie(planningData);
+    // Organiser par TYPE puis CATÉGORIE
+    const produitsByType = organizeProduitsByType(planningData);
 
-    // Créer les données pour Excel
-    const excelData = generateExcelData(
-      dates,
-      produitsByCategorie,
-      planningData.planning,
-      document.getElementById("afficher-totaux").checked,
-    );
+    // Afficher les totaux
+    const afficherTotaux = document.getElementById("afficher-totaux").checked;
 
-    // Créer les feuilles de calcul
-    const ws = XLSX.utils.aoa_to_sheet(excelData.data);
+    let currentRow = 1;
 
-    // Appliquer les styles
-    ws["!cols"] = excelData.colWidths;
-
-    // Fusionner les cellules
-    ws["!merges"] = excelData.merges;
-
-    // Ajouter la feuille au workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Planning Production");
-
-    // Générer le nom du fichier
-    const filename = `planning_production_${planningData.periode.debut}_to_${planningData.periode.fin}.xlsx`;
-
-    // Télécharger le fichier
-    XLSX.writeFile(wb, filename);
-
-    console.log("✅ Export Excel généré:", filename);
-  } catch (error) {
-    console.error("❌ Erreur lors de l'export Excel:", error);
-    alert(
-      "⚠️ Une erreur est survenue lors de l'export Excel: " + error.message,
-    );
-  }
-}
-
-// =======================================================
-// GÉNÉRER LES DONNÉES POUR EXCEL
-// =======================================================
-function generateExcelData(
-  dates,
-  produitsByCategorie,
-  planning,
-  afficherTotaux,
-) {
-  const data = [];
-  const merges = [];
-  const colWidths = [{ wch: 25 }];
-
-  let currentRow = 0;
-
-  // ============== TITRE ==============
-  data.push([
-    `Planning de Production du ${formatDateLong(planningData.periode.debut)} au ${formatDateLong(planningData.periode.fin)}`,
-  ]);
-  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 10 } });
-  currentRow++;
-
-  // Ligne vide
-  data.push([]);
-  currentRow++;
-
-  // Statistiques
-  data.push([
-    `${planningData.commandes_count} commande(s)`,
-    `${Object.keys(produitsByCategorie).length} catégorie(s)`,
-  ]);
-  currentRow++;
-
-  // Ligne vide
-  data.push([]);
-  currentRow++;
-
-  // Calculer le nombre total de colonnes
-  let totalCols = 1; // Colonne Produit
-  dates.forEach((date) => {
-    const commandes = planning[date].commandes || [];
-    const nbCols = commandes.length + (afficherTotaux ? 1 : 0);
-    totalCols += nbCols > 0 ? nbCols : afficherTotaux ? 2 : 1;
-  });
-  if (afficherTotaux) {
-    totalCols += 1; // Colonne TOTAL GÉNÉRAL
-  }
-
-  // Pré-remplir les largeurs de colonnes
-  while (colWidths.length < totalCols) {
-    colWidths.push({ wch: 12 });
-  }
-
-  // ============== POUR CHAQUE CATÉGORIE ==============
-  for (const categorie in produitsByCategorie) {
-    const startRow = currentRow;
-
-    // Titre de la catégorie
-    data.push([`📦 ${categorie}`]);
-    merges.push({
-      s: { r: currentRow, c: 0 },
-      e: { r: currentRow, c: totalCols - 1 },
-    });
+    // ============== TITRE ==============
+    const titleCell = worksheet.getCell(currentRow, 1);
+    titleCell.value = `Planning de Production du ${formatDateLong(planningData.periode.debut)} au ${formatDateLong(planningData.periode.fin)}`;
+    titleCell.font = { bold: true, size: 16, color: { argb: "FFFFFFFF" } };
+    titleCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4472C4" },
+    };
+    titleCell.alignment = { vertical: "middle", horizontal: "center" };
+    worksheet.mergeCells(currentRow, 1, currentRow, 10);
+    worksheet.getRow(currentRow).height = 30;
     currentRow++;
 
-    // ============== EN-TÊTE: DATES ==============
-    const headerRow1 = ["Produit"];
+    // Ligne vide
+    currentRow++;
+
+    // Statistiques
+    worksheet.getCell(currentRow, 1).value =
+      `${planningData.commandes_count} commande(s)`;
+    currentRow++;
+
+    // Ligne vide
+    currentRow++;
+
+    // ============== EN-TÊTE: LIGNE 1 (DATES) ==============
     let colIdx = 1;
 
+    // Colonnes TYPE, CATÉGORIE, PRODUIT
+    worksheet.getCell(currentRow, colIdx).value = "Type";
+    worksheet.getCell(currentRow, colIdx).font = {
+      bold: true,
+      color: { argb: "FFFFFFFF" },
+    };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4472C4" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "Catégorie";
+    worksheet.getCell(currentRow, colIdx).font = {
+      bold: true,
+      color: { argb: "FFFFFFFF" },
+    };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4472C4" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "Produit";
+    worksheet.getCell(currentRow, colIdx).font = {
+      bold: true,
+      color: { argb: "FFFFFFFF" },
+    };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4472C4" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
+
+    // Dates
     dates.forEach((date) => {
-      const commandes = planning[date].commandes || [];
+      const commandes = planningData.planning[date].commandes || [];
       const nbCols = commandes.length + (afficherTotaux ? 1 : 0);
 
       const [year, month, day] = date.split("-");
@@ -254,19 +234,27 @@ function generateExcelData(
       const joursSemaine = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
       const jourNom = joursSemaine[dateObj.getDay()];
 
-      headerRow1.push(`${day}/${month}\n${jourNom}`);
+      const dateCell = worksheet.getCell(currentRow, colIdx);
+      dateCell.value = `${day}/${month}\n${jourNom}`;
+      dateCell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      dateCell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF5B9BD5" },
+      };
+      dateCell.alignment = {
+        vertical: "middle",
+        horizontal: "center",
+        wrapText: true,
+      };
 
-      // Fusionner les colonnes pour cette date
       if (nbCols > 1) {
-        merges.push({
-          s: { r: currentRow, c: colIdx },
-          e: { r: currentRow, c: colIdx + nbCols - 1 },
-        });
-      }
-
-      // Ajouter des colonnes vides pour les commandes supplémentaires
-      for (let i = 1; i < nbCols; i++) {
-        headerRow1.push("");
+        worksheet.mergeCells(
+          currentRow,
+          colIdx,
+          currentRow,
+          colIdx + nbCols - 1,
+        );
       }
 
       colIdx += nbCols;
@@ -274,26 +262,82 @@ function generateExcelData(
 
     // Colonne TOTAL GÉNÉRAL
     if (afficherTotaux) {
-      headerRow1.push("TOTAL GÉNÉRAL");
-      colWidths.push({ wch: 15 });
+      const totalCell = worksheet.getCell(currentRow, colIdx);
+      totalCell.value = "TOTAL\nGÉNÉRAL";
+      totalCell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      totalCell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFED7D31" },
+      };
+      totalCell.alignment = {
+        vertical: "middle",
+        horizontal: "center",
+        wrapText: true,
+      };
     }
 
-    data.push(headerRow1);
     currentRow++;
 
-    // ==============  SOUS-EN-TÊTE: CLIENTS ==============
-    const headerRow2 = ["Client"];
+    // ============== EN-TÊTE: LIGNE 2 (CLIENT) ==============
+    colIdx = 1;
+
+    // Colonnes vides pour TYPE, CATÉGORIE
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "Client";
+    worksheet.getCell(currentRow, colIdx).font = {
+      italic: true,
+      size: 10,
+      bold: true,
+    };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
+
+    // Clients
     dates.forEach((date) => {
-      const commandes = planning[date].commandes || [];
+      const commandes = planningData.planning[date].commandes || [];
 
       if (commandes.length > 0) {
         commandes.forEach((cmd) => {
-          headerRow2.push(
-            `${(cmd.client || "").substring(0, 20)}\n${cmd.heure || ""}`,
-          );
+          const clientCell = worksheet.getCell(currentRow, colIdx);
+          clientCell.value = cmd.client || "";
+          clientCell.font = { size: 9, bold: true };
+          clientCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFD9E1F2" },
+          };
+          clientCell.alignment = {
+            vertical: "middle",
+            horizontal: "center",
+            wrapText: true,
+          };
+          colIdx++;
         });
 
-        // Colonne TOTAL du jour
         if (afficherTotaux) {
           const [year, month, day] = date.split("-");
           const dateObj = new Date(year, month - 1, day);
@@ -307,92 +351,709 @@ function generateExcelData(
             "Sam",
           ];
           const jourNom = joursSemaine[dateObj.getDay()];
-          headerRow2.push(`TOTAL ${jourNom}`);
+
+          const totalJourCell = worksheet.getCell(currentRow, colIdx);
+          totalJourCell.value = `TOTAL ${jourNom}`;
+          totalJourCell.font = { bold: true, size: 9 };
+          totalJourCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          totalJourCell.alignment = {
+            vertical: "middle",
+            horizontal: "center",
+            wrapText: true,
+          };
+          colIdx++;
         }
       } else {
-        headerRow2.push("-");
+        worksheet.getCell(currentRow, colIdx).value = "-";
+        worksheet.getCell(currentRow, colIdx).fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFD9E1F2" },
+        };
+        colIdx++;
         if (afficherTotaux) {
-          headerRow2.push("-");
+          worksheet.getCell(currentRow, colIdx).value = "-";
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
         }
       }
     });
 
-    // Sous-en-tête TOTAL GÉNÉRAL
     if (afficherTotaux) {
-      headerRow2.push("");
+      worksheet.getCell(currentRow, colIdx).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF4B084" },
+      };
     }
 
-    data.push(headerRow2);
     currentRow++;
 
-    // ============== PRODUITS DE LA CATÉGORIE ==============
-    const produits = produitsByCategorie[categorie];
+    // ============== EN-TÊTE: LIGNE 3 (NOMBRE DE COUVERTS) ==============
+    colIdx = 1;
 
-    for (const produitId in produits) {
-      const produit = produits[produitId];
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
 
-      // Produit + Type sur 2 lignes dans la même cellule
-      const produitNom = produit.nom || "Sans nom";
-      const produitType = produit.type || "Type inconnu";
-      const celluleNom = `${produitNom}\n(${produitType})`;
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
 
-      const row = [celluleNom];
-      let totalGeneral = 0;
+    worksheet.getCell(currentRow, colIdx).value = "Nombre de couverts";
+    worksheet.getCell(currentRow, colIdx).font = { italic: true, size: 10 };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
 
-      // Pour chaque date
-      dates.forEach((date) => {
-        const commandes = planning[date].commandes || [];
-        let totalJour = 0;
+    dates.forEach((date) => {
+      const commandes = planningData.planning[date].commandes || [];
 
-        if (commandes.length > 0) {
-          // Pour chaque commande
-          commandes.forEach((cmd) => {
-            const produitData = cmd.produits[produitId];
+      if (commandes.length > 0) {
+        commandes.forEach((cmd) => {
+          const couvertsCell = worksheet.getCell(currentRow, colIdx);
+          couvertsCell.value = cmd.nombre_couverts || "";
+          couvertsCell.font = { size: 9 };
+          couvertsCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFD9E1F2" },
+          };
+          couvertsCell.alignment = {
+            vertical: "middle",
+            horizontal: "center",
+          };
+          colIdx++;
+        });
 
-            if (produitData) {
-              const qte = produitData.quantite || 0;
-              totalJour += qte;
-              totalGeneral += qte;
-              row.push(formatNumber(qte));
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      } else {
+        worksheet.getCell(currentRow, colIdx).value = "-";
+        worksheet.getCell(currentRow, colIdx).fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFD9E1F2" },
+        };
+        colIdx++;
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      }
+    });
+
+    if (afficherTotaux) {
+      worksheet.getCell(currentRow, colIdx).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF4B084" },
+      };
+    }
+
+    currentRow++;
+
+    // ============== EN-TÊTE: LIGNE 4 (HEURE DE LIVRAISON) ==============
+    colIdx = 1;
+
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "Heure de livraison";
+    worksheet.getCell(currentRow, colIdx).font = { italic: true, size: 10 };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
+
+    dates.forEach((date) => {
+      const commandes = planningData.planning[date].commandes || [];
+
+      if (commandes.length > 0) {
+        commandes.forEach((cmd) => {
+          const heureCell = worksheet.getCell(currentRow, colIdx);
+          heureCell.value = cmd.heure || "";
+          heureCell.font = { size: 9 };
+          heureCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFD9E1F2" },
+          };
+          heureCell.alignment = {
+            vertical: "middle",
+            horizontal: "center",
+          };
+          colIdx++;
+        });
+
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      } else {
+        worksheet.getCell(currentRow, colIdx).value = "-";
+        worksheet.getCell(currentRow, colIdx).fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFD9E1F2" },
+        };
+        colIdx++;
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      }
+    });
+
+    if (afficherTotaux) {
+      worksheet.getCell(currentRow, colIdx).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF4B084" },
+      };
+    }
+
+    currentRow++;
+
+    // ============== EN-TÊTE: LIGNE 5 (SERVICE) ==============
+    colIdx = 1;
+
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "Service";
+    worksheet.getCell(currentRow, colIdx).font = { italic: true, size: 10 };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
+
+    dates.forEach((date) => {
+      const commandes = planningData.planning[date].commandes || [];
+
+      if (commandes.length > 0) {
+        commandes.forEach((cmd) => {
+          const serviceCell = worksheet.getCell(currentRow, colIdx);
+          serviceCell.value = cmd.service || "Sans";
+          serviceCell.font = { size: 9 };
+          serviceCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFD9E1F2" },
+          };
+          serviceCell.alignment = {
+            vertical: "middle",
+            horizontal: "center",
+          };
+          colIdx++;
+        });
+
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      } else {
+        worksheet.getCell(currentRow, colIdx).value = "-";
+        worksheet.getCell(currentRow, colIdx).fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFD9E1F2" },
+        };
+        colIdx++;
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      }
+    });
+
+    if (afficherTotaux) {
+      worksheet.getCell(currentRow, colIdx).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF4B084" },
+      };
+    }
+
+    currentRow++;
+
+    // ============== LIGNES DE PRODUITS PAR TYPE ET CATÉGORIE ==============
+    for (const typeGroupe in produitsByType) {
+      const categories = produitsByType[typeGroupe];
+
+      if (Object.keys(categories).length === 0) continue;
+
+      // Calculer le nombre total de produits dans ce TYPE
+      let totalProduitsType = 0;
+      for (const categorie in categories) {
+        totalProduitsType += Object.keys(categories[categorie]).length;
+      }
+
+      const startRowType = currentRow;
+      let isFirstRowOfType = true;
+
+      // Pour chaque CATÉGORIE
+      for (const categorie in categories) {
+        const produits = categories[categorie];
+        const nbProduitsCategorie = Object.keys(produits).length;
+
+        let isFirstRowOfCategorie = true;
+
+        // Pour chaque PRODUIT
+        for (const produitId in produits) {
+          const produit = produits[produitId];
+
+          colIdx = 1;
+
+          // COLONNE TYPE (fusionnée verticalement)
+          if (isFirstRowOfType) {
+            const typeCell = worksheet.getCell(currentRow, colIdx);
+            typeCell.value = typeGroupe.toUpperCase();
+            typeCell.font = {
+              bold: true,
+              size: 12,
+              color: { argb: "FFFFFFFF" },
+            };
+            typeCell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: {
+                argb: typeGroupe === "Sucré" ? "FFF4A460" : "FFFF8C42",
+              },
+            };
+            typeCell.alignment = { vertical: "middle", horizontal: "center" };
+
+            // Bordures épaisses autour de la section TYPE
+            typeCell.border = {
+              top: { style: "thick", color: { argb: "FF000000" } },
+              left: { style: "thick", color: { argb: "FF000000" } },
+              bottom: { style: "thick", color: { argb: "FF000000" } },
+              right: { style: "medium", color: { argb: "FF000000" } },
+            };
+
+            worksheet.mergeCells(
+              currentRow,
+              colIdx,
+              currentRow + totalProduitsType - 1,
+              colIdx,
+            );
+            isFirstRowOfType = false;
+          }
+          colIdx++;
+
+          // COLONNE CATÉGORIE (fusionnée verticalement)
+          if (isFirstRowOfCategorie) {
+            const catCell = worksheet.getCell(currentRow, colIdx);
+            catCell.value = categorie;
+            catCell.font = { bold: true, color: { argb: "FFF5C842" } };
+            catCell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FF6B4233" },
+            };
+            catCell.alignment = { vertical: "middle", horizontal: "center" };
+
+            // Bordure épaisse à gauche et à droite
+            catCell.border = {
+              top:
+                currentRow === startRowType
+                  ? { style: "thick", color: { argb: "FF000000" } }
+                  : { style: "thin", color: { argb: "FF000000" } },
+              left: { style: "medium", color: { argb: "FF000000" } },
+              bottom: { style: "medium", color: { argb: "FF000000" } },
+              right: { style: "medium", color: { argb: "FF000000" } },
+            };
+
+            worksheet.mergeCells(
+              currentRow,
+              colIdx,
+              currentRow + nbProduitsCategorie - 1,
+              colIdx,
+            );
+            isFirstRowOfCategorie = false;
+          }
+          colIdx++;
+
+          // COLONNE PRODUIT
+          const produitCell = worksheet.getCell(currentRow, colIdx);
+          produitCell.value = `${produit.nom}`;
+          produitCell.font = { bold: true };
+          produitCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFFFF2CC" },
+          };
+          produitCell.alignment = {
+            vertical: "middle",
+            horizontal: "left",
+            wrapText: true,
+          };
+
+          // Bordures pour les produits
+          produitCell.border = {
+            top:
+              currentRow === startRowType
+                ? { style: "thick", color: { argb: "FF000000" } }
+                : { style: "thin", color: { argb: "FF000000" } },
+            left: { style: "medium", color: { argb: "FF000000" } },
+            bottom: { style: "thin", color: { argb: "FF000000" } },
+            right: { style: "thin", color: { argb: "FF000000" } },
+          };
+
+          colIdx++;
+
+          let totalGeneral = 0;
+
+          // Pour chaque date
+          dates.forEach((date) => {
+            const commandes = planningData.planning[date].commandes || [];
+            let totalJour = 0;
+
+            if (commandes.length > 0) {
+              commandes.forEach((cmd) => {
+                const produitData = cmd.produits[produitId];
+
+                if (produitData) {
+                  const qte = produitData.quantite || 0;
+                  totalJour += qte;
+                  totalGeneral += qte;
+
+                  const qteCell = worksheet.getCell(currentRow, colIdx);
+                  qteCell.value = formatNumber(qte);
+                  qteCell.font = { bold: true };
+                  qteCell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: {
+                      argb:
+                        produitData.source === "formule"
+                          ? "FFE8F5E9"
+                          : "FFFFF3E0",
+                    },
+                  };
+                  qteCell.alignment = {
+                    vertical: "middle",
+                    horizontal: "center",
+                  };
+                  qteCell.border = {
+                    top:
+                      currentRow === startRowType
+                        ? { style: "thick", color: { argb: "FF000000" } }
+                        : { style: "thin", color: { argb: "FF000000" } },
+                    left: { style: "thin", color: { argb: "FF000000" } },
+                    bottom: { style: "thin", color: { argb: "FF000000" } },
+                    right: { style: "thin", color: { argb: "FF000000" } },
+                  };
+                } else {
+                  const emptyCell = worksheet.getCell(currentRow, colIdx);
+                  emptyCell.value = "-";
+                  emptyCell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FFF9F9F9" },
+                  };
+                  emptyCell.font = { color: { argb: "FF999999" } };
+                  emptyCell.alignment = {
+                    vertical: "middle",
+                    horizontal: "center",
+                  };
+                  emptyCell.border = {
+                    top:
+                      currentRow === startRowType
+                        ? { style: "thick", color: { argb: "FF000000" } }
+                        : { style: "thin", color: { argb: "FF000000" } },
+                    left: { style: "thin", color: { argb: "FF000000" } },
+                    bottom: { style: "thin", color: { argb: "FF000000" } },
+                    right: { style: "thin", color: { argb: "FF000000" } },
+                  };
+                }
+
+                colIdx++;
+              });
+
+              if (afficherTotaux) {
+                const totalJourCell = worksheet.getCell(currentRow, colIdx);
+                totalJourCell.value =
+                  totalJour > 0 ? formatNumber(totalJour) : "-";
+                totalJourCell.font = { bold: true };
+                totalJourCell.fill = {
+                  type: "pattern",
+                  pattern: "solid",
+                  fgColor: { argb: "FFFFE699" },
+                };
+                totalJourCell.alignment = {
+                  vertical: "middle",
+                  horizontal: "center",
+                };
+                totalJourCell.border = {
+                  top:
+                    currentRow === startRowType
+                      ? { style: "thick", color: { argb: "FF000000" } }
+                      : { style: "thin", color: { argb: "FF000000" } },
+                  left: { style: "medium", color: { argb: "FF000000" } },
+                  bottom: { style: "thin", color: { argb: "FF000000" } },
+                  right: { style: "thin", color: { argb: "FF000000" } },
+                };
+                colIdx++;
+              }
             } else {
-              row.push("-");
+              const emptyCell = worksheet.getCell(currentRow, colIdx);
+              emptyCell.value = "-";
+              emptyCell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "FFF9F9F9" },
+              };
+              emptyCell.font = { color: { argb: "FF999999" } };
+              emptyCell.alignment = {
+                vertical: "middle",
+                horizontal: "center",
+              };
+              emptyCell.border = {
+                top:
+                  currentRow === startRowType
+                    ? { style: "thick", color: { argb: "FF000000" } }
+                    : { style: "thin", color: { argb: "FF000000" } },
+                left: { style: "thin", color: { argb: "FF000000" } },
+                bottom: { style: "thin", color: { argb: "FF000000" } },
+                right: { style: "thin", color: { argb: "FF000000" } },
+              };
+              colIdx++;
+
+              if (afficherTotaux) {
+                const emptyTotalCell = worksheet.getCell(currentRow, colIdx);
+                emptyTotalCell.value = "-";
+                emptyTotalCell.fill = {
+                  type: "pattern",
+                  pattern: "solid",
+                  fgColor: { argb: "FFF9F9F9" },
+                };
+                emptyTotalCell.border = {
+                  top:
+                    currentRow === startRowType
+                      ? { style: "thick", color: { argb: "FF000000" } }
+                      : { style: "thin", color: { argb: "FF000000" } },
+                  left: { style: "medium", color: { argb: "FF000000" } },
+                  bottom: { style: "thin", color: { argb: "FF000000" } },
+                  right: { style: "thin", color: { argb: "FF000000" } },
+                };
+                colIdx++;
+              }
             }
           });
 
-          // Colonne TOTAL du jour
+          // TOTAL GÉNÉRAL
           if (afficherTotaux) {
-            row.push(totalJour > 0 ? formatNumber(totalJour) : "-");
+            const totalGenCell = worksheet.getCell(currentRow, colIdx);
+            totalGenCell.value =
+              totalGeneral > 0
+                ? `${formatNumber(totalGeneral)} ${produit.unite || ""}`
+                : "-";
+            totalGenCell.font = { bold: true, size: 11 };
+            totalGenCell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: "FFF8CBAD" },
+            };
+            totalGenCell.alignment = {
+              vertical: "middle",
+              horizontal: "center",
+            };
+            totalGenCell.border = {
+              top:
+                currentRow === startRowType
+                  ? { style: "thick", color: { argb: "FF000000" } }
+                  : { style: "thin", color: { argb: "FF000000" } },
+              left: { style: "medium", color: { argb: "FF000000" } },
+              bottom: { style: "thin", color: { argb: "FF000000" } },
+              right: { style: "thick", color: { argb: "FF000000" } },
+            };
           }
-        } else {
-          row.push("-");
-          if (afficherTotaux) {
-            row.push("-");
-          }
-        }
-      });
 
-      // Colonne TOTAL GÉNÉRAL
-      if (afficherTotaux) {
-        row.push(
-          totalGeneral > 0
-            ? `${formatNumber(totalGeneral)} ${produit.unite || ""}`
-            : "-",
-        );
+          currentRow++;
+        }
       }
 
-      data.push(row);
-      currentRow++;
+      // Appliquer la bordure épaisse en bas de la dernière ligne du type
+      const lastRow = currentRow - 1;
+      for (let col = 1; col <= colIdx; col++) {
+        const cell = worksheet.getCell(lastRow, col);
+        if (!cell.border) {
+          cell.border = {};
+        }
+        cell.border.bottom = { style: "thick", color: { argb: "FF000000" } };
+      }
     }
 
-    data.push([]); // Ligne vide après chaque catégorie
-    currentRow++;
+    // Ajuster les largeurs de colonnes
+    worksheet.getColumn(1).width = 15;
+    worksheet.getColumn(2).width = 20;
+    worksheet.getColumn(3).width = 30;
+    for (let i = 4; i <= 50; i++) {
+      worksheet.getColumn(i).width = 12;
+    }
+
+    // Générer le fichier
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const filename = `planning_production_${planningData.periode.debut}_to_${planningData.periode.fin}.xlsx`;
+
+    // Télécharger
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+
+    console.log("✅ Export Excel généré avec couleurs:", filename);
+  } catch (error) {
+    console.error("❌ Erreur lors de l'export Excel:", error);
+    alert(
+      "⚠️ Une erreur est survenue lors de l'export Excel: " + error.message,
+    );
+  }
+}
+
+// ===========================================
+// ORGANISER LES PRODUITS PAR TYPE ET CATÉGORIE (POUR EXCEL)
+// ===========================================
+function organizeProduitsByType(data) {
+  const result = {
+    Sucré: {},
+    Salé: {},
+  };
+
+  // Parcourir tous les jours
+  for (const date in data.planning) {
+    const totaux = data.planning[date].totaux;
+
+    // Parcourir tous les produits dans les totaux
+    for (const produitId in totaux) {
+      const produit = totaux[produitId];
+      const categorie = produit.categorie || "Autre";
+      const type = produit.type || "Autre";
+
+      // Déterminer le groupe (Sucré ou Salé)
+      let groupe = "Autre";
+      if (type.toLowerCase().includes("sucr")) {
+        groupe = "Sucré";
+      } else if (type.toLowerCase().includes("sal")) {
+        groupe = "Salé";
+      }
+
+      // Initialiser le groupe si nécessaire
+      if (!result[groupe]) {
+        result[groupe] = {};
+      }
+
+      // Initialiser la catégorie si elle n'existe pas
+      if (!result[groupe][categorie]) {
+        result[groupe][categorie] = {};
+      }
+
+      // Ajouter le produit (une seule fois par ID)
+      if (!result[groupe][categorie][produitId]) {
+        result[groupe][categorie][produitId] = {
+          id: produitId,
+          nom: produit.nom,
+          type: produit.type || "Type inconnu",
+          unite: produit.unite,
+          categorie: categorie,
+        };
+      }
+    }
   }
 
-  return {
-    data: data,
-    colWidths: colWidths,
-    merges: merges,
-  };
+  return result;
 }
 
 // ===========================================
