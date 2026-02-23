@@ -15,6 +15,7 @@ let allUnites = [];
 let currentEditingCommande = null;
 let editFormules = [];
 let editProduits = [];
+let currentTab = "active";
 
 // ===============================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -39,7 +40,12 @@ async function loadCommandes() {
     const commandesList = document.getElementById("commandes-list");
     commandesList.innerHTML = '<div class="loader"></div>';
 
-    allCommandes = await getCommandes();
+    // Charger selon l'onglet actif
+    if (currentTab === "active") {
+      allCommandes = await getCommandes();
+    } else {
+      allCommandes = await getArchivedCommandes();
+    }
 
     displayCommandes(allCommandes);
     updateCommandesCount();
@@ -320,10 +326,20 @@ function createCommandeElement(commande, isUrgent = false) {
   const deleteBtn = document.createElement("button");
   deleteBtn.className = "delete-btn";
   deleteBtn.textContent = "🗑️ Supprimer";
-  deleteBtn.onclick = () => handleDeleteCommande(commande.id);
+  deleteBtn.onclick = () => handleDeleteCommande(commande);
 
   actionsDiv.appendChild(detailsBtn);
   actionsDiv.appendChild(editBtn);
+
+  // AJOUTER UN BOUTON ARCHIVER SI ON EST DANS L'ONGLET ACTIVE
+  if (currentTab === "active") {
+    const archiveBtn = document.createElement("button");
+    archiveBtn.className = "archive-btn";
+    archiveBtn.textContent = "🗄️ Archiver";
+    archiveBtn.onclick = () => handleArchiveCommande(commande.id);
+    actionsDiv.appendChild(archiveBtn);
+  }
+
   actionsDiv.appendChild(deleteBtn);
 
   // Assembler l'élément commande
@@ -380,6 +396,16 @@ function setupEventListeners() {
 
   const resetBtn = document.getElementById("reset-filters");
   resetBtn.addEventListener("click", handleResetFilters);
+
+  // Onglets & archivages
+  const tabActive = document.getElementById("tab-active");
+  tabActive.addEventListener("click", handleTabActive);
+
+  const tabArchived = document.getElementById("tab-archived");
+  tabArchived.addEventListener("click", handleTabArchived);
+
+  const autoArchiveBtn = document.getElementById("auto-archive-btn");
+  autoArchiveBtn.addEventListener("click", handleAutoArchive);
 
   const openCreateModal = document.getElementById("open-create-modal");
   openCreateModal.addEventListener("click", handleOpenCreateModal);
@@ -1569,5 +1595,85 @@ async function handleCreateCommande() {
       "Erreur lors de la création de la commande. Vérifiez la console.",
       "error",
     );
+  }
+
+  // ==========================================
+  // GESTION DES ONGLETS ET ARCHIVAGE
+  // ==========================================
+
+  function handleTabActive() {
+    currentTab = "active";
+
+    // Mettre à jour les classes CSS
+    document.getElementById("tab-active").classList.add("active");
+    document.getElementById("tab-archived").classList.remove("active");
+
+    // Réinitialiser les filtres
+    handleResetFilters();
+
+    // Recharger les commandes actives
+    loadCommandes();
+  }
+
+  function handleTabArchived() {
+    currentTab = "archived";
+
+    // Mettre à jour les classes CSS
+    document.getElementById("tab-active").classList.remove("active");
+    document.getElementById("tab-archived").classList.add("active");
+
+    // Réinitialiser les filtres
+    handleResetFilters();
+
+    // Recharger les commandes archivées
+    loadCommandes();
+  }
+
+  function handleTabArchived() {
+    currentTab = "archived";
+
+    // Mettre à jour les classes CSS
+    document.getElementById("tab-active").classList.remove("active");
+    document.getElementById("tab-archived").classList.add("active");
+
+    // Réinitialiser les filtres
+    handleResetFilters();
+
+    // Recharger les commandes archivées
+    loadCommandes();
+  }
+
+  async function handleArchiveCommande(commandeId) {
+    if (!confirm("Voulez-vous archiver cette commande?")) {
+      return;
+    }
+
+    try {
+      await archiveCommande(commandeId);
+      showToast("Commande archivée avec succès.", "success");
+      await loadCommandes();
+    } catch (error) {
+      console.error("Erreur lors de l'archivage de la commande :", error);
+      showToast("Erreur lors de l'archivage de la commande.", "error");
+    }
+  }
+
+  async function handleAutoArchive() {
+    if (
+      !confirm("Voulez-vous archiver toutes les commandes de plus de 2 jours?")
+    ) {
+      return;
+    }
+
+    try {
+      const result = await autoArchiveCommandes();
+      showToast(result.message, "success");
+
+      // Recharger les commandes
+      await loadCommandes();
+    } catch (error) {
+      console.error("Erreur lors de l'auto-archivage :", error);
+      showToast("Erreur lors de l'auto-archivage des commandes.", "error");
+    }
   }
 }

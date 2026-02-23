@@ -1741,3 +1741,66 @@ body {
     width: 100%;
   }
 }
+
+/* ===============================================
+    ONGLETS ACTIVES / ARCHIVÉES
+    =============================================== */
+
+.tabs-container {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: #333;
+  background: #f5f5f5;
+}
+
+.tab-btn.active {
+  color: #f5c05c;
+  border-bottom-color: #f5c05c;
+  font-weight: 600;
+}
+
+/* Badge archivé */
+.badge-archived {
+  display: inline-block;
+  background: #95a5a6;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+/* Bouton archiver */
+.archive-btn {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease;
+}
+
+.archive-btn:hover {
+  background: #7f8c8d;
+}

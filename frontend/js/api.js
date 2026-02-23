@@ -405,3 +405,39 @@ async function getUnite() {
     return [];
   }
 }
+
+// ===========================================
+// COMMANDES ARCHIVÉES
+// ===========================================
+
+async function getArchivedCommandes() {
+  const response = await fetch(`${API_URL}/commandes/archived`);
+  if (!response.ok) {
+    throw new Error("Erreur lors de la récupération des commandes archivées");
+  }
+  return await response.json();
+}
+
+async function archiveCommande(commandeId) {
+  const response = await fetch(`${API_URL}/commandes/${commandeId}/archive`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de l'archivage de la commande");
+  }
+  return await response.json();
+}
+
+async function autoArchiveCommandes() {
+  const response = await fetch(`${API_URL}/commandes/auto-archive`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error("Erreur lors de l'archivage automatique des commandes");
+  }
+  return await response.json();
+}
