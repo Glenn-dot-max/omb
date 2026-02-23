@@ -70,7 +70,52 @@ function displayCommandes(commandes) {
   }
 
   // ==============================================
-  // SÉPARER ET TRIER LES COMMANDES
+  // SI ON EST DANS L'ONGLET ARCHIVÉ
+  // ==============================================
+
+  if (currentTab === "archived") {
+    // Pour les commandes archivées, on affiche simplement par date décroissante
+    commandesList.innerHTML = "";
+
+    const sortedCommandes = [...commandes].sort((a, b) => {
+      const dateA = new Date(a.delivery_date);
+      const dateB = new Date(b.delivery_date);
+      return dateB - dateA; // Ordre décroissant (plus récent en premier)
+    });
+
+    const section = document.createElement("div");
+    section.className = "commandes-section archived-section";
+
+    const header = document.createElement("div");
+    header.className = "section-header future-header";
+    header.innerHTML = `
+      <div class="section-title">
+        <h3>🗄️ Commandes archivées</h3>
+        <p class="section-subtitle">Triées par date (plus récent en premier)</p>
+      </div>
+      <div class="section-stats">
+        <span class="section-count">📦 ${commandes.length} commande${commandes.length > 1 ? "s" : ""}</span>
+      </div>
+    `;
+
+    section.appendChild(header);
+
+    const commandesGroup = document.createElement("div");
+    commandesGroup.className = "commandes-group";
+
+    sortedCommandes.forEach((commande) => {
+      const commandeCard = createCommandeElement(commande, false);
+      commandesGroup.appendChild(commandeCard);
+    });
+
+    section.appendChild(commandesGroup);
+    commandesList.appendChild(section);
+
+    return; // On arrête ici pour les commandes archivées
+  }
+
+  // ==============================================
+  // SÉPARER ET TRIER LES COMMANDES ACTIVES
   // ==============================================
 
   const today = new Date();
@@ -153,7 +198,7 @@ function displayCommandes(commandes) {
   // Section Aujourd'hui
   if (commandesAujourdHui.length > 0) {
     const section = createSection({
-      title: "🚨 Aujourd'hui",
+      title: "��� Aujourd'hui",
       subtitle: getDateLabel(today),
       commandes: commandesAujourdHui,
       totalCouverts: getTotalCouverts(commandesAujourdHui),
@@ -326,7 +371,7 @@ function createCommandeElement(commande, isUrgent = false) {
   const deleteBtn = document.createElement("button");
   deleteBtn.className = "delete-btn";
   deleteBtn.textContent = "🗑️ Supprimer";
-  deleteBtn.onclick = () => handleDeleteCommande(commande);
+  deleteBtn.onclick = () => handleDeleteCommande(commande.id);
 
   actionsDiv.appendChild(detailsBtn);
   actionsDiv.appendChild(editBtn);
@@ -1596,84 +1641,68 @@ async function handleCreateCommande() {
       "error",
     );
   }
+} // ===============================================
+// GESTION DES ONGLETS ET ARCHIVAGE
+// ===============================================
 
-  // ==========================================
-  // GESTION DES ONGLETS ET ARCHIVAGE
-  // ==========================================
+function handleTabActive() {
+  currentTab = "active";
 
-  function handleTabActive() {
-    currentTab = "active";
+  // Mettre à jour les classes CSS
+  document.getElementById("tab-active").classList.add("active");
+  document.getElementById("tab-archived").classList.remove("active");
 
-    // Mettre à jour les classes CSS
-    document.getElementById("tab-active").classList.add("active");
-    document.getElementById("tab-archived").classList.remove("active");
+  // Réinitialiser les filtres
+  handleResetFilters();
 
-    // Réinitialiser les filtres
-    handleResetFilters();
+  // Recharger les commandes actives
+  loadCommandes();
+}
 
-    // Recharger les commandes actives
-    loadCommandes();
+function handleTabArchived() {
+  currentTab = "archived";
+
+  // Mettre à jour les classes CSS
+  document.getElementById("tab-active").classList.remove("active");
+  document.getElementById("tab-archived").classList.add("active");
+
+  // Réinitialiser les filtres
+  handleResetFilters();
+
+  // Recharger les commandes archivées
+  loadCommandes();
+}
+
+async function handleArchiveCommande(commandeId) {
+  if (!confirm("Voulez-vous archiver cette commande?")) {
+    return;
   }
 
-  function handleTabArchived() {
-    currentTab = "archived";
+  try {
+    await archiveCommande(commandeId);
+    showToast("Commande archivée avec succès.", "success");
+    await loadCommandes();
+  } catch (error) {
+    console.error("Erreur lors de l'archivage de la commande :", error);
+    showToast("Erreur lors de l'archivage de la commande.", "error");
+  }
+}
 
-    // Mettre à jour les classes CSS
-    document.getElementById("tab-active").classList.remove("active");
-    document.getElementById("tab-archived").classList.add("active");
-
-    // Réinitialiser les filtres
-    handleResetFilters();
-
-    // Recharger les commandes archivées
-    loadCommandes();
+async function handleAutoArchive() {
+  if (
+    !confirm("Voulez-vous archiver toutes les commandes de plus de 2 jours?")
+  ) {
+    return;
   }
 
-  function handleTabArchived() {
-    currentTab = "archived";
+  try {
+    const result = await autoArchiveCommandes();
+    showToast(result.message, "success");
 
-    // Mettre à jour les classes CSS
-    document.getElementById("tab-active").classList.remove("active");
-    document.getElementById("tab-archived").classList.add("active");
-
-    // Réinitialiser les filtres
-    handleResetFilters();
-
-    // Recharger les commandes archivées
-    loadCommandes();
-  }
-
-  async function handleArchiveCommande(commandeId) {
-    if (!confirm("Voulez-vous archiver cette commande?")) {
-      return;
-    }
-
-    try {
-      await archiveCommande(commandeId);
-      showToast("Commande archivée avec succès.", "success");
-      await loadCommandes();
-    } catch (error) {
-      console.error("Erreur lors de l'archivage de la commande :", error);
-      showToast("Erreur lors de l'archivage de la commande.", "error");
-    }
-  }
-
-  async function handleAutoArchive() {
-    if (
-      !confirm("Voulez-vous archiver toutes les commandes de plus de 2 jours?")
-    ) {
-      return;
-    }
-
-    try {
-      const result = await autoArchiveCommandes();
-      showToast(result.message, "success");
-
-      // Recharger les commandes
-      await loadCommandes();
-    } catch (error) {
-      console.error("Erreur lors de l'auto-archivage :", error);
-      showToast("Erreur lors de l'auto-archivage des commandes.", "error");
-    }
+    // Recharger les commandes
+    await loadCommandes();
+  } catch (error) {
+    console.error("Erreur lors de l'auto-archivage :", error);
+    showToast("Erreur lors de l'auto-archivage des commandes.", "error");
   }
 }
