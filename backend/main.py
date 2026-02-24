@@ -1,12 +1,32 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from uuid import UUID
 import json
+import os
+import logging
 from config import CORS_ORIGINS
 from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning
 from datetime import date, datetime
+
+# ============================================
+# CONFIGURATION LOGGING
+# ============================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("omb")
+
+# Mode debug
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+
+# ============================================
+# ENCODERS CUSTOM
+# ============================================
 
 class UUIDEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -24,7 +44,10 @@ class CustomJSONResponse(JSONResponse):
             ensure_ascii=False,
         ).encode("utf-8")
 
-# Créer l'application FastAPI
+# ============================================
+# APPLICATION FASTAPI
+# ============================================
+
 app = FastAPI(
     title="Oh My Brunch API",
     description="API pour gérer les produits, formules et commandes d'Oh My Brunch",
@@ -32,7 +55,10 @@ app = FastAPI(
     default_response_class=CustomJSONResponse,
 )
 
-# Configurer les middleware CORS
+# ============================================
+# MIDDLEWARE CORS
+# ============================================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -41,7 +67,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclure les routeurs pour les différentes entités
+# ============================================
+# GESTIONNAIRES D'ERREURS
+# ============================================
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Gestion des erreurs de validation Pydantic"""
+    logger.warning(f"Validation error on {request.url}: {exc.errors()}")
+    
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": "Données invalides",
+            "errors": exc.errors() if DEBUG else "Veuillez vérifier les données envoyées",
+        }
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Gestion des erreurs non gérées"""
+    logger.error(f"Unexpected error on {request.url}: {str(exc)}", exc_info=True)
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "Une erreur est survenue",
+            "message": str(exc) if DEBUG else "Erreur interne du serveur",
+        }
+    )
+
+# ============================================
+# ROUTERS
+# ============================================
+
 app.include_router(formules.router)
 app.include_router(produits.router)
 app.include_router(commandes.router)
@@ -53,24 +112,47 @@ app.include_router(types.router)
 app.include_router(unite.router)
 app.include_router(planning.router)
 
-# Route de test
+# ============================================
+# ROUTES
+# ============================================
+
 @app.get("/")
 async def root():
     return {
         "message": "Bienvenue sur l'API Oh My Brunch!",
         "version": "1.0.0",
+        "status": "operational",
         "endpoints": [
             "/produits",
             "/formules",
             "/commandes",
-            "/formule-produits",  # ← Tiret, pas underscore
-            "/commande-formules",  # ← Tiret, pas underscore
-            "/commande-produits"   # ← Tiret, pas underscore
+            "/formule-produits",
+            "/commande-formules",
+            "/commande-produits",
+            "/categories",
+            "/types",
+            "/unite",
+            "/planning"
         ]
     }
+
+@app.get("/health")
+async def health_check():
+    """Endpoint de santé pour monitoring"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat()
+    }
+
+# ============================================
+# LANCEMENT
+# ============================================
 
 if __name__ == "__main__":
     import uvicorn
     from config import API_HOST, API_PORT, API_RELOAD
+    
+    logger.info(f"🚀 Starting OMB API on {API_HOST}:{API_PORT}")
+    logger.info(f"📝 Debug mode: {DEBUG}")
     
     uvicorn.run("main:app", host=API_HOST, port=API_PORT, reload=API_RELOAD)
