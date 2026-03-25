@@ -1,0 +1,2778 @@
+[
+  {
+    "id": "56748c5e-f625-455d-96ab-e6735dfaa310",
+    "categorie_id": 5,
+    "type_id": 5,
+    "name": "Atelier cookies Mon amour",
+    "created_at": "2026-01-31T20:33:49.808665+00:00",
+    "updated_at": "2026-01-31T21:18:06.763099+00:00"
+  },
+  {
+    "id": "6e819e64-5f17-44ba-b804-e2c4070638a2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cup taboul\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fee68604-5c40-43fc-ad61-ad48c7d94921",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Focaccia v\u00e9g\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9b42729c-9169-4e7d-9ff9-0eb8772dd3aa",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Fondant chocolat et tonka",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "feb86f88-cd02-4ab6-9581-593899635b67",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Atelier plancha - sauce -  patate - salade",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "13a8287e-cdf8-405f-8849-4f3c180b3268",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Avocado toast (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "65869cfc-54ad-448c-88cb-659bd6806203",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel au chou-fleur r\u00f4ti et tzatz\u00edki (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "232100d6-9ffd-4597-b704-5bb4fdac1bd8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel Coppa IGP, copeaux de Grana Padano et pesto de basilic",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "319275e3-4699-4bc6-b019-ae219051546c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel dahl de lentile corail, coco et curry",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1ca29f19-6068-4d1d-9521-ec149e0b44ad",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel filet mignon \u00e0 l\u2019ail et houmous de lentilles corail",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7ab09d95-539e-4ec8-8e38-b7734105038b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel mousseline d'artichaut, radis et oignons frits",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1a088bb6-ca5e-45d6-8ced-8667b0dab1c4",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel quasi de veau, cr\u00e8me de fromage blanc et haricots verts",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f9c25946-ad0c-4f81-9440-7150a2ccc657",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel saucisse fum\u00e9, \u00e9chalotes confites et cr\u00e8me de moutarde",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6bc1cd2b-38e1-4a2c-933b-4fa476902ade",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel saumon fum\u00e9, concombre et cream cheese",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "01ce8a6c-cdd2-4610-9fd3-bb51a1a69867",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel saumon fum\u00e9, pomme grany Smith et pesto",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "bdb55233-7cf9-46bf-a8b2-c027f02ef38e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel saumon, houmous ail noir et radis blanc",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "2631a2c4-44e1-478f-ba4c-7bb479fb5db9",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel tomate confite, mozzarella et cr\u00e9me balsamique",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "65046b72-3852-4748-bfbe-5e6974b0f20a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Chou rillettes de merlu fum\u00e9es \u00e0 l'ananas et piment d'Espelette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ce2a6d1f-4a1a-4f13-a2ab-1e004857cdfc",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel tomate confite, parmesan, pignon de pin et pesto",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "68792c3a-75dc-4171-a608-33bfc68bb3b6",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Banana Bread",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ff83bcb2-b921-49d5-9945-676074d5c8c8",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Bananabred & p\u00e9pites de chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3d831e13-824c-49fd-9d5c-118de36465bc",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Banoffee caramel et sp\u00e9culoos",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f8df4a9c-cbd4-47ac-97a0-81abeee6492b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bar \u00e0 Hu\u00eetre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "49f49468-5d9a-44d6-bbb0-fd45eef39ddd",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Blinis betterave noix et grany smith",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3985f21c-ddb8-457e-98ff-0f3e73665d6c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Blinis Patate douce & guacamole",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c5dd98a8-3dbb-4825-a53b-d182ae945e1c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette coppa IGP, mozzarella et tomate confite",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c0a28121-9189-42ad-86b9-7ab67ed297bf",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de charcuterie",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0974e38e-da41-4e57-923d-61e22038c209",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de charcuterie espagnole",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e175da48-49c6-4513-8ea2-e6f6b598f82e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de charcuteries",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b8e88f87-431a-4aa0-9801-29aa5f19bd8a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de charcuteries fines",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fb8c3a4f-dd46-427a-9955-5a43f3e5dfd6",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de Comt\u00e9 affin\u00e9, Ste Maure et abricot moelleux",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "61dc1253-7dd1-4432-bcc9-eedf174049ab",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de fromages",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ab15bca5-0c3d-45c4-86a1-b28c000d839f",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de fromages (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "814be20f-460f-4b02-afd0-d21db835977a",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brochette de fruits ALLERGIES",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d059e8f5-bb43-423d-9c94-165af2073b42",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brochette de fruits frais",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8f83c431-2793-4e5e-aea8-7dcb31b946af",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de jambon speck, poire et Comt\u00e9 affin\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5b0887f9-8d22-4a08-b8ea-a799b11143df",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de l\u00e9gumes d\u2019hiver \u00e0 l\u2019huile de s\u00e9sames torr\u00e9fi\u00e9es (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c706805e-f621-487d-a0a5-6255cc8022de",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de l\u00e9gumes d'\u00e9t\u00e9 et curcuma",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5181f311-a757-4bc2-b204-9d8d9849b623",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brochette de pomme \u00e0 la cannelle",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "98e84f53-8cfd-404e-85f0-891f346c0f6e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de poulet marin\u00e9e yakitori",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c469d27b-4f0c-4e43-8fb6-af26ac3d9994",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette l\u00e9gumes d'\u00e9t\u00e9 au curcuma",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d7fcb6a5-af4d-47f7-801a-02f1c04a47a8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochettes l\u00e9gumes d'\u00e9t\u00e9 au curcuma",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "613eadc9-7297-4168-ad21-72c4494a2bb3",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brownie choco/noisettes",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "983e8b00-46aa-4fd7-bf60-26d8381acc44",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger aubergine r\u00f4tie et houmous \u00e0 l'huile de s\u00e9same",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "661e7e22-f8cf-45cc-9b30-3d5d3c7f446f",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger saumon et yuzu",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1cc262f2-ab66-4d4b-ae82-c7b86f4ff80d",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger Saumon fum\u00e9, concombre et cheese cream",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6975fb07-af16-462a-a0c6-67e511f34844",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger tomates confites, mozzarella, pignon de pin et pesto (V)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3f795d24-4e06-406e-9a78-5cb19f476de2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cannel\u00e9 champignon en persillade (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5b817798-5d17-405d-874e-193896a19526",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cannel\u00e9 fenouil et gingembre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1903aa3b-dbc8-4425-807c-04619bfd6210",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Canneler champignons en persillade",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e2e4b274-db3f-4ee1-b8d3-e9b114fbe85a",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cannel\u00e9s grands",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "4d99d322-762d-417b-894b-dff4ff467139",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cannel\u00e9s sucr\u00e9s",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ab0d675d-0c45-43c6-aee0-55daaaa2da33",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Caramel au beurre sal\u00e9 \"maison\"",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a3866eeb-a11d-46e6-90af-97b3c00443b7",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cheesecake au citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "2becfc22-e4e9-4829-b980-340582af4922",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Chou brocolis (V)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a4ea7b48-3339-44c8-8711-1cb4df625d3b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Chouquette sal\u00e9e, parmesan et graines (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8b4a9e5c-e746-46a3-938a-8b6de1e4d523",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Chouquettes",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "21bcf22a-6fd4-44a9-98cc-8e8c15319dd2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Clafoutis asperge et basilic",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9a0d2f92-33d4-468e-8490-44d30b781157",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "C\u0153ur coulant chocolat et f\u00e8ve de tonka",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fee6fb6f-ba48-4473-85d1-be63c51130eb",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Compot\u00e9e de pomme fa\u00e7on Strudel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1547d822-da8b-4630-bcd2-8bbdb6d693d6",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Confiture d'abricot",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "77cb8a5f-c597-4acd-919d-eddc7d8c6639",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cookie sal\u00e9, poire et chorizo",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "42298424-f65c-492b-8c7c-a03c7a107609",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cookies chocolat blanc et pistache",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "4d9429ec-e58f-4b16-8dc0-3d70971b6078",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Craquant champignons",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "18d1d2ca-fcea-4b3c-a96c-80a228a2f33d",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cr\u00eapes \u00e0 la canelle",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "951b963b-730e-4f19-b332-2d603b9c6275",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croc courgette et ch\u00e8vre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "796abb70-92fb-48ff-bfb7-6a7ee1427664",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croc navet, miel et emmental (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "74240724-3903-4e41-833a-5f16cf4128e4",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croc, courgette ch\u00e8vre et noix",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c431fbdf-f966-4032-bc2a-8212918b3933",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croq aux l\u00e9gumes de saison",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d4470cb4-b4d0-4189-acb9-a03a888031e2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croq' jambon, Comt\u00e9 affin\u00e9 et huile de truffe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f9a45368-a116-4390-9bc0-7b6acc5b4fa8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croque poitrine fum\u00e9e, fourme d'Ambert et paprika fum\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8b61dee4-98de-49d3-bd4d-477d8c91b667",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croque saumon",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "520e526a-c779-4db6-a14d-a2fddc098ee7",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Crumble abricot",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "526784ea-1f7a-40e5-b25c-b6f3fb654cb8",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Crumble pomme et abricot",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "deea0b3e-102e-4a90-ac3b-7d5581708ded",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Crumble pomme, fraise et rhubarbe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "70855214-25ae-46f1-a675-a55b83c9a219",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cup de billes de melon et past\u00e8que et menthe fraiche",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8bfb5906-1595-4b97-812b-b907ea03d06c",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cup de fraise muscovado et menthe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "cdd3cc07-3f56-4406-9b28-2a5e61310f0a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cup de melon et zeste de citron vert",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "89a53063-b825-49cd-a58d-06c09364f56f",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cup fromage blanc",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8066fc11-89cc-41ec-8eaa-51c2bf7bd41b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cup \u0153ufs brouill\u00e9s",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1921500b-5043-4621-9991-23f0618e776f",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cup \u0153ufs brouill\u00e9s au comt\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e0f0c2e9-0f91-47d8-8c85-885d21e2d844",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cup salade de p\u00e2tes",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6b5f367b-1c3f-49e8-8ea7-45989da0b830",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cup salalde de fruits",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e0f03e35-045e-496e-94e2-bc1c48a4c0eb",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cup tomate cerires et mozzarella au pesto",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "4b367946-bebe-41ab-aca8-fab8902538b3",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Duo de cookies gourmands : noisettes caram\u00e9lis\u00e9es et chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ae22e659-3ac9-4183-9eb1-6e1676d6a328",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Falafel de petits pois et cr\u00e8me \u00e0 la menthe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9f02c1c4-5d97-4e8e-a91d-2973b5345088",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Feuillet\u00e9 \u00e9pinard et ricotta (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "74952f3f-6335-4189-9348-b646f0b8a792",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Financiers pistache/framboise",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c4b2f2a5-c8f9-45e9-9c31-33f9f4cf47e1",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Flan au poulet, brocolis et curcuma",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a8421885-99bf-4ddf-a75d-d0f700e8e069",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Flan champignons et balsamique",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "43c4ddef-baa9-457e-b784-9ead8bd043f0",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Focaccia aux l\u00e9gumes d'\u00e9t\u00e9 (vegan)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a5fc1808-f7f1-4ec1-9fc9-0ba5113d017b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Focaccia aux poireaux, sauce verte \u00e0 l\u2019italienne (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5f242e52-520e-48b8-bfa6-7bcd11353119",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Focaccia filet mignon, ail noir et cannelle",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ef0d78f3-528a-41d7-8092-85685c0b3b10",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Focaccia garnie au Poulet + ses petits l\u00e9gumes",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "27084f26-3b7e-4925-b681-3be2f1210b0e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Focaccia ricotta, p\u00e8che, jambon speck et balsamique",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fc192b82-336c-4d7e-b706-584f636bddfc",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gaspacho concombre et menthe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "863eb73f-58b4-4fb5-aefa-f0be4702fd57",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gaspacho de tomate au basilic",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "14d2f856-f9cf-4401-8848-43ec6af52451",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "G\u00e2teau d\u2019hiver",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e09b9ca3-5232-429f-9ea9-78b528ea58f8",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Gateau nantais",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "17edab6c-b708-4c13-8e8c-48bb1590c506",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Goug\u00e8re oignons nouveaux, cheddar et curry",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fc66e676-9a39-4948-9fd3-5fe0f3fd8257",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gros Bagel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "41ff4f89-ce06-4ce9-b390-c50d9db28b69",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gros bagel coppa IGP, copeaux de Grana Padano et pesto basilic",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5495238e-848f-497c-964f-5d5925937a26",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gros bagel poulet snack\u00e9, ananas, curry et oignons frits",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8c7ba931-6fb8-451e-bac4-ee10c8cd2d75",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gros bagel saumon fum\u00e9, concombre, creamcheese et roquette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "4ac4ddb4-2198-4066-90fd-7127f0aaae25",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gros bagel tomate confite, mozzarella et cr\u00e8me de balsamique",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0314cd6a-9fda-4d17-8e36-39ccbd2b05bd",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Kouign Amann poitrine fum\u00e9e et origan",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "763a07b3-a800-4635-9815-67a14f62db82",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Kouign amann poitrine fum\u00e9e, parmesan et origan",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0dec71fc-faee-48fe-b87a-29976ff6ba0b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Madeleine figue et roquefort (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9979ec49-3a59-48aa-8e42-8354d9d9fd03",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Madeleines au citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1a4c2031-67df-4579-b4cd-1c4f48b645ee",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Maki crevette et avocat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "091066a1-084e-4e6f-926c-422fbb499990",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger ballotine de volaille et cr\u00e8me \u00e0 la fourme d\u2019Ambert",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "880aaf4c-feb3-404c-9208-74d366c228dc",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger cr\u00e9meu de carotte au raz el hanouth et chorizo",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6b2b0e9f-d665-4107-b1cd-a76158352ed2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger galette de quinoa aux oignons compot\u00e9e de tomate",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "19db8530-10e8-4635-b83e-654a749e902a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger houmous, oignons grill\u00e9s et radis de couleur (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "af3ef727-1cb9-4f09-ad53-675e1e256d42",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger lard nantais et m\u00e2che",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "18ad60cb-bde4-4853-86ee-42c27cbbc76a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger magret de canard fum\u00e9, Sainte Maure de Touraine, radis noir et tomatade",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a409fb30-af01-4e3d-bf6f-3c6096f2de04",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger poulet au citron confit et petit pois \u00e0 la menthe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "428ea85a-36e7-42da-bb17-30bfbd8a82b0",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini Burger poulet snack\u00e9, oignons frits, ananas et curry",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "da22869d-5d16-4c4e-9b57-f23816d270fe",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger saucisse fum\u00e9e, \u00e9chalotes confites et cr\u00e8me de moutarde",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e87cf955-9a11-4a36-bf6f-673c5280a373",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger saumon et pesto d\u2019\u00e9pinards aux noix",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a373dff8-4621-4d26-af23-6adc2970408b",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Mini cr\u00eapes",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b9dd392f-009d-4aee-b944-544b4bb1ac2f",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Mini pancakes OMB",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "108b41ed-6ae6-4bf2-bcc3-efbd926f3a52",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Moelleux citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5508fa2f-c12f-4ed0-80ab-5e435189bf70",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin asperge, bleu et graines de chia",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c8ca1fef-fac4-4d47-9a3c-597147a60061",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin asperges, bleu et graines de chia",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "685dc3be-d583-4d74-ac77-d7f375f1cf73",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin f\u00e9ta curcuma et petits pois",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "677ab94b-8ebf-458c-a3ad-3e2423889b47",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Muffin fleur d'oranger et pistache",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d1163d74-bbbc-4810-ac6b-0c406e4933ed",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin petits pois, volaille et curcuma",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9e3fd927-f303-413c-a3c9-d689121ada09",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Muffin pommes et figues",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1616fc8f-1ab8-4828-9795-6276d062a2db",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Muffin rose et framboise",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ee147841-6151-424e-aef6-6a2d71beb27d",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin saumon fum\u00e9 et \u00e9pinard",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "364a59a5-bd84-4115-a64e-b52209863fef",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin saumon fum\u00e9, aneth et emmental",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e55bc604-758b-46ac-a31c-cc21425d36ed",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin saumon, aneth et graines de chia",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "31db9a1c-d916-4ef3-ad90-cfc5cb44e776",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin St Jacques aux baies roses et aneth",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "51fb5413-3283-4e3b-9962-8e9d35bb1080",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffins courgette et bleu",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "48741fb8-d82a-4445-b952-ea327e654998",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "\u0152ufs brouill\u00e9s au comt\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "52219018-ff0a-4ec1-8ec5-7f562f55d1a3",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Palet Breton, cr\u00e8me de mascarpone et fraises",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ad5fc689-e689-4b32-b1c5-8ad75cd6a62a",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Palet breton, cr\u00e8me mascarpone et kiwi",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fd002bd4-5b18-4093-8d79-2c7cf2c8b8f6",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Palmito poire et chorizo",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b481c200-736d-42e1-a3aa-024ebd6d27c3",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pancakes \u00e0 la vanille",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ce833640-a4cc-4e7a-92f0-c7185daa41a3",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Panna cotta potimarron (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "08ca90cb-6a8a-4f09-9826-6479cad5f207",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Panna cotta speculoos et confit de framboise \u00e0 la lavande",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a330e4c0-a83e-4275-affe-d9ae05e6c4d2",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "P\u00e2te \u00e0 tartiner",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8f0d2e5b-a087-4f11-a6f6-8c47df4a3cf3",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pavlova fraise et pistache",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "80df268b-b78f-4ca9-851c-30bf263d9bd2",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pavlova pistache et framboise",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "2190d23e-39d5-4672-b3cb-e177a8f722cc",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pics d'ananas r\u00f4tis",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "13d337b8-02de-4541-afd5-4c1adeb07fec",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Pi\u00e8ce mont\u00e9e de fromage",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9908bf43-f6ca-4242-a312-50b10f36a205",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Planche Mixte by OMB (1 planche pour 6)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "cc1ea756-1a9c-4624-8afb-3c98acee2694",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Plateau de fromage",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d09a2ae0-746f-4f67-9ff7-1d5b1888c13b",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Plateaux de fruits de saison",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b81fbeb6-1e9e-4dd7-8b4f-65c8fa0bae28",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Plateaux de pickles de l\u00e9gumes \u00e0 partager et sauce fromage blanc",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e568e62f-f9f1-4c0e-99ff-23063bd0d3f0",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Poitrine fum\u00e9e snack\u00e9e",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b243e820-15f9-4da4-93ff-9684ad713922",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Poitrine fum\u00e9e snack\u00e9e au sirop d'\u00e9rable",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fbfcdad7-d0b5-4823-b8b0-4c75e06fda10",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Pok\u00e9 allergies",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8330f75e-fa2c-4fc1-81dc-c6b34836603d",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Pok\u00e9 au Poulet snack\u00e9\u00a0: riz, m\u00e9lange de graines, f\u00e8ves, concombre, mangue, filet de poulet po\u00eal\u00e9 et oignons frits",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1b661559-485e-474f-9b71-09c4a44252c9",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Pok\u00e9 au Saumon fum\u00e9\u00a0: riz, m\u00e9lange de graines, f\u00e8ves, concombre, mangue, saumon fum\u00e9 et oignons frits",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c79a214c-1953-4ea0-bc92-a9a43fe852e8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Pok\u00e9 V\u00e9g\u00e9tarien: riz, m\u00e9lange de graines, f\u00e8ves, concombre, mangue, tomates cerises confites et crumble de parmesan",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "2e0201c7-4531-44df-ac26-788cd9100199",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pudding de chia et fruits de saison",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9bf2d034-2160-4073-8b67-8b0265271868",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Quiche aux lardons, poireau, estragon et paprika",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c566507f-06cd-4ef1-9bd7-1079a331d0a1",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Radis beurre et pain toast\u00e9 \u00e0 la fleur de sel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e147ea14-7a6c-4b33-8c46-9300e6894bbf",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Radis beurre et pain toasy\u00e9 \u00e0 la fleur de sel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "afdd3424-a3b6-4bde-9de2-466828026f6e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Rouelle de pomme de terre, \u00e9pinard et filet de sardine",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "43828e10-84e0-43e1-8a2d-9cf3a8aaa1b4",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Rouleau de printemps aux crevettes et l\u00e9gumes marin\u00e9s",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "aca7d1b6-6e85-499a-b52c-5d8992186819",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Sabl\u00e9 Breton & cr\u00e8me citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "da22595b-2a06-446c-978b-c575499e31b4",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Sabl\u00e9 parmesan et nougat de ch\u00e8vre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3337bace-81ee-4cbe-92ff-cb004509790b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Sabl\u00e9 parmesan et pur\u00e9e de carotte au cumin",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e1a82147-eaaa-47b6-8787-d53b478b2e18",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Sabl\u00e9 parmesan et son cr\u00e8meux de petits pois et Petit Lu",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "73941aa9-afeb-454a-b36c-79abac253cd4",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Sabl\u00e9 parmesan, chantilly foresti\u00e8re et Petit-Lu",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a734426c-458f-4a5a-a7d4-aa232d3b6b8f",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Salade d\u2019agrumes \u00e0 la badiane",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "282062e2-2a38-4df1-a33b-1d3dfd3af1e4",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Salade de fraise \u00e0 la menthe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3a83ea40-80f2-43e8-b9ec-a110eabae866",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Salade de fruits de saison",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "49a7ecc1-58c7-4374-991e-d087cb2d6c82",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Salade de quinoa gourmand et l\u00e9gumes marin\u00e9s",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "bb89175e-2467-4718-b310-8ac73c96eb7d",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Saucisses artisanales",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "986a33c8-28bc-4c68-ba0b-12e69e21af13",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Smoothie fruits rouges",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "330b4f03-043f-41d9-96a5-6e0c9182ac59",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Su\u00e9dois aux l\u00e9gumes de saison",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7ddf8d26-fcc9-47d5-802b-517f308b60b2",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Sweet corner",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a13d1ef4-0f41-4906-a420-ffc0c113e7cc",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Taboul\u00e9 gourmand, petits l\u00e9gumes et menthe verte",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "79335a87-2e66-4c8b-b23f-d5891728e3fa",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tarete au concombre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0d87e47e-07b7-4289-994e-3e1ba89e0c0b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tarte au concombre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "968ce3c0-3e12-4bf8-9a9c-f68d49d79ab9",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tarte au poulet snack\u00e9, pommes de terre et Cur\u00e9 Nantais",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "82d01ab7-882d-48ea-8b0a-621f99c175d6",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette amandine abricot",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b9998483-2358-450b-a859-2b1007e6f629",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette amandine poire",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "233d65e8-09c0-4e18-9792-3a32bd2d0a45",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette amandine rhubarbe",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b4f7ee7b-95ef-4973-a1e1-6705089b4b16",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette au saumon fum\u00e9, pomme grany smith",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3cae4ea9-2968-4f2e-a3b3-3342416e3797",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette carotte et cumin",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "4ca9b179-ad2d-4ff2-8ac2-08bd738663e3",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette champignons et noix (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ae0b301c-a918-4327-93c7-f801377381f6",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette cr\u00e9meux pistache, chantilly fleur d'oranger",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fc392665-7dc4-494e-bdd9-581f22f64dbb",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette lardon fum\u00e9 et cur\u00e9 Nantais",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "510753d5-bd67-45d9-b733-8a6d1628c3b0",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette noix de p\u00e9can et sirop d\u2019\u00e9rable",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a94fd104-1cea-4854-87cc-473f90db905b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette oignon rouge et crumble (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d90f72f3-0685-4608-a34d-31d3d22e280c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette poireaux et lardons",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "011c97cb-ea5c-45ac-a7da-3e03bfc30161",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette poivrons, emmental et ciboulette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "298b870c-5e8d-4e5a-949f-58de9fa9c10c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette poulet et curr\u00e9 Nantais",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fd47db26-7f43-4aec-820d-eebd4b0815e8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette rhubarbe, ch\u00e8vre et miel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "4ad13a5b-b6ad-4013-a262-023a39973677",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette tomates confites, parmesan, pignon de pin et basilic",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "da7da657-004d-45be-973b-a4f3c4ab4d63",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartinables : p\u00e2te \u00e0 tartiner aux noisettes \"fait maison\" et confiture artisanale",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "aa19f5f6-1d77-4aa5-9d90-9301bae46bc0",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tatin de carotte",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "390dc05e-ef56-4f88-8058-09b3b70359ca",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tatin de navel, ch\u00e8vre et miel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "34d61e38-1f09-443f-b037-76926ce30734",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tigr\u00e9 confiture de pruneaux au th\u00e9 noir",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ee977939-cced-4e67-ae17-8fedc78480f7",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tigr\u00e9 p\u00e9pites de chocolat et caramel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1e7d5761-e93d-46d9-b350-c504717d0e65",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tigr\u00e9s \u00e0 la violette et c\u0153ur myrtille",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7da2a244-8a0d-404f-a56f-b0c17e275e74",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Trio de dessert du moment",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e9661a27-6d74-405b-b054-bfbd324f678b",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Viennoiseries vari\u00e9es (croissants, pains au chocolat, etc.)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "cf4bae9f-4ec5-4e6e-920f-cd31aa4c268f",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Crevettes marin\u00e9es au citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "68555b53-4ae9-433a-b948-0eca987f2983",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette poulet \u00e0 la proven\u00e7ale",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7e1132cf-8259-4d01-95dd-fb495d538e0a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette l\u00e9gumes du soleil au curcuma",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "47c306f5-a513-4863-aad5-129ff7b4e873",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pavlova Petit-Lu",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "45814b08-ebb7-4950-8b58-3c7344e7919a",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Sauce chocolat et caramel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7df08f3b-9673-49d6-ab16-b6d9ab36ba6f",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Panna cotta citron vert et mangue",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0125e3fa-f0a1-4b6c-ad8a-485153d9abbf",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger fondue de poireaux et poulet sauce poivre vert",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "aa3a64b0-8104-4a07-b179-eff2711b5692",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel r\u00e9moulade de c\u00e9leri et coppa IGP",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "decfb765-e2e9-4ffe-9498-7187f29dfa1e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Su\u00e9dois mousseline de carotte, pickles de l\u00e9gumes et fruits secs (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8a90e17d-f8dd-4778-af4f-598a11893aee",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Choux, cr\u00e9meux panais et gambas au curcuma",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "72f64a01-2950-4f12-8bae-1350e7b05f11",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de jambon speck, abricot et fourme d'Ambert",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "96e9966d-0074-4719-b629-0a22f7230486",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Crop persillade de champignons et emmental (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b926af0a-4c9f-4241-9fda-07a1b4142d51",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Goug\u00e8re fenouil et parmesan (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "480cdbd8-8394-4c14-b53e-c83890e50a52",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mufin duxelles de champignons et saumon fum\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "92a1f395-a6a3-401e-b59a-cc110f9ddf3c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tortillas oignons et poivrons (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d0a4da61-b6c8-4e42-98b3-ce93c9a4c178",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brochette de pomme r\u00f4tie",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0ad0d93a-e033-4fe1-a7b8-a939e4ce6f13",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cheesecake au citron et raisins frais",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "16bcb260-e120-42b5-9e4c-65414d190e2e",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Fondant aux marrons",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "87d01e11-3ca8-41f6-92b1-e60e6fad66cf",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin duxelles de champignons et saumon fum\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "2533c946-5f72-4378-9336-a36338d2a75a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette au saumon, \u00e9pinard et noisette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f2d7f0c1-4e67-470c-91e7-41873b9285e5",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de cur\u00e9 Nantais et comt\u00e9 (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "2b62b857-5072-4182-be44-6e5c0bf783a8",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette crumble mirabelle et fleur d'oranger",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8e517fd8-5c92-45c1-b8c4-51b7447ec47f",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger guacamole, noix et crevette aux \u00e9pices",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "679a1b97-19e6-4db4-b56f-590bb5cf4398",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gravlax de cabillaud \u00e0 la betterave",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "08080349-dea9-46ce-83d6-53f334c529e4",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Blinis avec son \u00e9minc\u00e9 de saumon \u00e0 l'aneth",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "be0c4bb1-7392-4aad-b989-cb66fe59492b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Chou gambas citron et estragon",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "147e09ad-b7a9-49e3-bdc5-4a04e59de16e",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Kouign amann myrtille",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c8037ffd-0f9c-4f0c-aca9-fff17605d4a1",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger de pulled pork et son coleslaw",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "536d627f-7931-480f-bb8b-b889e7a3d1d1",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger pesto de champignon et crevette aux \u00e9pices",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f8492cef-04a5-457f-ba82-a2b71cf91741",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel houmous de lentilles et saucissse fum\u00e9e",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "85c6106a-cfac-4554-a848-66b0a35af717",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de potimarron r\u00f4ti \u00e0 l'huile de s\u00e9same et jambon speck",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c63811f7-4b36-401b-9d52-2649341ff043",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Sabl\u00e9 champignons au petit lu (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "cc38fa0e-b6d5-4379-b7e6-c261d4c5f2e8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mousse de fromage blanc, radis et herbes fra\u00eeches(v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e342e9d1-9f70-47a7-8b93-a4df53811982",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Palmito poire \u00e9chine de porc et noisette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "22f02322-1396-4ce0-94e7-7502f9d2d96e",
+    "categorie_id": 5,
+    "type_id": 5,
+    "name": "Atelier Sweet Corner",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-02-01T05:08:41.633951+00:00"
+  },
+  {
+    "id": "fcc06fa8-0ced-4ed8-940b-15993ce93269",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Kouign amann aux oignons rouges et poitrine fum\u00e9e",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f62409f3-b504-49b4-bb2b-5534ded1322a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette potimarron et ch\u00e2taigne (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "25f54e4f-f87b-43fe-b858-2d7b212bc1df",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Palet breton aux \u00e9picesn cr\u00e8me vanille et figue fra\u00eeche",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "93000c10-ef87-4a8e-92eb-14334f488b68",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cupcake poire et tonka",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5f09e1a8-6f18-446f-82a4-8c599b90f8f8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger courgette gril\u00e9e, pur\u00e9e de tomate confite et jambon blanc",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "b43cc4de-b005-4dc0-902c-4268cfdab991",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tigr\u00e9s poire chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "40dbccdd-040a-4501-9a9a-4fc40cd6deaf",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Wellington \u00e0 la betterave, graine de pavot et moutarde \u00e0 l'ancienne (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "18f09496-2230-45c5-89cf-426910eaf8b4",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Poire poch\u00e9e au matcha et caramel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "78bd4345-7027-46d7-abbd-7f545d2c3d9a",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Kouign-amann \u00e0 a myrtille",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f0f19433-385f-45bb-91e2-585da30bd166",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Madeleine chocolat et orange",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6ca67541-a4ad-4c76-bc44-1758e8bc75e9",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croq jambon fromage",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "98f6c844-aed5-479d-926a-d4d29da37326",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger saumon fum\u00e9 et sauce citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1bd25de8-b1e6-493b-a96d-61a81dd7c044",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Palmito knacki et emmental",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a4098e51-f00e-4744-955e-ba8f73cd7973",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Quiche Lorraine",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9be48470-d207-4eea-8e63-3d37693706b2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel poulet sauce burger et oignons frits",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "08cc1991-3b19-44f5-94d8-2b4daa8b9c55",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cookie choco noisette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "59fbe912-dd59-45ca-83e4-96b0ef6bbf3a",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Muffin  poire et noix",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f3a26ba0-2f87-4373-a397-473cc3657c3a",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Muffin poire et noix",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9562987c-a1d9-4ada-b1bd-08c97fe3b9a2",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pain d'\u00e9pices",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "81c3cb09-57c9-4b02-9f01-4b3e54fba528",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cake d'amour",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "619f9278-fcee-442d-85e8-f2879136e8b0",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Guimauve \u00e0 la grenadine",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7286e04c-3c65-4a74-b846-f29c4c329b86",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger gambas r\u00f4tie et chutney de mangue au gingembre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6c5d8c64-bb34-4993-92ba-b810143dce76",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel quasi de veau, panai r\u00f4ti et sauce Robert",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c46863c7-0f9c-460b-9ff5-d15ab612a06f",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Foie gras marbr\u00e9 cacao et sabl\u00e9s aux \u00e9pices",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c6153b90-2cf0-4dc9-852c-63d127fcfab9",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette poireaux grill\u00e9s et chantilly aux algues (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e4f96248-727b-470b-8269-c3f48362cf9b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cheesecake au saumon fum\u00e9, thym et citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f4bf69b1-d739-414d-af94-2c1d8319dd70",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Crumble cake citrouille, noisettes torr\u00e9fi\u00e9es et craquelin",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "02f0acb0-0b9e-4d34-ac23-7ee467a7cebb",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cannel\u00e9 au brie et huile de truffe (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fea04e77-65a0-426e-a022-4de623b02dea",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Croc effiloch\u00e9 de canard, Fourme d'Ambert et poivre de Sichuan",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d8837dc4-6c13-45eb-aff4-64e6fca9cead",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette riz au lait jasmin, chantilly vanille, caramel et \u00e9clats de noisette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "285f1dc2-d783-4dd7-be7a-29d13d2e3bfe",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brochette de fruits d'hiver \u00e0 la tonka",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3494ce53-9dc2-4739-91f8-fc0c133500aa",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Financier chocolat, chantilly pistache et cerise amarena",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6a8153b1-d992-4d12-b26b-b1f7c159496c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Wrap au poulet grill\u00e9, \u00e9pinard, ch\u00e8vre et miel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "64d1be9b-9630-485a-a8ea-242355fbd0fd",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Craquant aux herbes et houmous (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "15ae548d-30f5-4668-879b-a8f0223f346c",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Chou saumon et graines de s\u00e9sames",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a3b0547e-50e4-46d2-8b47-f44af3b21d99",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger courgette grill\u00e9e, pur\u00e9e de tomate confite et jambon blanc",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0af4fdbb-5f9f-4b9b-922f-94d6ee95504d",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel saumon fum\u00e9 et pomme Granny Smith",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "562df6e7-4671-4e8b-9f1f-31a86c3d203e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de pont L\u2019\u00c9v\u00eaque, raisin et emmental (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "35672ed6-8197-40b1-ad8e-2528a907c124",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Blini de courge \u00e0 la cardamome et houmous de ch\u00e2taigne (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "ac695fff-66d6-4054-9eb9-9ba6804d4eef",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Chou saumon fum\u00e9, citron, gingembre et graines de s\u00e9same",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "aacda68a-8cdf-46e5-ba0a-a31b84f384e7",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Madeleine pomme, fourme d\u2019Ambert et noix (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6c2d9207-66ff-400a-8dea-0e9a70650c0d",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Muffin lardons fum\u00e9s et Cur\u00e9 Nantais",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9dc5c0b5-4de4-46b7-88c5-4fe93fe52a22",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tigr\u00e9 poire et c\u0153ur chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3b7c73bf-b1bb-4046-9a3f-55be887c873b",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brochette de fruits",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6f4bac6c-cea3-482f-97a2-884777fe5434",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "\u0152ufs brouill\u00e9s aux oignons frits (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9637f5b4-72ff-4083-a872-15142d634c99",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Poitrine fum\u00e9 snack\u00e9e miel et balsamique",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "6e81e2b2-48bb-4de7-91fe-d525af37fd64",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cookie chocolat blanc, cranberries et pistaches",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "20e21559-7f67-4e26-8e5d-a9f8147d29c4",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Chocolat chaud",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3a37e139-85e3-429d-85eb-ceb0a210daa0",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Chocolat chaud topping chamalow",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3f0b0c5b-8897-4813-b33a-5953a2225869",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Crumble pomme ananas tonka",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "2c8f98b8-b192-4e3d-a687-5a1ea81ba3e2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Gros burger au pulled pork",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "07f7f1b6-d5be-4b35-a409-fb4f83ba214a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Coleslaw",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "025976cd-2885-4793-9171-f678d7560aab",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Plateau de fromage (40g/p sur 3 vari\u00e9t\u00e9s) + pain",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1f08c1d6-dda8-4d0a-b082-b3abc2310811",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Maki de saumon et nougat de ch\u00e8vre",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "0587bffb-f889-44b4-bdab-e627460619b6",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Blinis de sarrasin, houmous d'artichaut, supr\u00eame d'agrume et gomasio aux algues (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a82f2512-a01c-4ae0-8dc6-8da309466d89",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Sabl\u00e9 au citron, ganache th\u00e9 noir et bleuet, confit de cassis et zeste de citron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "40bd0fee-9405-4783-9d6a-8641f8816d48",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger saumon fum\u00e9 et sauce cirtron",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "daad1860-76c2-4336-95a9-ab84dfadc6d1",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pancakes \u00e0 la fleur d'oranger",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "be91851b-5bdd-458b-b2ec-c5d72fc9d173",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Sabl\u00e9 au beurre et chantilly caramel \u00e0 la fleur de sel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8037e139-ddbc-411f-934b-bdf283538c41",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brioche fa\u00e7on pain perdu",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "92c3a19c-4092-4b23-8dba-862a009db345",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Poitrine fum\u00e9e snack\u00e9e sirop d'\u00e9rable et balsamique",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3c4fc548-2d4f-48f0-889d-d1533d9c40cc",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Muffin chocolat, c\u0153ur caramel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c38c4798-9063-4236-96d1-6abbaf7e9e7f",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pics de fruits et sauce chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "23c209fa-9104-4fff-b778-3e45d1ff2437",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cr\u00e8me d'orange",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "55ba8f6e-1125-4dd6-ab52-14529d2b7050",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger poulet snack\u00e9, ananas, oignons frits et curry",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "06396b81-0ded-49a7-ba86-f05696031cff",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel coleslaw et b\u0153uf s\u00e9ch\u00e9",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1db0f082-ee82-4e20-ad42-f21215af9d24",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Sabl\u00e9 l\u00e9gumes d'hiver sauce ravigote (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a9539530-6935-412c-9c4f-7d5e7ba2f7dc",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Blinis de sarrasin houmous et chorizo",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "65971b3d-76bc-4595-ba6b-19709bf79d3e",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tortillas de butternut (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "855fc9fd-ea96-40be-8881-b3c54e51fe74",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Kouign Amann poitrine fum\u00e9 et parmesan",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "d2b58bf6-efbf-44c3-ac88-4db7613961e8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette champignons et noix (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "26ad4e1b-849f-4bc3-bc33-47659ea9cf4b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Petit flan cabillaud et brocolis",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e5cf5be8-de38-496e-80f4-f6513290a9b6",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Panna cotta \u00e0 la vanille et gel\u00e9e de kiwi",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "3bdf068b-6dd4-4824-ac55-245837b97196",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Pomme fondante, confiture de cassis et noisettes grill\u00e9es",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "be3acd17-765b-4526-82c5-d8c501f8765d",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tigr\u00e9 coco et confiture de banane",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "01631451-8e10-4f11-8c5b-0938e9285705",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cookie pain d'\u00e9pices, chocolat blanc et cranberries",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f2c0c494-bbe7-48e2-a346-dd0620771fd2",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger galette de quinoa , carotte et cr\u00e8me au cumin (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "59a6fcbd-cf01-49e3-b132-2c37305143e1",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Mini burger galette de quinoa , carotte et cr\u00e8me au cumin (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "cf012846-95ff-4a87-81c3-ba6222a89e04",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel au poulet, c\u00e9leri rave r\u00f4ti et pomme Granny Smith",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c35b46f2-627b-4270-abd5-5a711242b842",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Wrap au saumon, ch\u00e8vre, m\u00e2che et tomate confite",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "76b12aab-dce5-4031-be37-0415ac595168",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Oeufs brouill\u00e9s \u00e0 la ciboulette",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "9fa122f4-9ef0-48cf-bcd7-66032488e48a",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Poitrines fum\u00e9es snack\u00e9es au sirop d'\u00e9rable",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "e3d627bc-2731-4b6c-92d3-66408e4fed46",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Goug\u00e8re de c\u00e9leri aux deux moutardes (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "08637bea-ac4e-48c3-ae23-ec46bd32a7f8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de charcuteries ",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "62f7ade0-26b5-4462-b912-161cbc193537",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de l\u00e9gumes d\u2019hiver, marinade umami et s\u00e9same torr\u00e9fi\u00e9 (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a9a1b91d-7600-45b3-80f2-0c94ee2c76e0",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Spirale au saumon fum\u00e9, \u00e9pinard et cream cheese",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1a18d8ad-e36e-4bfd-8ac0-c31b30d6e16f",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Noisetier au chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1dc87ade-a54e-44d4-adb5-64030836d99c",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Cup de pomme fa\u00e7on strudel",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "8157c8b6-b5c3-4892-8ad7-4991cf36a889",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brownie poire chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "19f0ffff-1266-43d4-be1a-66361c823dba",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Brownie poire chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "5fe4dff6-a197-43e5-8e6f-f74aa807a388",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Galette des rois Frangipane",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "aee69417-fb6b-4b35-8d24-1ba5050bf2d8",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Galette des rois cr\u00e8me de noisette et chocolat",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a5fb63a0-92f0-4c2e-a30d-bd97c0cc37d6",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Galette des rois cr\u00e8me d'amande et myrtilles",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "1bde1446-04ab-427a-9688-7644aa9c24d8",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Burger galette de quinoa, carotte et cr\u00e8me au cumin (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7f84df73-27d3-43ed-a5bf-b67a6b067b0b",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Bagel poulet vapeur, c\u00e9leri rave r\u00f4ti et Grany Smith",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "43cdacb5-471d-4975-8fb2-6563bb8a40b6",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Wrap au saumon, ch\u00e8vre, mache et tomate confite",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "402801c8-6246-4ca0-8964-3f5ae06daaf0",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tartelette aux endives, pomme et bleu d'auvergne (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "c5a6f3b2-4762-415c-a555-fbb323700efc",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Tatin de l\u00e9gumes d'hiver au vinaigre de cidre (v)",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "cd4ca9eb-c279-440b-b94a-e166d8421e2d",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Cannel\u00e9 au magret fum\u00e9 et figues s\u00e9ch\u00e9es",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "041fe8a0-993f-42b5-b792-249840a63d02",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "R\u00f6sti de pomme de terre, cr\u00e8me de raclette et chips de lard",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "37ee85e3-bdd2-4870-b525-1bd106926f11",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette charcuterie",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "915dc646-d27e-4f2d-9a45-4894b86dad4f",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Kouign amann des rois",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7d097903-e8a9-42f8-ad23-3800750ccaa1",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Crumble pomme, ananas et tonka",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "236e875a-4c96-4a5a-a61e-72e404c8c1f0",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Muffin poire et vanille",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "fac3be5e-069e-4300-b8f2-5846a4912f45",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Sabl\u00e9 aux graines, pesto de champignons et b\u00e2tonnet de chorizo",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "7712843e-ed7e-4c44-b119-753c37100766",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Chou pesto de mache, \u0153uf de caille et chips de lard ",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "820e364d-0267-44c1-8730-0e022636efd4",
+    "categorie_id": 1,
+    "type_id": 6,
+    "name": "Brochette de l\u00e9gumes d\u2019hiver, marinade umami et s\u00e9sames torr\u00e9fi\u00e9es (v) ",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "a61ff1fd-5646-4e1f-bc31-3cc0d595cc50",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Salade d'orange au sirop d'hiver",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  },
+  {
+    "id": "f5ea6a8b-f96c-47e1-a712-ed7027cc48a0",
+    "categorie_id": 1,
+    "type_id": 5,
+    "name": "Tartelette noix de p\u00e9can et sirop d'\u00e9rable",
+    "created_at": "2026-01-30T19:00:55.731524+00:00",
+    "updated_at": "2026-01-31T19:58:08.487994+00:00"
+  }
+]

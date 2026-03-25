@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "formule_id": "799e8ec8-9baf-4323-8d01-dd7505d007af",
+    "produit_id": "a3866eeb-a11d-46e6-90af-97b3c00443b7",
+    "quantite": 1,
+    "unite_id": 11,
+    "created_at": "2026-02-01T16:40:55.976047+00:00",
+    "updated_at": "2026-02-01T16:40:55.976047+00:00"
+  },
+  {
+    "id": 2,
+    "formule_id": "799e8ec8-9baf-4323-8d01-dd7505d007af",
+    "produit_id": "4d9429ec-e58f-4b16-8dc0-3d70971b6078",
+    "quantite": 1,
+    "unite_id": 11,
+    "created_at": "2026-02-01T16:40:56.1255+00:00",
+    "updated_at": "2026-02-01T16:40:56.1255+00:00"
+  }
+]

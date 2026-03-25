@@ -29,9 +29,25 @@ async def get_formules_by_commande(commande_id: str):
 
 @router.post("/")
 async def create_commande_formule(commande_formule: CommandeFormuleCreate):
-    """Add a formule to a commande"""
-    formule_data = serialize_date(commande_formule.model_dump())
-    response = supabase.table("commande_formules").insert(formule_data).execute()
+    """Add a formule to a commande with optional product exclusions"""
+
+    # Convertir le modèle en dict
+    data = commande_formule.model_dump()
+
+    # Convertir les UUID en chaînes de caractères
+    data["commande_id"] = str(data["commande_id"])
+    data["formule_id"] = str(data["formule_id"])
+
+    # Convertir les UUIDs dans excluded_products
+    if "excluded_products" in data and data["excluded_products"]:
+        data["excluded_products"] = [str(pid) for pid in data["excluded_products"]]
+
+    # Insérer dans la base de données
+    response = supabase.table("commande_formules").insert(data).execute()
+
+    if not response.data:
+        raise HTTPException(status_code=400, detail="Failed to create commande-formule")
+    
     return serialize_date(response.data[0])
 
 @router.put("/{commande_formule_id}")
