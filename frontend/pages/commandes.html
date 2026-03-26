@@ -403,82 +403,85 @@
           </div>
         </div>
 
-        <!-- SECTION 4 : EXCLUSIONS DE PRODUITS -->
-        <div id="formule-products-modal" class="modal">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h3 id="formule-products-title">🍽️ Personnaliser la formule</h3>
-              <button class="close-modal" onclick="closeFormuleProductsModal()">&times;</button>
-            </div>
-
-            <div class="modal-body">
-              <p class="section-hint">
-                ℹ️ Par défaut, la formule contient tous les produits listés ci-dessous.
-                <br>
-                <strong>Cochez uniquement les produits à RETIRER</strong> (allergie, préférence client, etc.)
-              </p>
-
-              <!-- Liste des produits avec checkbox -->
-              <div id="products-checkboxes-list" class="products-checkboxes-container">
-                <!-- Les produits seront injectés ici dynamiquement -->
-              </div>
-
-              <!-- Récapitulatif des produits exclus -->
-              <div id="exclusions-summary" style="display:none;" class="exclusions-summary">
-                <h4>⚠️ Produits à retirer :</h4>  
-                <ul id="exclusions-list"></ul>
-              </div>
-            </div>
-
-            <div class="modal-footer">
-              <button type="button" class="btn-secondary" onclick="closeFormuleProductsModal()">
-                Annuler
-              </button>
-              <button type="button" class="btn btn-primary" onclick="validateFormuleSelection()">
-                ✅ Valider la selection
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- MODALE DE CONFIRMATION D'EXCLUSION -->
-        <div id="exclusion-confirmation-modal" class="modal">
-          <div class="modal-content modal-confirmation">
-            <div class="modal-header">
-              <h3>⚠️ Confirmer les exclusions</h3>
-              <button class="close-modal" onclick="closeExclusionConfirmationModal()">&times;</button>
-            </div>
-
-            <div class="modal-body">
-              <p class="confirmation-text">
-                Êtes-vous sûr de vouloir <strong>retirer</strong> les produits suivants de la formule ?
-              </p>
-
-              <!-- Liste des produits à exclure -->
-              <div class="excluded-products-list">
-                <ul id="confirmation-exclusions-list"></ul>
-            </div>
-
-            <p class="confirmation-hint">
-              💡 Les produits ne seront pas dans la formule pour cette commande.
-            </p>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn-secondary" onclick="closeExclusionConfirmationModal()">
-              ❌ Annuler
-            </button>
-            <button type="button" class="btn btn-primary" onclick="confirmFormuleExclusions()">
-              ✅ Confirmer les exclusions
-            </button>
-          </div>
-        </div>
       </div>
 
       <!-- Pied de la modale -->
       <div class="modal-footer">
         <button type="button" id="cancel-edit" class="btn btn-secondary">Annuler</button>
         <button type="button" id="save-edit-commande" class="btn btn-primary">✅ Sauvegarder les modifications</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- MODAL SÉLECTION PRODUITS FORMULE -->
+    <div id="formule-products-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="formule-products-title">🍽️ Personnaliser la formule</h3>
+          <button class="close-modal" onclick="closeFormuleProductsModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="section-hint">
+            ℹ️ Par défaut, la formule contient tous les produits listés ci-dessous.
+            <br>
+            <strong>Cochez uniquement les produits à RETIRER</strong> (allergie, préférence client, etc.)
+          </p>
+
+          <!-- Liste des produits avec checkbox -->
+          <div id="products-checkboxes-list" class="products-checkboxes-container">
+            <!-- Les produits seront injectés ici dynamiquement -->
+          </div>
+
+          <!-- Récapitulatif des produits exclus -->
+          <div id="exclusions-summary" style="display:none;" class="exclusions-summary">
+            <h4>⚠️ Produits à retirer :</h4>
+            <ul id="exclusions-list"></ul>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeFormuleProductsModal()">
+            Annuler
+          </button>
+          <button type="button" class="btn btn-primary" onclick="validateFormuleSelection()">
+            ✅ Valider la sélection
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION D'EXCLUSION -->
+    <div id="exclusion-confirmation-modal" class="modal">
+      <div class="modal-content modal-confirmation">
+        <div class="modal-header">
+          <h3>⚠️ Confirmer les exclusions</h3>
+          <button class="close-modal" onclick="closeExclusionConfirmationModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="confirmation-text">
+            Êtes-vous sûr de vouloir <strong>retirer</strong> les produits suivants de la formule ?
+          </p>
+
+          <!-- Liste des produits à exclure -->
+          <div class="excluded-products-list">
+            <ul id="confirmation-exclusions-list"></ul>
+          </div>
+
+          <p class="confirmation-hint">
+            💡 Les produits ne seront pas dans la formule pour cette commande.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeExclusionConfirmationModal()">
+            ❌ Annuler
+          </button>
+          <button type="button" class="btn btn-primary" onclick="confirmFormuleExclusions()">
+            ✅ Confirmer les exclusions
+          </button>
+        </div>
       </div>
     </div>
 

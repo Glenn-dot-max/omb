@@ -1329,9 +1329,15 @@ function displayTempFormules() {
     const div = document.createElement("div");
     div.className = "item-row";
 
+    // Badge pour les exclusions
+    let exclusionBadge = "";
+    if (formule.produits_exclus && formule.produits_exclus.length > 0) {
+      exclusionBadge = `<span class="exclusion-badge">⚠️ ${formule.produits_exclus.length} exclu(s)</span>`;
+    }
+
     div.innerHTML = `
       <div class="item-info">
-        <div class="item-name">${formule.formule_name}</div>
+        <div class="item-name">${formule.formule_name} ${exclusionBadge}</div>
         <div class="item-detail">${formule.formule_type} • ${formule.couverts} couverts</div>
       </div>
       <div class="item-actions">
