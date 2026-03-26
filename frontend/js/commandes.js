@@ -16,6 +16,8 @@ let currentEditingCommande = null;
 let editFormules = [];
 let editProduits = [];
 let currentTab = "active";
+let currentFormuleSelection = null;
+let currentFormuleProduits = [];
 
 // ===============================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -1384,12 +1386,15 @@ function displayTempProduits() {
   });
 }
 
-function handleAddFormule() {
+async function handleAddFormule() {
   const formulesSelect = document.getElementById("formule-select");
   const formuleId = formulesSelect.value;
   const couverts = parseInt(document.getElementById("formule-couverts").value);
 
-  // Validation
+  // ==========================================
+  // 1. Validation
+  // ==========================================
+
   if (!formuleId) {
     showToast("Veuillez sélectionner une formule.", "warning");
     return;
@@ -1415,90 +1420,37 @@ function handleAddFormule() {
     return;
   }
 
-  // Ajouter à la liste temporaire avec TOUTES les infos
-  tempFormules.push({
-    formule_id: formuleId,
-    formule_name: formule.name,
-    formule_type: formule.type_formule,
-    couverts: couverts,
-    produits_exclus: [],
-    expanded: false,
-  });
+  // ==========================================
+  // 2. NOUVEAU : CHARGER LES PRODUITS ET OUVRIR MODAL
+  // ==========================================
 
-  // Mettre à jour l'affichage
-  displayTempFormules();
+  try {
+    // Stocker la sélection en cours
+    currentFormuleSelection = {
+      formule_id: formuleId,
+      formule_name: formule.name,
+      formule_type: formule.type_formule,
+      couverts: couverts,
+    };
 
-  // Réinitialiser le formulaire
-  formulesSelect.value = "";
+    // Charger les produits de cette formule via l'API
+    const response = await fetch(
+      `${API_URL}/formules/${formuleId}/with-products`,
+    );
 
-  const nombreCouverts = document.getElementById(
-    "create-nombre-couverts",
-  ).value;
-  document.getElementById("formule-couverts").value = nombreCouverts;
+    if (!response.ok) {
+      throw new Error("Erreur chargement produits formule");
+    }
 
-  showToast("Formule ajoutée.", "success");
-}
+    const data = await response.json();
+    currentFormuleProduits = data.produits;
 
-function handleAddProduit() {
-  const produitSelect = document.getElementById("produit-select");
-  const produitId = produitSelect.value;
-  const quantite = parseFloat(
-    document.getElementById("produit-quantite").value,
-  );
-  const unite = document.getElementById("produit-unite").value;
-
-  // Validation
-  if (!produitId) {
-    showToast("Veuillez sélectionner un produit.", "warning");
-    return;
+    // Ouvrir le modal de la sélection
+    openFormuleProductsModal();
+  } catch (error) {
+    console.error("Erreur chargement formule:", error);
+    showToast("Erreur lors du chargement des produits de la formule.", "error");
   }
-
-  if (!quantite || quantite <= 0) {
-    showToast("La quantité doit être supérieur à 0.", "warning");
-    return;
-  }
-
-  if (!unite) {
-    showToast("Veuillez sélectionner une unité.", "warning");
-    return;
-  }
-
-  // Vérifier si le produit n'est pas djà ajouté
-  const dejaAjoute = tempProduits.find((p) => p.produit_id === produitId);
-  if (dejaAjoute) {
-    showToast("Ce produit a déjà été ajouté.", "warning");
-    return;
-  }
-
-  // Trouver le nom du produit
-  const produit = allProduits.find((p) => p.id === produitId);
-
-  if (!produit) {
-    showToast("Erreur : Produit introuvable.", "error");
-    return;
-  }
-
-  // Ajouter à la liste temporaire
-  tempProduits.push({
-    produit_id: produitId,
-    produit_name: produit.name,
-    quantite: quantite,
-    unite: unite,
-  });
-
-  // Mettre à jour l'affichage
-  displayTempProduits();
-
-  // Réinitialiser le formulaire
-  produitSelect.value = "";
-  document.getElementById("produit-quantite").value = "1";
-
-  // Remettre "unité" par défaut
-  const uniteSelect = document.getElementById("produit-unite");
-  if (uniteSelect.querySelector('option[value="unité"]')) {
-    uniteSelect.value = "unité";
-  }
-  showToast("Produit ajouté.", "success");
 }
 
 async function handleCreateCommande() {
@@ -1585,9 +1537,17 @@ async function handleCreateCommande() {
           formule_id: formule.formule_id,
           quantite_recommandee: formule.couverts,
           quantite_finale: formule.couverts,
+          excluded_products: formule.produits_exclus || [],
         };
 
         console.log("  ➕ Ajout formule:", formuleData);
+
+        if (formule.produits_exclus && formule.produits_exclus.length > 0) {
+          console.log(
+            `.  ⚠️ ${formule.produits_exclus.length} produit(s) exclus`,
+          );
+        }
+
         await createCommandeFormule(formuleData);
       }
 
@@ -1698,11 +1658,189 @@ async function handleAutoArchive() {
   try {
     const result = await autoArchiveCommandes();
     showToast(result.message, "success");
-
-    // Recharger les commandes
     await loadCommandes();
   } catch (error) {
     console.error("Erreur lors de l'auto-archivage :", error);
     showToast("Erreur lors de l'auto-archivage des commandes.", "error");
+  }
+}
+
+// ===============================================
+// MODAL SÉLECTION PRODUITS FORMULE
+// ===============================================
+
+function openFormuleProductsModal() {
+  // Mettre à jour le titre avec le nom de la formule
+  document.getElementById("formule-products-title").textContent =
+    `🍽️ Personnaliser : ${currentFormuleSelection.formule_name}`;
+
+  // Générer les checkboxes
+  displayFormuleProductsCheckboxes();
+
+  // Afficher le modal
+  document.getElementById("formule-products-modal").style.display = "block";
+}
+
+function closeFormuleProductsModal() {
+  // Cacher le modal
+  document.getElementById("formule-products-modal").style.display = "none";
+
+  // Réinitialiser
+  currentFormuleSelection = null;
+  currentFormuleProduits = [];
+
+  // Cacher le récapitulatif
+  document.getElementById("exclusions-summary").style.display = "none";
+}
+
+function displayFormuleProductsCheckboxes() {
+  const container = document.getElementById("products-checkboxes-list");
+
+  if (currentFormuleProduits.length === 0) {
+    container.innerHTML =
+      '<p class="empty-state">Aucun produit dans cette formule.</p>';
+    return;
+  }
+
+  // Générer les checkboxes
+  container.innerHTML = currentFormuleProduits
+    .map(
+      (produit) => `
+    <label class="product-checkbox-item">
+      <input 
+        type="checkbox" 
+        value="${produit.produit_id}"
+        onchange="handleProductCheckboxChange()"
+      >
+      <div class="product-checkbox-info">
+        <div class="product-checkbox-name">${produit.produit_name}</div>
+        <div class="product-checkbox-quantity">${produit.quantite} ${produit.unite}</div>
+      </div>
+    </label>
+  `,
+    )
+    .join("");
+}
+
+function handleProductCheckboxChange() {
+  // Récupérer toutes les checkboxes COCHÉES (= produits à EXCLURE)
+  const checkboxes = document.querySelectorAll(
+    '.product-checkbox-item input[type="checkbox"]',
+  );
+  const excludedProducts = [];
+
+  checkboxes.forEach((checkbox) => {
+    if (checkbox.checked) {
+      excludedProducts.push(checkbox.value);
+    }
+  });
+
+  // Afficher/cacher le récapitulatif
+  const summary = document.getElementById("exclusions-summary");
+  const list = document.getElementById("exclusions-list");
+
+  if (excludedProducts.length > 0) {
+    // Il y a des exclusions → Afficher le récapitulatif
+    summary.style.display = "block";
+
+    // Générer la liste
+    list.innerHTML = excludedProducts
+      .map((produitId) => {
+        const produit = currentFormuleProduits.find(
+          (p) => p.produit_id === produitId,
+        );
+        return `<li>${produit ? produit.produit_name : "Produit inconnu"}</li>`;
+      })
+      .join("");
+  } else {
+    // Aucune exclusion → Cacher
+    summary.style.display = "none";
+  }
+}
+
+function validateFormuleSelection() {
+  // Récupérer les produits exclus
+  const checkboxes = document.querySelectorAll(
+    '.product-checkbox-item input[type="checkbox"]:checked',
+  );
+  const excludedProducts = Array.from(checkboxes).map((cb) => cb.value);
+
+  if (excludedProducts.length === 0) {
+    // Aucun produit exclu → Ajouter directement
+    confirmFormuleExclusions();
+  } else {
+    // Il y a des exclusions → Demander confirmation
+    openExclusionConfirmationModal(excludedProducts);
+  }
+}
+
+// ===============================================
+// MODAL DE CONFIRMATION D'EXCLUSION
+// ===============================================
+
+function openExclusionConfirmationModal(excludedProducts) {
+  // Remplir la liste des produits à exclure
+  const list = document.getElementById("confirmation-exclusions-list");
+
+  list.innerHTML = excludedProducts
+    .map((produitId) => {
+      const produit = currentFormuleProduits.find(
+        (p) => p.produit_id === produitId,
+      );
+      return `<li>${produit ? produit.produit_name : "Produit inconnu"}</li>`;
+    })
+    .join("");
+
+  // Afficher le modal de confirmation
+  document.getElementById("exclusion-confirmation-modal").style.display =
+    "block";
+}
+
+function closeExclusionConfirmationModal() {
+  document.getElementById("exclusion-confirmation-modal").style.display =
+    "none";
+}
+
+function confirmFormuleExclusions() {
+  // Récupérer les produits exclus
+  const checkboxes = document.querySelectorAll(
+    '.product-checkbox-item input[type="checkbox"]:checked',
+  );
+  const excludedProductIds = Array.from(checkboxes).map((cb) => cb.value);
+
+  // Ajouter à tempFormules avec les exclusions
+  tempFormules.push({
+    formule_id: currentFormuleSelection.formule_id,
+    formule_name: currentFormuleSelection.formule_name,
+    formule_type: currentFormuleSelection.formule_type,
+    couverts: currentFormuleSelection.couverts,
+    produits_exclus: excludedProductIds,
+    expanded: false,
+  });
+
+  // Mettre à jour l'affichage
+  displayTempFormules();
+
+  // Réinitialiser le formulaire
+  const formulesSelect = document.getElementById("formule-select");
+  formulesSelect.value = "";
+
+  const nombreCouverts = document.getElementById(
+    "create-nombre-couverts",
+  ).value;
+  document.getElementById("formule-couverts").value = nombreCouverts;
+
+  // Fermer les modals
+  closeFormuleProductsModal();
+  closeExclusionConfirmationModal();
+
+  // Toast de succès
+  if (excludedProductIds.length > 0) {
+    showToast(
+      `Formule ajoutée avec ${excludedProductIds.length} produit(s) exclu(s).`,
+      "success",
+    );
+  } else {
+    showToast("Formule ajoutée.", "success");
   }
 }

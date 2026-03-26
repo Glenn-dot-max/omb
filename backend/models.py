@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, validator, Field, constr
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime, date, time
 import re
@@ -138,6 +138,7 @@ class CommandeFormuleBase(UUIDModel):
     formule_id: UUID
     quantite_recommandee: float = Field(default=0, ge=0, le=10000)
     quantite_finale: float = Field(default=0, ge=0, le=10000)
+    excluded_products: List[UUID] = Field(default_factory=list)
     
     @validator('quantite_recommandee', 'quantite_finale')
     def validate_quantites(cls, v):
@@ -154,6 +155,7 @@ class CommandeFormuleCreate(CommandeFormuleBase):
 class CommandeFormuleUpdate(BaseModel):
     quantite_recommandee: Optional[float] = Field(None, ge=0, le=10000)
     quantite_finale: Optional[float] = Field(None, ge=0, le=10000)
+    excluded_products: Optional[List[UUID]] = None
     
     class Config:
         extra = 'forbid'
