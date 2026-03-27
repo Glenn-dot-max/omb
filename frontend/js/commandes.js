@@ -141,14 +141,14 @@ function displayCommandes(commandes) {
   const commandesPlusTard = [];
 
   commandes.forEach((commande) => {
-    const commandeDate = new Date(commande.delivery_date);
+    const commandeDate = new Date(commande.delivery_date + "T12:00:00");
     commandeDate.setHours(0, 0, 0, 0);
 
     if (commandeDate.getTime() === today.getTime()) {
       commandesAujourdHui.push(commande);
     } else if (commandeDate.getTime() === tomorrow.getTime()) {
       commandesDemain.push(commande);
-    } else if (commandeDate > dayAfterTomorrow && commandeDate <= in7Days) {
+    } else if (commandeDate >= dayAfterTomorrow && commandeDate <= in7Days) {
       commandesCetteSemaine.push(commande);
     } else if (commandeDate > in7Days && commandeDate <= in14Days) {
       commandesSemaineProchaine.push(commande);
@@ -198,7 +198,7 @@ function displayCommandes(commandes) {
   // Section Aujourd'hui
   if (commandesAujourdHui.length > 0) {
     const section = createSection({
-      title: "��� Aujourd'hui",
+      title: "Aujourd'hui",
       subtitle: getDateLabel(today),
       commandes: commandesAujourdHui,
       totalCouverts: getTotalCouverts(commandesAujourdHui),
