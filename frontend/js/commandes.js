@@ -1310,35 +1310,233 @@ function displayTempFormules() {
   const container = document.getElementById("formules-list");
   const count = document.getElementById("formules-count");
 
-  // Mettre à jour le compteur
   count.textContent = tempFormules.length;
 
-  // Si vide, afficher un message
   if (tempFormules.length === 0) {
     container.innerHTML = '<p class="empty-state">Aucune formule ajoutée.</p>';
     return;
   }
 
-  // Vider le container
   container.innerHTML = "";
 
-  // Pour chaque formule, créer un élément visuel
   tempFormules.forEach((formule, index) => {
     const div = document.createElement("div");
     div.className = "item-row";
 
+    // Afficher un badge si des produits sont exclus de la formule
+    const exclusionsDisplay =
+      formule.produits_exclus && formule.produits_exclus.length > 0
+        ? `
+          <span class="exclusions-badge">🚫 ${formule.produits_exclus.length} produit(s) exclu(s)</span>
+          <span class="exclusions-warning" title="⚠️ Des produits ont été exclus de cette fomrule">❗</span>
+        `
+        : "";
+
     div.innerHTML = `
-      <div class="item-info">
-        <div class="item-name">${formule.formule_name}</div>
-        <div class="item-detail">${formule.formule_type} • ${formule.couverts} couverts</div>
-      </div>
-      <div class="item-actions">
-        <button class="btn-icon" onclick="handleRemoveFormule(${index})" title="Retirer">🗑️</button>
-      </div>
-    `;
+        <div class="item-info">
+          <div class="item-name">${formule.formule_name}</div>
+          <div class="item-detail">
+            ${formule.formule_type} • ${formule.couverts} couverts
+            ${exclusionsDisplay}
+          </div>
+
+          <!-- Zone de composition (cachée par défaut) -->
+          <div id="composition-${index}" class="formule-composition" style="display: none; margin-top: 10px;">
+            <p><strong>📦 Composition :</strong></p>
+            <div id="produits-formule-${index}">
+              <em>Chargement...</em>
+            </div>
+          </div>
+        </div>
+
+        <div class="item-actions">
+          <!-- Bouton pour voir/cacher la composition -->
+          <button class="btn-icon" onclick="toggleComposition(${index})" title="Voir la composition">
+            <span id="toggle-icon-${index}">👁️</span>
+          </button>
+          <button class="btn-icon" onclick="handleRemoveFormule(${index})" title="Retirer">🗑️</button>
+        </div>
+      `;
 
     container.appendChild(div);
   });
+}
+
+// ===============================================
+// V2 MODIFICATIONS - GESTION DE LA COMPOSITION DES FORMULES
+// ===============================================
+
+async function toggleComposition(index) {
+  console.log("🔍 toggleComposition appelée avec index:", index);
+
+  const compositionDiv = document.getElementById(`composition-${index}`);
+  const icon = document.getElementById(`toggle-icon-${index}`);
+
+  console.log("📦 compositionDiv:", compositionDiv);
+  console.log("👁️ icon:", icon);
+
+  // Vérifier que les éléments existent
+  if (!compositionDiv || !icon) {
+    console.error(
+      "❌ Élément manquant ! compositionDiv:",
+      compositionDiv,
+      "icon:",
+      icon,
+    );
+    showToast("Erreur d'affichage. Veuillez réessayer.", "error");
+    return;
+  }
+
+  // Toggle affichage (afficher/cacher)
+  if (compositionDiv.style.display === "none") {
+    // On affiche
+    compositionDiv.style.display = "block";
+    icon.textContent = "👁️‍🗨️";
+
+    // Charger les produits de la formule
+    await loadFormuleProduits(index);
+  } else {
+    // On cache
+    compositionDiv.style.display = "none";
+    icon.textContent = "👁️";
+  }
+}
+
+async function loadFormuleProduits(index) {
+  const formule = tempFormules[index];
+  const container = document.getElementById(`produits-formule-${index}`);
+
+  try {
+    const produits = await getFormuleProduits(formule.formule_id);
+
+    if (produits.length === 0) {
+      container.innerHTML =
+        '<p class="empty-list">Aucun produit dans cette formule.</p>';
+      return;
+    }
+
+    // Afficher la liste des produits avec checkboxes
+    container.innerHTML = "";
+
+    // Ajouter un message d'instruction
+    const infoDiv = document.createElement("div");
+    infoDiv.className = "composition-info";
+    infoDiv.innerHTML = `
+      <p style:"margin: 0 0 12px 0; padding: 10 px; background: #fffbea; border-left: 4px solid #f5c05c; color: #555; font-size: 13px; border-radius: 4px; line-height: 1.5;">
+        💡 <strong>Décochez</strong> les produits que vous souhaitez exclure de la formule pour cette commande.
+      </p>
+    `;
+    container.appendChild(infoDiv);
+
+    // Liste des produits
+    const produitsContainer = document.createElement("div");
+    produitsContainer.id = `produits-container-${index}`;
+
+    produits.forEach((produit) => {
+      const produitData = allProduits.find((p) => p.id === produit.produit_id);
+      const produitName = produitData ? produitData.name : "Produit Inconnu";
+
+      const isExcluded = formule.produits_exclus.includes(produit.produit_id);
+      const isChecked = !isExcluded;
+
+      // Créer la ligne avec checkbox
+      const checkboxDiv = document.createElement("div");
+      checkboxDiv.className = "produit-checkbox";
+      checkboxDiv.innerHTML = `
+        <label>
+          <input
+            type="checkbox"
+            ${isChecked ? "checked" : ""}
+            data-produit-id="${produit.produit_id}"
+            onchange="handleProduitCheckChange(${index})"
+          />
+          <span style="font-style: italic;">${produitName}</span>          
+        </label>
+      `;
+
+      produitsContainer.appendChild(checkboxDiv);
+    });
+    container.appendChild(produitsContainer);
+
+    // Bouton "Exclure"
+    const btnDiv = document.createElement("div");
+    btnDiv.style.marginTop = "15px";
+    btnDiv.style.textAlign = "center";
+    btnDiv.innerHTML = `
+      <button
+        type="button"
+        class="btn-exclude"
+        onclick="confirmExclusions(${index})"
+      >
+        🚫 Exclure les produits décochés
+      </button>
+    `;
+    container.appendChild(btnDiv);
+  } catch (error) {
+    console.error(
+      "Erreur lors du chargement des produits de la formule :",
+      error,
+    );
+    container.innerHTML =
+      '<p style="color: red;">Erreur lors du chargement des produits.</p>';
+  }
+}
+
+// Gérer le changement de checkbox
+function handleProduitCheckChange(index) {
+  const container = document.getElementById(`produits-container-${index}`);
+  const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+  checkboxes.forEach((checkbox) => {
+    const label = checkbox.closest("label");
+    if (checkbox.checked) {
+      label.classList.remove("produit-unchecked");
+    } else {
+      label.classList.add("produit-unchecked");
+    }
+  });
+}
+
+// Confirmer les exclusions
+function confirmExclusions(index) {
+  const formule = tempFormules[index];
+  const container = document.getElementById(`produits-container-${index}`);
+  const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+  // Récupérer les produits décochés
+  const produitsAExclure = [];
+  checkboxes.forEach((checkbox) => {
+    if (!checkbox.checked) {
+      const produitId = checkbox.getAttribute("data-produit-id");
+      const produitName = checkbox.nextElementSibling.textContent;
+      produitsAExclure.push({ id: produitId, name: produitName });
+    }
+  });
+
+  // Si aucun produit à exclure
+  if (produitsAExclure.length === 0) {
+    formule.produits_exclus = [];
+    showToast("Aucun produit exclu. La formule est complète.", "info");
+    displayTempFormules();
+    return;
+  }
+
+  // Construire le message de confirmation
+  const listeProduits = produitsAExclure.map((p) => `• ${p.name}`).join("\n");
+  const message = `Êtes-vous sûr de vouloir exclure les produits suivants de la formule "${formule.formule_name}" ?\n\n${listeProduits}`;
+
+  if (confirm(message)) {
+    // Mettre à jour la liste des exclusions
+    formule.produits_exclus = produitsAExclure.map((p) => p.id);
+
+    showToast(
+      `${produitsAExclure.length} produit(s) exclu(s) de la formule.`,
+      "success",
+    );
+    displayTempFormules();
+  } else {
+    showToast("Exclusion annulée. La formule reste complète.", "info");
+  }
 }
 
 function handleRemoveFormule(index) {

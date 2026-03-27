@@ -1805,3 +1805,204 @@ body {
 .archive-btn:hover {
   background: #7f8c8d;
 }
+
+/* ===============================================
+   V2 : COMPOSITION DES FORMULES
+   =============================================== */
+
+.formule-composition {
+  margin-top: 10px;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-left: 4px solid #f5c05c;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.formule-composition strong {
+  color: #333;
+  font-size: 14px;
+}
+
+.produit-checkbox {
+  margin-top: 8px;
+}
+
+.produit-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.produit-checkbox label:hover {
+  background: #f5f5f5;
+  border-color: #f5c05c;
+  box-shadow: 0 2px 4px rgba(245, 192, 92, 0.2);
+}
+
+.produit-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #5a9f5e;
+}
+
+.produit-checkbox input[type="checkbox"]:checked + span {
+  color: #333;
+  font-weight: 500;
+}
+
+.produit-checkbox input[type="checkbox"]:not(:checked) + span {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.exclusions-badge {
+  display: inline-block;
+  background: #ff6b6b;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 10px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ===============================================
+   V2 : COMPOSITION DES FORMULES (AMÉLIORÉ)
+   =============================================== */
+
+/* Instructions */
+.composition-info p {
+  font-weight: normal !important;
+}
+
+/* Produits cochés = apparence normale */
+.produit-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.produit-checkbox label:hover {
+  background: #f5f5f5;
+  border-color: #f5c05c;
+  box-shadow: 0 2px 4px rgba(245, 192, 92, 0.2);
+}
+
+/* ✅ Produits décochés = gris clair */
+.produit-checkbox label.produit-unchecked {
+  background: #f5f5f5;
+  opacity: 0.6;
+}
+
+.produit-checkbox label.produit-unchecked span {
+  color: #999;
+  text-decoration: line-through;
+}
+
+/* Checkbox */
+.produit-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #5a9f5e;
+}
+
+/* Nom du produit en italique */
+.produit-checkbox span {
+  font-style: italic;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Bouton "Exclure" */
+.btn-exclude {
+  padding: 10px 24px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.btn-exclude:hover {
+  background: #ff5252;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 107, 107, 0.3);
+}
+
+/* Badge d'exclusions */
+.exclusions-badge {
+  display: inline-block;
+  background: #ff6b6b;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+/* ✅ Icône d'alerte "!" */
+.exclusions-warning {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 18px;
+  cursor: help;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Tooltip natif */
+.exclusions-warning:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-top: 30px;
+  margin-left: -100px;
+}
