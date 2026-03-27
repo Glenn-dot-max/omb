@@ -428,8 +428,24 @@ function updateCommandesCount() {
   count.textContent = `${allCommandes.length} commande${allCommandes.length > 1 ? "s" : ""}`;
 }
 
-//
+// ===============================================
+// VERIFIER SI LA MODALE CONTIENT DES DONNÉES
+// ===============================================
 
+function hasUnsavedData() {
+  const nomClient = document.getElementById("create-nom-client")?.value.trim();
+  const notes = document.getElementById("create-notes")?.value.trim();
+  const nombreCouverts = document.getElementById(
+    "create-nombre-couverts",
+  )?.value;
+
+  const hasFormules = tempFormules.length > 0;
+  const hasProduits = tempProduits.length > 0;
+
+  const couvertsModified = nombreCouverts && parseInt(nombreCouverts) !== 1;
+
+  return nomClient || notes || hasFormules || hasProduits || couvertsModified;
+}
 
 // ===============================================
 // GESTION DES ÉVÉNEMENTS
@@ -629,12 +645,28 @@ async function handleOpenCreateModal() {
 }
 
 function closeCreateCommandeModal() {
+  if (hasUnsavedData()) {
+    const confirmMsg =
+      "⚠️ Êtes-vous sûr de vouloir arrêter la création de cette commande ?\n\n";
+    ("❌ Les informations saisies ne seront pas récupérables.\n\n");
+    ("Cliquez sur OK pour quitter sans sauvegarder.");
+
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+  }
+
   // Cacher la modale
   document.getElementById("create-modal").style.display = "none";
 
   // Vider les données temporaires
   tempFormules = [];
   tempProduits = [];
+
+  // Réinitialiser les champs du formulaire
+  document.getElementById("create-nom-client").value = "";
+  document.getElementById("create-notes").value = "";
+  document.getElementById("create-nombre-couverts").value = "1";
 }
 
 async function handleViewDetails(commande) {
