@@ -428,6 +428,9 @@ function updateCommandesCount() {
   count.textContent = `${allCommandes.length} commande${allCommandes.length > 1 ? "s" : ""}`;
 }
 
+//
+
+
 // ===============================================
 // GESTION DES ÉVÉNEMENTS
 // ===============================================
@@ -694,15 +697,28 @@ async function displayDetailsFormules(formules) {
     const formuleData = allFormules.find((f) => f.id === formule.formule_id);
     const formuleName = formuleData ? formuleData.name : "Formule Inconnue";
 
+    // Récupérer les exclusions
+    const exclusions = await getCommandeFormuleExclusions(formule.id);
+    console.log(`🚫 Exclusions pour la formule ${formuleName}:`, exclusions);
+
+    // Récupérer les produits de la formule
     const formuleProduits = await getFormuleProduits(formule.formule_id);
 
+    // Filtrer les produits exclus
+    const produitsActifs = formuleProduits.filter(
+      (fp) => !exclusions.includes(fp.produit_id),
+    );
+    console.log(
+      `✅ Produits actifs (${produitsActifs.length}/${formuleProduits.length})`,
+    );
+
     let produitsHTML = "";
-    if (formuleProduits.length > 0) {
+    if (produitsActifs.length > 0) {
       produitsHTML = '<div class="formule-composition">';
       produitsHTML += "<strong>📦 Composition :</strong>";
       produitsHTML += '<ul class="composition-list">';
 
-      for (const fp of formuleProduits) {
+      for (const fp of produitsActifs) {
         const produitData = allProduits.find((p) => p.id === fp.produit_id);
         const produitName = produitData ? produitData.name : "Produit Inconnu";
 
@@ -713,6 +729,11 @@ async function displayDetailsFormules(formules) {
       }
 
       produitsHTML += "</ul></div>";
+    }
+
+    // Afficher un message si des produits sont exclus
+    if (exclusions.length > 0) {
+      produitsHTML += `<p style="color: #ff6b6b; font-size: 12 px; margin-top: 8px;">🚫 ${exclusions.length} produit(s) exclus</p>`;
     }
 
     div.innerHTML = `
@@ -1701,6 +1722,45 @@ function handleAddProduit() {
 
 async function handleCreateCommande() {
   // ==========================================
+  // VÉRIFICATION : Exclusions non confirmées
+  // ==========================================
+
+  for (let index = 0; index < tempFormules.length; index++) {
+    const compositionDiv = document.getElementById(`composition-${index}`);
+
+    if (compositionDiv && compositionDiv.style.display !== "none") {
+      const container = document.getElementById(`produits-container-${index}`);
+
+      if (container) {
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        const uncheckedCount = Array.from(checkboxes).filter(
+          (cb) => !cb.checked,
+        ).length;
+
+        if (uncheckedCount > 0) {
+          const formule = tempFormules[index];
+
+          const alertMessage =
+            `⚠️ ATTENTION !\n\n` +
+            `Vous avez décoché ${uncheckedCount} produit(s) dans la formule "${formule.formule_name}"\n` +
+            `mais vous n'avez PAS cliqué sur le bouton "🚫 Exclure les produits décochés".\n\n` +
+            `❌ Ces exclusions ne seront PAS prises en compte !\n\n` +
+            `Voulez-vous continuer la création SANS ces exclusions ?\n\n` +
+            `(Cliquez "Annuler" pour revenir en arrière et confirmer les exclusions)`;
+
+          if (!confirm(alertMessage)) {
+            showToast(
+              "⚠️ Création annulée. Veuillez cliquer sur le bouton 🚫 pour confirmer les exclusions.",
+              "warning",
+            );
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  // ==========================================
   // 1. RÉCUPÉRER LES DONNÉES DU FORMULAIRE
   // ==========================================
 
@@ -1783,9 +1843,11 @@ async function handleCreateCommande() {
           formule_id: formule.formule_id,
           quantite_recommandee: formule.couverts,
           quantite_finale: formule.couverts,
+          produits_exclus: formule.produits_exclus || [],
         };
 
         console.log("  ➕ Ajout formule:", formuleData);
+        console.log("  🚫 Produits exclus:", formuleData.produits_exclus);
         await createCommandeFormule(formuleData);
       }
 

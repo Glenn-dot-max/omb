@@ -441,3 +441,44 @@ async function autoArchiveCommandes() {
   }
   return await response.json();
 }
+
+// Récupérer les produits exclus d'une formule
+async function getCommandeFormuleExclusions(commandeFormuleId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-formules/${commandeFormuleId}/exclusions`,
+    );
+    if (!response.ok)
+      throw new Error("Erreur récupération produits exclus formule");
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API getCommandeFormuleExclusions:", error);
+    return [];
+  }
+}
+
+// ===========================================
+// COMMMANDE - EXCLUSIONS
+// ===========================================
+
+async function getCommandeFormuleExclusions(commandeFormuleId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-formules/${commandeFormuleId}/exclusions`,
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(
+      `📥 Exclusions récupérées pour formule ${commandeFormuleId}:`,
+      data,
+    );
+    return data;
+  } catch (error) {
+    console.error("Erreur API getCommandeFormuleExclusions:", error);
+    return [];
+  }
+}

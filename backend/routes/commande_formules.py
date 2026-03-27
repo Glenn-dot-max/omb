@@ -30,9 +30,28 @@ async def get_formules_by_commande(commande_id: str):
 @router.post("/")
 async def create_commande_formule(commande_formule: CommandeFormuleCreate):
     """Add a formule to a commande"""
-    formule_data = serialize_date(commande_formule.model_dump())
+    produits_exclus = commande_formule.produits_exclus
+
+    formule_data = serialize_date(commande_formule.model_dump(exclude={'produits_exclus'}))
+
+    # Insérer la commande_formule
     response = supabase.table("commande_formules").insert(formule_data).execute()
-    return serialize_date(response.data[0])
+    commande_formule_data = response.data[0]
+    commande_formule_id = commande_formule_data['id']
+
+    # Sauvegarder les produits exclus dans une table dédiée
+    if produits_exclus:
+        exclusions_data = [
+            {
+                "commande_formule_id": commande_formule_id,
+                "produit_id": produit_id
+            }
+            for produit_id in produits_exclus
+        ]
+        supabase.table("commande_formule_exclusions").insert(exclusions_data).execute()
+
+        return serialize_date(commande_formule_data)
+
 
 @router.put("/{commande_formule_id}")
 async def update_commande_formule(commande_formule_id: int, commande_formule: CommandeFormuleUpdate):
@@ -50,3 +69,14 @@ async def delete_commande_formule(commande_formule_id: int):
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande-Formule not found")
     return {"message": "Commande-Formule deleted successfully"}
+
+@router.get("/{commande_formule_id}/exclusions")
+async def get_formule_exclusions(commande_formule_id: int):
+    """Get excluded products for a commande-formule"""
+    response = supabase.table("commande_formule_exclusions")\
+        .select("produit_id")\
+        .eq("commande_formule_id", commande_formule_id)\
+        .execute()
+    
+    # Retourner uniquement la liste des IDs des produits exclus
+    return [row["produit_id"] for row in response.data]
