@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, validator, Field, constr
+from pydantic import BaseModel, EmailStr, validator, Field, constr, field_validator
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime, date, time
@@ -212,3 +212,53 @@ class FormuleProduitUpdate(BaseModel):
     
     class Config:
         extra = 'forbid'
+
+
+# ================ MODELS AUTHENTIFICATION =================
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class CreateUserRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=255)
+    password: str = Field(..., min_length=8, max_length=100)
+    franchise_id: str
+
+    @field_validator('email')
+    def validate_email(cls, v):
+        """Valider le format email"""
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, v):
+            raise ValueError('email invalide')
+        return v.lower()
+    
+    @field_validator('password')
+    def validate_password(cls, v):
+        """
+        Valider la complexité du mot de passe :
+        - Minimum 8 caractères
+        - Au moins une lettre majuscule
+        - Au moins une lettre minuscule
+        - Au moins un chiffre
+        """
+        if len(v) < 8:
+            raise ValueError('Le mot de passe doit contenir au moins 8 caractères')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Le mot de passe doit contenir au moins une lettre majuscule')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Le mot de passe doit contenir au moins une lettre minuscule')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Le mot de passe doit contenir au moins un chiffre')
+        return v
+    
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: dict
+
+class UserInfo(BaseModel):
+    id: str
+    email: str
+    franchise_id: str
+    franchise_nom: str
