@@ -1916,13 +1916,29 @@ async function handleCreateCommande() {
     await loadCommandes();
 
     // ==========================================
-    // 7. FERMER LA MODALE
+    // 7. VIDER LES DONNÉES TEMPORAIRES
     // ==========================================
 
-    closeCreateCommandeModal();
+    tempFormules = [];
+    tempProduits = [];
 
     // ==========================================
-    // 8. AFFICHER LE SUCCÈS
+    // 8. FERMER LA MODALE
+    // ==========================================
+
+    document.getElementById("create-modal").style.display = "none";
+
+    // Réinitialiser le formulaire
+    document.getElementById("create-nom-client").value = "";
+    document.getElementById("create-delivery-date").value = getTodayDate();
+    document.getElementById("create-delivery-hour").value = "10:00";
+    document.getElementById("create-nombre-couverts").value = "1";
+    document.getElementById("create-avec-service").checked = true;
+    document.getElementById("create-notes").value = "";
+    document.getElementById("formule-couverts").value = "1";
+
+    // ==========================================
+    // 9. AFFICHER LE SUCCÈS
     // ==========================================
 
     showToast(`Commande "${nomClient}" créée avec succès ! 🎉`, "success");
