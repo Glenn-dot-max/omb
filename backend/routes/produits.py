@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 router = APIRouter(prefix="/produits", tags=["produits"])
 supabase = get_supabase_client()  # ← Récupère le client
 
-@router.get("/")  
+@router.get("")  
 async def get_produits(current_user: dict = Depends(get_current_user)):
     """Get all produits"""
     response = supabase.table("produits")\
@@ -15,6 +15,7 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
         .eq("franchise_id", current_user["franchise_id"])\
         .order("name")\
         .execute()
+    
     return response.data
 
 @router.get("/{produit_id}")

@@ -54,6 +54,7 @@ app = FastAPI(
     description="API pour gérer les produits, formules et commandes d'Oh My Brunch",
     version="1.0.0",
     default_response_class=CustomJSONResponse,
+    redirect_slashes=False,
 )
 
 # ============================================
