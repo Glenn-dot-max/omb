@@ -30,7 +30,7 @@ async def get_produit(produit_id: str, current_user: dict = Depends(get_current_
         raise HTTPException(status_code=404, detail="Produit not found")
     return response.data[0]
 
-@router.post("/")  # ← "/" au lieu de ""
+@router.post("") 
 async def create_produit(produit: ProduitCreate, current_user: dict = Depends(get_current_user)):
     """Create a new produit"""
     existing = supabase.table("produits")\
