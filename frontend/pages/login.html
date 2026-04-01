@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oh My Brunch - Connexion</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+    <style>
+      .login-container {
+        max-width: 400px;
+        margin: 100px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .login-container h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        font-size: 28px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: 500;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
+      .btn-login {
+        width: 100%;
+        padding: 14px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .btn-login:hover {
+        background: #2980b9;
+      }
+
+      .btn-login:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+      }
+
+      .error-message {
+        background: #e74c3c;
+        color: white;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        text-align: center;
+        display: none;
+      }
+
+      .error-message.show {
+        display: block;
+      }
+
+      .franchise-info {
+        text-align: center;
+        margin-top: 20px;
+        color: #7f8c8d;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>🥐 Oh My Brunch</h1>
+
+      <div id="errorMessage" class="error-message"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="votre@email.com"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button type="submit" class="btn-login" id="loginButton">
+          Se connecter
+        </button>
+      </form>
+
+      <div class="franchise-info">
+        <p>Connectez-vous pour accéder à votre franchise</p>
+      </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+      // Empêcher l'accès si déjà connecté
+      if (isAuthenticated()) {
+        window.location.href = "commandes.html";
+      }
+
+      // Gérer la soumission du formulaire
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const loginBtn = document.getElementById("loginButton");
+          const errorMessage = document.getElementById("errorMessage");
+
+          // Désactiver le bouton pendant la requête
+          loginBtn.disabled = true;
+          loginBtn.textContent = "Connexion...";
+          errorMessage.classList.remove("show");
+
+          try {
+            const result = await login(email, password);
+
+            if (result.success) {
+              // Connexion réussie, rediriger
+              window.location.href = "commandes.html";
+            } else {
+              // Afficher l'erreur
+              errorMessage.textContent =
+                result.error || "Email ou mot de passe incorrect";
+              errorMessage.classList.add("show");
+            }
+          } catch (error) {
+            errorMessage.textContent = "Erreur de connexion. Réessayez.";
+            errorMessage.classList.add("show");
+          } finally {
+            // Réactiver le bouton
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Se connecter";
+          }
+        });
+    </script>
+  </body>
+</html>

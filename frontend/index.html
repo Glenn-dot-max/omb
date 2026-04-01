@@ -2,13 +2,32 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0; url=pages/planning.html" />
-    <title>Oh My Brunch - Redirection...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oh My Brunch - Chargement...</title>
   </head>
   <body>
-    <p>Redirection vers l'application...</p>
+    <p
+      style="
+        text-align: center;
+        margin-top: 100px;
+        font-family: Arial;
+        color: #7f8c8d;
+      "
+    >
+      Chargement de l'application...
+    </p>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
     <script>
-      window.location.href = "pages/commandes.html";
+      // Vérifier si l'utilisateur est connecté
+      if (isAuthenticated()) {
+        // Connecté → Rediriger vers l'app
+        window.location.href = "pages/commandes.html";
+      } else {
+        // Non connecté → Rediriger vers login
+        window.location.href = "pages/login.html";
+      }
     </script>
   </body>
 </html>
