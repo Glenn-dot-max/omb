@@ -4,102 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Oh My Brunch - Connexion</title>
-    <link rel="stylesheet" href="../css/styles.css" />
-    <style>
-      .login-container {
-        max-width: 400px;
-        margin: 100px auto;
-        padding: 40px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      }
-
-      .login-container h1 {
-        text-align: center;
-        color: #2c3e50;
-        margin-bottom: 30px;
-        font-size: 28px;
-      }
-
-      .form-group {
-        margin-bottom: 20px;
-      }
-
-      .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #555;
-        font-weight: 500;
-      }
-
-      .form-group input {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 16px;
-        box-sizing: border-box;
-      }
-
-      .form-group input:focus {
-        outline: none;
-        border-color: #3498db;
-      }
-
-      .btn-login {
-        width: 100%;
-        padding: 14px;
-        background: #3498db;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.3s;
-      }
-
-      .btn-login:hover {
-        background: #2980b9;
-      }
-
-      .btn-login:disabled {
-        background: #95a5a6;
-        cursor: not-allowed;
-      }
-
-      .error-message {
-        background: #e74c3c;
-        color: white;
-        padding: 12px;
-        border-radius: 6px;
-        margin-bottom: 20px;
-        text-align: center;
-        display: none;
-      }
-
-      .error-message.show {
-        display: block;
-      }
-
-      .franchise-info {
-        text-align: center;
-        margin-top: 20px;
-        color: #7f8c8d;
-        font-size: 14px;
-      }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/login.css" />
   </head>
   <body>
     <div class="login-container">
-      <h1>🥐 Oh My Brunch</h1>
+      <!-- Header avec logo -->
+      <div class="login-header">
+        <div class="logo-container">
+          <img src="../assets/logo-rond.svg" alt="Oh My Brunch" />
+        </div>
+        <h1>Oh My Brunch</h1>
+        <p>Accédez à votre espace franchise</p>
+      </div>
 
+      <!-- Message d'erreur -->
       <div id="errorMessage" class="error-message"></div>
 
+      <!-- Formulaire de connexion -->
       <form id="loginForm">
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email">📧 Email</label>
           <input
             type="email"
             id="email"
@@ -111,7 +41,7 @@
         </div>
 
         <div class="form-group">
-          <label for="password">Mot de passe</label>
+          <label for="password">🔒 Mot de passe</label>
           <input
             type="password"
             id="password"
@@ -127,11 +57,49 @@
         </button>
       </form>
 
+      <!-- Lien mot de passe oublié -->
+      <div class="forgot-password">
+        <a href="#" id="forgotPasswordLink">Mot de passe oublié ?</a>
+      </div>
+
+      <!-- Info franchise -->
       <div class="franchise-info">
-        <p>Connectez-vous pour accéder à votre franchise</p>
+        <p>🥐 Gestion de commandes et planning</p>
       </div>
     </div>
 
+    <!-- Modale mot de passe oublié -->
+    <div id="forgotPasswordModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Mot de passe oublié</h3>
+          <span class="close-modal" id="closeModal">&times;</span>
+        </div>
+
+        <div class="modal-body">
+          <p>
+            <strong>Pour réinitialiser votre mot de passe :</strong>
+          </p>
+          <p>
+            Contactez votre administrateur à l'adresse :
+            <br />
+            <strong>admin@ohmybrunch.fr</strong>
+          </p>
+          <p style="font-size: 13px; color: #999; margin-top: 20px">
+            Vous recevrez un nouveau mot de passe par email sous 24h.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" id="closeModalBtn">Fermer</button>
+          <button class="btn-primary" id="contactAdminBtn">
+            📧 Contacter l'admin
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="../js/config.js"></script>
     <script src="../js/auth.js"></script>
     <script>
@@ -140,43 +108,79 @@
         window.location.href = "commandes.html";
       }
 
+      // Éléments DOM
+      const loginForm = document.getElementById("loginForm");
+      const loginButton = document.getElementById("loginButton");
+      const errorMessage = document.getElementById("errorMessage");
+      const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+      const forgotPasswordModal = document.getElementById(
+        "forgotPasswordModal",
+      );
+      const closeModal = document.getElementById("closeModal");
+      const closeModalBtn = document.getElementById("closeModalBtn");
+      const contactAdminBtn = document.getElementById("contactAdminBtn");
+
       // Gérer la soumission du formulaire
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const loginBtn = document.getElementById("loginButton");
-          const errorMessage = document.getElementById("errorMessage");
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
 
-          // Désactiver le bouton pendant la requête
-          loginBtn.disabled = true;
-          loginBtn.textContent = "Connexion...";
-          errorMessage.classList.remove("show");
+        // Désactiver le bouton pendant la requête
+        loginButton.disabled = true;
+        loginButton.textContent = "Connexion...";
+        errorMessage.classList.remove("show");
 
-          try {
-            const result = await login(email, password);
+        try {
+          const result = await login(email, password);
 
-            if (result.success) {
-              // Connexion réussie, rediriger
-              window.location.href = "commandes.html";
-            } else {
-              // Afficher l'erreur
-              errorMessage.textContent =
-                result.error || "Email ou mot de passe incorrect";
-              errorMessage.classList.add("show");
-            }
-          } catch (error) {
-            errorMessage.textContent = "Erreur de connexion. Réessayez.";
+          if (result.success) {
+            // Connexion réussie, rediriger
+            window.location.href = "commandes.html";
+          } else {
+            // Afficher l'erreur
+            errorMessage.textContent =
+              result.error || "Email ou mot de passe incorrect";
             errorMessage.classList.add("show");
-          } finally {
-            // Réactiver le bouton
-            loginBtn.disabled = false;
-            loginBtn.textContent = "Se connecter";
           }
-        });
+        } catch (error) {
+          errorMessage.textContent = "Erreur de connexion. Réessayez.";
+          errorMessage.classList.add("show");
+        } finally {
+          // Réactiver le bouton
+          loginButton.disabled = false;
+          loginButton.textContent = "Se connecter";
+        }
+      });
+
+      // Ouvrir la modale "Mot de passe oublié"
+      forgotPasswordLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        forgotPasswordModal.style.display = "block";
+      });
+
+      // Fermer la modale
+      closeModal.addEventListener("click", () => {
+        forgotPasswordModal.style.display = "none";
+      });
+
+      closeModalBtn.addEventListener("click", () => {
+        forgotPasswordModal.style.display = "none";
+      });
+
+      // Fermer si clic en dehors
+      window.addEventListener("click", (e) => {
+        if (e.target === forgotPasswordModal) {
+          forgotPasswordModal.style.display = "none";
+        }
+      });
+
+      // Bouton "Contacter l'admin"
+      contactAdminBtn.addEventListener("click", () => {
+        window.location.href =
+          "mailto:admin@ohmybrunch.fr?subject=Réinitialisation de mot de passe&body=Bonjour,%0D%0A%0D%0AJe souhaite réinitialiser mon mot de passe pour mon compte Oh My Brunch.%0D%0A%0D%0AMerci.";
+      });
     </script>
   </body>
 </html>
