@@ -7,9 +7,9 @@ supabase = get_supabase_client()
 
 @router.get("/")
 async def get_types(current_user: dict = Depends(get_current_user)):
+    """Get all types (shared across all franchises)"""
     response = supabase.table("types")\
         .select("*")\
-        .eq("franchise_id", current_user["franchise_id"])\
         .order("name")\
         .execute()
     return response.data

@@ -5,9 +5,9 @@ from models import ProduitCreate, ProduitUpdate
 from fastapi.encoders import jsonable_encoder
 
 router = APIRouter(prefix="/produits", tags=["produits"])
-supabase = get_supabase_client()  # ← Récupère le client
+supabase = get_supabase_client()
 
-@router.get("")  
+@router.get("/")  # ✅ Avec slash
 async def get_produits(current_user: dict = Depends(get_current_user)):
     """Get all produits"""
     response = supabase.table("produits")\
@@ -30,7 +30,7 @@ async def get_produit(produit_id: str, current_user: dict = Depends(get_current_
         raise HTTPException(status_code=404, detail="Produit not found")
     return response.data[0]
 
-@router.post("") 
+@router.post("/")  # ✅ Avec slash
 async def create_produit(produit: ProduitCreate, current_user: dict = Depends(get_current_user)):
     """Create a new produit"""
     existing = supabase.table("produits")\
@@ -52,20 +52,38 @@ async def create_produit(produit: ProduitCreate, current_user: dict = Depends(ge
 @router.delete("/{produit_id}")
 async def delete_produit(produit_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a produit"""
+    print(f"🗑️ DELETE REQUEST - Produit ID: {produit_id}, Franchise ID: {current_user['franchise_id']}")
+    
     existing = supabase.table("produits")\
         .select("*")\
         .eq("id", produit_id)\
         .eq("franchise_id", current_user["franchise_id"])\
         .execute()
     
-    if not existing.data:
-        raise HTTPException(status_code=404, detail="Produit not found")
+    print(f"📦 Existing Produit: {existing.data}")
     
-    response = supabase.table("produits").delete().eq("id", produit_id).execute()
-    if response.error:
-        raise HTTPException(status_code=400, detail="Failed to delete Produit")
-    return {"detail": "Produit deleted successfully"}
+    if not existing.data:
+        print(f"❌ Produit not found for deletion - Produit ID: {produit_id}, Franchise ID: {current_user['franchise_id']}")
+        raise HTTPException(status_code=404, detail="Produit not found")
 
+    try:    
+        response = supabase.table("produits")\
+            .delete()\
+            .eq("id", produit_id)\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .execute()
+        
+        print(f"✅ Delete Response: {response.data}")
+
+        return {
+            "success": True,
+            "message": "Produit deleted successfully",
+            "deleted_id": produit_id
+        }
+    
+    except Exception as e:
+        print(f"❌ Delete error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.patch("/{produit_id}")
 async def update_produit(produit_id: str, produit: ProduitUpdate, current_user: dict = Depends(get_current_user)):
@@ -83,4 +101,3 @@ async def update_produit(produit_id: str, produit: ProduitUpdate, current_user: 
     if not response.data:
         raise HTTPException(status_code=404, detail="Produit not found")
     return response.data[0]
-

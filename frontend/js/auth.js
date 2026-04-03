@@ -105,7 +105,7 @@ async function fetchWithAuth(url, options = {}) {
   }
 
   // Ajouter le header Authorization
-  options.headers = {
+  const headers = {
     ...options.headers,
     Authorization: `Bearer ${token}`,
   };
@@ -168,65 +168,91 @@ async function apiPatch(endpoint, data) {
 }
 
 async function apiDelete(endpoint) {
+  console.log("🗑️ DELETE REQUEST:", endpoint);
+
   const response = await fetchWithAuth(`${API_URL}${endpoint}`, {
     method: "DELETE",
   });
 
+  console.log("📡 DELETE Response status:", response.status);
+
   if (!response.ok) {
-    const error = await response.json();
+    let error;
+    try {
+      error = await response.json();
+    } catch (e) {
+      error = { detail: "Erreur de suppression" };
+    }
+    console.error("❌ DELETE Error:", error);
     throw new Error(error.detail || "Erreur API");
   }
 
-  return response.json();
+  // Lire la réponse
+  const text = await response.text();
+  console.log("✅ DELETE Response text:", text);
+
+  // Si vide, considérer comme succès
+  if (!text) {
+    return { success: true, message: "Suppression réussie" };
+  }
+
+  return JSON.parse(text);
 }
 
 // ==============================================
-// AFFICHER INFO USER
+// AFFICHER MENU BURGER USER
 // ==============================================
 
 function displayUserInfo() {
   const user = getUser();
   if (!user) return;
 
-  // Créer ou mettre à jour l'affichage de l'utilisateur
-  let userInfoDiv = document.getElementById("user-info");
-  if (!userInfoDiv) {
-    userInfoDiv = document.createElement("div");
-    userInfoDiv.id = "user-info";
-    userInfoDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    `;
-    document.body.appendChild(userInfoDiv);
-  }
+  // Vérifier si déjà créé
+  let burgerBtn = document.getElementById("burger-btn");
+  if (burgerBtn) return;
 
-  userInfoDiv.innerHTML = `
-    <div>
-      <div style="font-weight: 600; color: #2c3e50;">${user.email}</div>
-      <div style="font-size: 12px; color: #7f8c8d;">${user.franchise_nom}</div>
+  // Créer bouton burger
+  burgerBtn = document.createElement("button");
+  burgerBtn.id = "burger-btn";
+  burgerBtn.innerHTML = `
+    <div class="burger-icon">
+      <span></span>
+      <span></span>
+      <span></span>
     </div>
-    <button
-        onclick="logout()"
-        style="
-          background: #e74c3c;
-          color: white;
-          border: none;
-          padding: 8px 15px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
-        "
-      >
-        Déconnexion
-      </button>
   `;
+
+  // Créer menu déroulant
+  const burgerMenu = document.createElement("div");
+  burgerMenu.id = "burger-menu";
+  burgerMenu.className = "burger-menu";
+  burgerMenu.innerHTML = `
+    <div class="user-section">
+      <div class="user-email">${user.email}</div>
+      <div class="user-franchise">${user.franchise_nom}</div>
+    </div>
+    <div class="menu-divider"></div>
+    <button onclick="logout()" class="logout-btn">
+      🚪 Déconnexion
+    </button>
+  `;
+
+  // Ajouter au DOM
+  document.body.appendChild(burgerBtn);
+  document.body.appendChild(burgerMenu);
+
+  // Toggle menu
+  burgerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    burgerMenu.classList.toggle("active");
+    burgerBtn.classList.toggle("active");
+  });
+
+  // Fermer en cliquant dehors
+  document.addEventListener("click", (e) => {
+    if (!burgerMenu.contains(e.target) && !burgerBtn.contains(e.target)) {
+      burgerMenu.classList.remove("active");
+      burgerBtn.classList.remove("active");
+    }
+  });
 }

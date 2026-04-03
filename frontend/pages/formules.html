@@ -11,8 +11,8 @@
     <nav class="navbar">
       <h1>🥐 Oh My Brunch</h1>
       <ul class="nav-links">
-        <li><a href="produits.html" class="active">Produits</a></li>
-        <li><a href="formules.html">Formules</a></li>
+        <li><a href="produits.html">Produits</a></li>
+        <li><a href="formules.html" class="active">Formules</a></li>
         <li><a href="commandes.html">Commandes</a></li>
         <li><a href="planning.html">Planning</a></li>
       </ul>
@@ -35,7 +35,8 @@
       </div>
 
       <!-- Barre de recherche et filtres-->
-      <div class="search-and-filters">
+      <div class="search-card">
+        <h3>Rechercher et filtrer</h3>
         <input
           type="text"
           id="search-input"
@@ -49,6 +50,45 @@
         </select>
 
         <button id="reset-filters" class="btn-secondary">Réinitialiser</button>
+
+        <!-- ✅ Toggle Vue (déplacé ici) -->
+        <div
+          class="view-toggle"
+          style="margin-top: 1rem; float: right; clear: both"
+        >
+          <button id="view-cards" class="toggle-btn active" title="Vue cartes">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          </button>
+          <button id="view-table" class="toggle-btn" title="Vue tableau">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <!-- Liste des formules-->

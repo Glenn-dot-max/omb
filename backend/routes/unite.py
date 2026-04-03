@@ -7,13 +7,9 @@ supabase = get_supabase_client()
 
 @router.get("/")
 async def get_unite(current_user: dict = Depends(get_current_user)):
-    """Get all unite"""
+    """Get all unites (shared across all franchises)"""
     response = supabase.table("unite")\
         .select("*")\
-        .eq("franchise_id", current_user["franchise_id"])\
         .order("nom")\
         .execute()
     return response.data
-
-
-

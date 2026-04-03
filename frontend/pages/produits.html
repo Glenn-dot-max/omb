@@ -32,10 +32,10 @@
             placeholder="Nom du produit"
             required
           />
-          <select id="product-category">
+          <select id="product-category" required>
             <option value="">-- Catégorie --</option>
           </select>
-          <select id="product-type">
+          <select id="product-type" required>
             <option value="">-- Type --</option>
           </select>
           <button type="submit" class="btn">Ajouter</button>
@@ -60,6 +60,45 @@
         <button id="reset-filters" class="btn-secondary">
           Effacer les filtres
         </button>
+
+        <!-- ✅ Toggle Vue (déplacé ici) -->
+        <div
+          class="view-toggle"
+          style="margin-top: 1rem; float: right; clear: both"
+        >
+          <button id="view-cards" class="toggle-btn active" title="Vue cartes">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+          </button>
+          <button id="view-table" class="toggle-btn" title="Vue tableau">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <!-- Liste des produits -->
@@ -83,10 +122,10 @@
             placeholder="Nom du produit"
             required
           />
-          <select id="edit-product-category">
+          <select id="edit-product-category" required>
             <option value="">-- Catégorie --</option>
           </select>
-          <select id="edit-product-type">
+          <select id="edit-product-type" required>
             <option value="">-- Type --</option>
           </select>
 

@@ -6,9 +6,18 @@
 // ===========================================
 
 let allFormules = [];
+let allProduits = [];
+let allUnites = [];
 
+// Variables pour le toggle et le tri
+let currentView = localStorage.getItem("formulesView") || "cards";
+let sortColumn = localStorage.getItem("formules_sort_column") || "name";
+let sortDirection = localStorage.getItem("formules_sort_direction") || "asc";
+
+// Variables de filtrage
 let currentTypeFilter = "";
 let currentSearchTerm = "";
+let currentFilteredFormules = [];
 
 let currentEditingFormule = null;
 let tempProduitsToCreate = [];
@@ -20,6 +29,7 @@ let allUnite = [];
 // ===========================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  initViewToggle();
   loadInitialData();
   setupEventListeners();
 });
@@ -71,6 +81,97 @@ function populateUniteSelects() {
 }
 
 // ===========================================
+// GESTION DU TOGGLE DE VUE
+// ===========================================
+
+function initViewToggle() {
+  const viewCardsBtn = document.getElementById("view-cards");
+  const viewTableBtn = document.getElementById("view-table");
+
+  if (!viewCardsBtn || !viewTableBtn) {
+    console.warn("Boutons de toggle de vue non trouvés.");
+    return;
+  }
+
+  // Appliquer la vue sauvegardée
+  setViewMode(currentView);
+
+  viewCardsBtn.addEventListener("click", () => setViewMode("cards"));
+  viewTableBtn.addEventListener("click", () => setViewMode("table"));
+}
+
+function setViewMode(mode) {
+  currentView = mode;
+  localStorage.setItem("formulesView", mode);
+
+  const viewCardsBtn = document.getElementById("view-cards");
+  const viewTableBtn = document.getElementById("view-table");
+
+  if (mode === "cards") {
+    viewCardsBtn.classList.add("active");
+    viewTableBtn.classList.remove("active");
+  } else {
+    viewCardsBtn.classList.remove("active");
+    viewTableBtn.classList.add("active");
+  }
+
+  const formules =
+    currentFilteredFormules.length > 0 ? currentFilteredFormules : allFormules;
+  displayFormules(formules);
+}
+
+// ===========================================
+// GESTION DU TRI
+// ===========================================
+
+function sortFormules(formules, column, direction) {
+  return [...formules].sort((a, b) => {
+    let aVal, bVal;
+
+    switch (column) {
+      case "name":
+        aVal = a.name?.toLowerCase() || "";
+        bVal = b.name?.toLowerCase() || "";
+        break;
+      case "type":
+        aVal = a.type_formule?.toLowerCase() || "";
+        bVal = b.type_formule?.toLowerCase() || "";
+        break;
+      case "couverts":
+        aVal = parseInt(a.nombre_couverts) || 0;
+        bVal = parseInt(b.nombre_couverts) || 0;
+        break;
+      default:
+        return 0;
+    }
+
+    if (typeof aVal === "string") {
+      if (aVal < bVal) return direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return direction === "asc" ? 1 : -1;
+      return 0;
+    } else {
+      return direction === "asc" ? aVal - bVal : bVal - aVal;
+    }
+  });
+}
+
+function handleSort(column) {
+  if (sortColumn === column) {
+    sortDirection = sortDirection === "asc" ? "desc" : "asc";
+  } else {
+    sortColumn = column;
+    sortDirection = "asc";
+  }
+
+  localStorage.setItem("formules_sort_column", sortColumn);
+  localStorage.setItem("formules_sort_direction", sortDirection);
+
+  const formules =
+    currentFilteredFormules.length > 0 ? currentFilteredFormules : allFormules;
+  displayFormules(formules);
+}
+
+// ===========================================
 // CHARGEMENT DES FORMULES
 // ===========================================
 
@@ -79,6 +180,7 @@ async function loadFormules() {
     const formulesList = document.getElementById("formules-list");
     formulesList.innerHTML = "<p>Chargement des formules...</p>";
     allFormules = await getFormules();
+    currentFilteredFormules = allFormules;
     displayFormules(allFormules);
   } catch (error) {
     console.error("Erreur lors du chargement des formules :", error);
@@ -93,67 +195,128 @@ async function loadFormules() {
 // ===========================================
 
 function displayFormules(formules) {
-  const formulesList = document.getElementById("formules-list");
+  const container = document.getElementById("formules-list");
 
-  if (formules.length === 0) {
-    formulesList.innerHTML = "<p>Aucune formule disponible.</p>";
+  if (!formules || formules.length === 0) {
+    if (currentView === "cards") {
+      container.className = "products-list";
+      container.innerHTML =
+        '<p style="text-align: center; color: #999; padding: 2rem;">Aucune formule trouvée</p>';
+    } else {
+      container.className = "products-table";
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Couverts</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="empty-table">Aucune formule trouvée</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
     return;
   }
 
-  formulesList.innerHTML = "";
+  // Trier les formules
+  const sortedFormules = sortFormules(formules, sortColumn, sortDirection);
 
-  formules.forEach((formule) => {
-    const formuleItem = createFormuleElement(formule);
-    formulesList.appendChild(formuleItem);
-  });
+  if (currentView === "cards") {
+    displayFormulesCards(sortedFormules, container);
+  } else {
+    displayFormulesTable(sortedFormules, container);
+  }
 }
 
-function createFormuleElement(formule) {
-  const div = document.createElement("div");
-  div.className = "product-item";
+// ===========================================
+// AFFICHAGE VUE CARTES
+// ===========================================
 
-  const nameSpan = document.createElement("span");
-  nameSpan.className = "product-name";
-  nameSpan.textContent = formule.name;
+function displayFormulesCards(formules, container) {
+  container.className = "products-list";
+  container.innerHTML = formules
+    .map((formule) => {
+      const typeBadgeClass =
+        formule.type_formule === "Brunch" ? "type" : "category";
 
-  const detailsDiv = document.createElement("div");
-  detailsDiv.className = "product-details";
+      return `
+        <div class="product-item">
+          <div class="product-name">${formule.name}</div>
+          <div class="product-details">
+            <span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span>
+            <span class="badge category">${formule.nombre_couverts} couverts</span>
+          </div>
+          <div class="product-actions">
+            <button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>
+            <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
 
-  // Badge nombre de couverts
-  const couvertsBadge = document.createElement("span");
-  couvertsBadge.className = "badge category";
-  couvertsBadge.textContent = `${formule.nombre_couverts} couverts`;
-  detailsDiv.appendChild(couvertsBadge);
+// ===========================================
+// AFFICHAGE VUE TABLEAU
+// ===========================================
 
-  // Badge type de formule
-  const typeBadge = document.createElement("span");
-  typeBadge.className = "badge type";
-  typeBadge.textContent = formule.type_formule;
-  detailsDiv.appendChild(typeBadge);
+function displayFormulesTable(formules, container) {
+  container.className = "products-table";
 
-  const actionsDiv = document.createElement("div");
-  actionsDiv.className = "product-actions";
+  const getSortClass = (column) => {
+    if (sortColumn !== column) return "sortable";
+    return sortDirection === "asc" ? "sort-asc" : "sort-desc";
+  };
 
-  // Bouton modifier
-  const editBtn = document.createElement("button");
-  editBtn.className = "edit-btn";
-  editBtn.textContent = "✏️ Modifier";
-  editBtn.onclick = () => handleEditFormule(formule);
+  container.innerHTML = `
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="${getSortClass("name")}" onclick="handleSort('name')">Nom</th>
+            <th class="${getSortClass("type")}" onclick="handleSort('type')">Type</th>
+            <th class="${getSortClass("couverts")}" onclick="handleSort('couverts')">Couverts</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${formules
+            .map((formule) => {
+              const typeBadgeClass =
+                formule.type_formule === "Brunch" ? "type" : "category";
+              const formuleJson = JSON.stringify(formule).replace(
+                /"/g,
+                "&quot;",
+              );
 
-  // Bouton supprimer
-  const deleteBtn = document.createElement("button");
-  deleteBtn.className = "delete-btn";
-  deleteBtn.textContent = "🗑️ Supprimer";
-  deleteBtn.onclick = () => handleDeleteFormule(formule.id);
-
-  actionsDiv.appendChild(editBtn);
-  actionsDiv.appendChild(deleteBtn);
-
-  div.appendChild(nameSpan);
-  div.appendChild(detailsDiv);
-  div.appendChild(actionsDiv);
-
-  return div;
+              return `
+                <tr>
+                  <td class="product-name">${formule.name}</td>
+                  <td><span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span></td>
+                  <td>${formule.nombre_couverts}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="edit-btn" onclick='handleEditFormule(${formuleJson})'>✏️ Modifier</button>
+                      <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            })
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 // ===========================================
@@ -533,6 +696,7 @@ function applyFilters() {
     );
   }
 
+  currentFilteredFormules = filteredFormules;
   displayFormules(filteredFormules);
 }
 

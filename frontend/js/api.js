@@ -1,6 +1,7 @@
 // js/api.js
 // This module handles API requests for the application.
 // API_URL est défini dans config.js
+// Les fonctions apiGet/apiPost/apiPatch/apiDelete sont définies dans auth.js
 
 // ===========================================
 // FONCTIONS API - PRODUITS
@@ -8,12 +9,7 @@
 
 async function getProduits() {
   try {
-    const response = await fetch(`${API_URL}/produits/`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    return data;
+    return await apiGet("/produits/");
   } catch (error) {
     console.error("Error fetching produits:", error);
     return [];
@@ -22,22 +18,7 @@ async function getProduits() {
 
 async function createProduit(produit) {
   try {
-    const response = await fetch(`${API_URL}/produits/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(produit),
-    });
-    if (!response.ok) {
-      // Récupérer le message d'erreur du serveur
-      const errorData = await response.json();
-      throw new Error(
-        errorData.detail || `HTTP error! status: ${response.status}`,
-      );
-    }
-    const data = await response.json();
-    return data;
+    return await apiPost("/produits/", produit);
   } catch (error) {
     console.error("Error creating produit:", error);
     throw error;
@@ -46,12 +27,7 @@ async function createProduit(produit) {
 
 async function deleteProduit(produitId) {
   try {
-    const response = await fetch(`${API_URL}/produits/${produitId}/`, {
-      method: "DELETE",
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    await apiDelete(`/produits/${produitId}`); // ✅ Sans slash
   } catch (error) {
     console.error("Error deleting produit:", error);
     throw error;
@@ -60,20 +36,7 @@ async function deleteProduit(produitId) {
 
 async function updateProduit(produitId, produit) {
   try {
-    const response = await fetch(`${API_URL}/produits/${produitId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(produit),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text);
-    }
-    const data = await response.json();
-    return data;
+    return await apiPatch(`/produits/${produitId}`, produit); // ✅ Sans slash
   } catch (error) {
     console.error("Erreur API updateProduit:", error);
     throw error;
@@ -81,16 +44,12 @@ async function updateProduit(produitId, produit) {
 }
 
 // ===========================================
-// EXPORTATION DES FORMULES
+// FORMULES
 // ===========================================
 
 async function getFormules() {
   try {
-    const response = await fetch(`${API_URL}/formules/`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
+    return await apiGet("/formules/");
   } catch (error) {
     console.error("Error fetching formules:", error);
     return [];
@@ -99,13 +58,7 @@ async function getFormules() {
 
 async function createFormule(formule) {
   try {
-    const response = await fetch(`${API_URL}/formules/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formule),
-    });
-    if (!response.ok) throw new Error("Erreur création formule");
-    return await response.json();
+    return await apiPost("/formules/", formule);
   } catch (error) {
     console.error("Erreur API createFormule:", error);
     throw error;
@@ -114,10 +67,7 @@ async function createFormule(formule) {
 
 async function deleteFormule(formuleId) {
   try {
-    const response = await fetch(`${API_URL}/formules/${formuleId}/`, {
-      method: "DELETE",
-    });
-    if (!response.ok) throw new Error("Erreur suppression formule");
+    await apiDelete(`/formules/${formuleId}`); // ✅ Sans slash
   } catch (error) {
     console.error("Erreur API deleteFormule:", error);
     throw error;
@@ -126,12 +76,18 @@ async function deleteFormule(formuleId) {
 
 async function updateFormule(formuleId, formule) {
   try {
-    const response = await fetch(`${API_URL}/formules/${formuleId}`, {
+    const response = await fetchWithAuth(`${API_URL}/formules/${formuleId}`, {
+      // ✅ Sans slash
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formule),
     });
-    if (!response.ok) throw new Error("Erreur mise à jour formule");
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur mise à jour formule");
+    }
+
     return await response.json();
   } catch (error) {
     console.error("Erreur API updateFormule:", error);
@@ -145,11 +101,7 @@ async function updateFormule(formuleId, formule) {
 
 async function getCommandes() {
   try {
-    const response = await fetch(`${API_URL}/commandes/`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
+    return await apiGet("/commandes/");
   } catch (error) {
     console.error("Erreur API getCommandes:", error);
     return [];
@@ -158,13 +110,7 @@ async function getCommandes() {
 
 async function createCommande(commande) {
   try {
-    const response = await fetch(`${API_URL}/commandes/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(commande),
-    });
-    if (!response.ok) throw new Error("Erreur création commande");
-    return await response.json();
+    return await apiPost("/commandes/", commande);
   } catch (error) {
     console.error("Erreur API createCommande:", error);
     throw error;
@@ -173,42 +119,78 @@ async function createCommande(commande) {
 
 async function deleteCommande(commandeId) {
   try {
-    const response = await fetch(`${API_URL}/commandes/${commandeId}/`, {
-      method: "DELETE",
-    });
-    if (!response.ok) throw new Error("Erreur suppression commande");
+    await apiDelete(`/commandes/${commandeId}`); // ✅ Sans slash
   } catch (error) {
     console.error("Erreur API deleteCommande:", error);
     throw error;
   }
 }
 
-/**
- * Crée un lien entre une commande et une formule
- * @param {Object} data - {commande_id, formule_id, quantite_recommandee, quantite_finale}
- * @returns {Promise<Object>} - La réponse de l'API
- */
-
-async function createCommandeFormule(data) {
+async function updateCommande(commandeId, commande) {
   try {
-    const response = await fetch(`${API_URL}/commande-formules/`, {
-      method: "POST",
+    const response = await fetchWithAuth(`${API_URL}/commandes/${commandeId}`, {
+      // ✅ Sans slash
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(commande),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Erreur API createCommandeFormule:", errorData);
-      throw new Error(
-        `Erreur ${response.status}: ${JSON.stringify(errorData)}`,
-      );
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur mise à jour commande");
     }
 
     return await response.json();
   } catch (error) {
+    console.error("Erreur API updateCommande:", error);
+    throw error;
+  }
+}
+
+// ===========================================
+// COMMANDES - FORMULES
+// ===========================================
+
+async function createCommandeFormule(data) {
+  try {
+    return await apiPost("/commande-formules/", data);
+  } catch (error) {
     console.error("Erreur API createCommandeFormule:", error);
     throw error;
+  }
+}
+
+async function getCommandeFormules(commandeId) {
+  try {
+    return await apiGet(`/commande-formules/commande/${commandeId}`); // ✅ Sans slash
+  } catch (error) {
+    console.error("Erreur API getCommandeFormules:", error);
+    return [];
+  }
+}
+
+async function deleteCommandeFormule(commandeFormuleId) {
+  try {
+    await apiDelete(`/commande-formules/${commandeFormuleId}`); // ✅ Sans slash
+  } catch (error) {
+    console.error("Erreur API deleteCommandeFormule:", error);
+    throw error;
+  }
+}
+
+async function getCommandeFormuleExclusions(commandeFormuleId) {
+  try {
+    const data = await apiGet(
+      `/commande-formules/${commandeFormuleId}/exclusions`,
+    ); // ✅ Sans slash
+    console.log(
+      `📥 Exclusions récupérées pour formule ${commandeFormuleId}:`,
+      data,
+    );
+    return data;
+  } catch (error) {
+    console.error("Erreur API getCommandeFormuleExclusions:", error);
+    return [];
   }
 }
 
@@ -218,23 +200,27 @@ async function createCommandeFormule(data) {
 
 async function createCommandeProduit(data) {
   try {
-    const response = await fetch(`${API_URL}/commande-produits/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Erreur API createCommandeProduit:", errorData);
-      throw new Error(
-        `Erreur ${response.status}: ${JSON.stringify(errorData)}`,
-      );
-    }
-
-    return await response.json();
+    return await apiPost("/commande-produits/", data);
   } catch (error) {
     console.error("Erreur API createCommandeProduit:", error);
+    throw error;
+  }
+}
+
+async function getCommandeProduits(commandeId) {
+  try {
+    return await apiGet(`/commande-produits/commande/${commandeId}`); // ✅ Sans slash
+  } catch (error) {
+    console.error("Erreur API getCommandeProduits:", error);
+    return [];
+  }
+}
+
+async function deleteCommandeProduit(commandeProduitId) {
+  try {
+    await apiDelete(`/commande-produits/${commandeProduitId}`); // ✅ Sans slash
+  } catch (error) {
+    console.error("Erreur API deleteCommandeProduit:", error);
     throw error;
   }
 }
@@ -245,11 +231,7 @@ async function createCommandeProduit(data) {
 
 async function getFormuleProduits(formuleId) {
   try {
-    const response = await fetch(
-      `${API_URL}/formule-produits/formule/${formuleId}/`,
-    );
-    if (!response.ok) throw new Error("Erreur récupération produits formule");
-    return await response.json();
+    return await apiGet(`/formule-produits/formule/${formuleId}`); // ✅ Sans slash
   } catch (error) {
     console.error("Erreur API getFormuleProduits:", error);
     return [];
@@ -258,13 +240,7 @@ async function getFormuleProduits(formuleId) {
 
 async function createFormuleProduit(formuleProduit) {
   try {
-    const response = await fetch(`${API_URL}/formule-produits/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formuleProduit),
-    });
-    if (!response.ok) throw new Error("Erreur création formule-produit");
-    return await response.json();
+    return await apiPost("/formule-produits/", formuleProduit);
   } catch (error) {
     console.error("Erreur API createFormuleProduit:", error);
     throw error;
@@ -273,90 +249,9 @@ async function createFormuleProduit(formuleProduit) {
 
 async function deleteFormuleProduit(formuleProduitId) {
   try {
-    const response = await fetch(
-      `${API_URL}/formule-produits/${formuleProduitId}/`,
-      {
-        method: "DELETE",
-      },
-    );
-    if (!response.ok) throw new Error("Erreur suppression formule-produit");
+    await apiDelete(`/formule-produits/${formuleProduitId}`); // ✅ Sans slash
   } catch (error) {
     console.error("Erreur API deleteFormuleProduit:", error);
-    throw error;
-  }
-}
-
-// ===========================================
-// COMMANDES - GET FORMULES ET PRODUITS
-// ===========================================
-
-async function getCommandeFormules(commandeId) {
-  try {
-    const response = await fetch(
-      `${API_URL}/commande-formules/commande/${commandeId}/`,
-    );
-    if (!response.ok) throw new Error("Erreur récupération formules commande");
-    return await response.json();
-  } catch (error) {
-    console.error("Erreur API getCommandeFormules:", error);
-    return [];
-  }
-}
-
-async function getCommandeProduits(commandeId) {
-  try {
-    const response = await fetch(
-      `${API_URL}/commande-produits/commande/${commandeId}/`,
-    );
-    if (!response.ok) throw new Error("Erreur récupération produits commande");
-    return await response.json();
-  } catch (error) {
-    console.error("Erreur API getCommandeProduits:", error);
-    return [];
-  }
-}
-
-async function updateCommande(commandeId, commande) {
-  try {
-    const response = await fetch(`${API_URL}/commandes/${commandeId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(commande),
-    });
-    if (!response.ok) throw new Error("Erreur mise à jour commande");
-    return await response.json();
-  } catch (error) {
-    console.error("Erreur API updateCommande:", error);
-    throw error;
-  }
-}
-
-async function deleteCommandeFormule(commandeFormuleId) {
-  try {
-    const response = await fetch(
-      `${API_URL}/commande-formules/${commandeFormuleId}/`,
-      {
-        method: "DELETE",
-      },
-    );
-    if (!response.ok) throw new Error("Erreur suppression commande-formule");
-  } catch (error) {
-    console.error("Erreur API deleteCommandeFormule:", error);
-    throw error;
-  }
-}
-
-async function deleteCommandeProduit(commandeProduitId) {
-  try {
-    const response = await fetch(
-      `${API_URL}/commande-produits/${commandeProduitId}/`,
-      {
-        method: "DELETE",
-      },
-    );
-    if (!response.ok) throw new Error("Erreur suppression commande-produit");
-  } catch (error) {
-    console.error("Erreur API deleteCommandeProduit:", error);
     throw error;
   }
 }
@@ -367,9 +262,7 @@ async function deleteCommandeProduit(commandeProduitId) {
 
 async function getCategories() {
   try {
-    const response = await fetch(`${API_URL}/categories/`);
-    if (!response.ok) throw new Error("Erreur récupération catégories");
-    return await response.json();
+    return await apiGet("/categories/");
   } catch (error) {
     console.error("Erreur API getCategories:", error);
     return [];
@@ -382,9 +275,7 @@ async function getCategories() {
 
 async function getTypes() {
   try {
-    const response = await fetch(`${API_URL}/types/`);
-    if (!response.ok) throw new Error("Erreur récupération types");
-    return await response.json();
+    return await apiGet("/types/");
   } catch (error) {
     console.error("Erreur API getTypes:", error);
     return [];
@@ -397,9 +288,7 @@ async function getTypes() {
 
 async function getUnite() {
   try {
-    const response = await fetch(`${API_URL}/unite/`);
-    if (!response.ok) throw new Error("Erreur récupération unités");
-    return await response.json();
+    return await apiGet("/unite/");
   } catch (error) {
     console.error("Erreur API getUnites:", error);
     return [];
@@ -411,74 +300,34 @@ async function getUnite() {
 // ===========================================
 
 async function getArchivedCommandes() {
-  const response = await fetch(`${API_URL}/commandes/archived`);
-  if (!response.ok) {
-    throw new Error("Erreur lors de la récupération des commandes archivées");
+  try {
+    return await apiGet("/commandes/archived");
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des commandes archivées:",
+      error,
+    );
+    throw error;
   }
-  return await response.json();
 }
 
 async function archiveCommande(commandeId) {
-  const response = await fetch(`${API_URL}/commandes/${commandeId}/archive`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!response.ok) {
-    throw new Error("Erreur lors de l'archivage de la commande");
+  try {
+    return await apiPatch(`/commandes/${commandeId}/archive`, {}); // ✅ Correct (route spéciale)
+  } catch (error) {
+    console.error("Erreur lors de l'archivage de la commande:", error);
+    throw error;
   }
-  return await response.json();
 }
 
 async function autoArchiveCommandes() {
-  const response = await fetch(`${API_URL}/commandes/auto-archive`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!response.ok) {
-    throw new Error("Erreur lors de l'archivage automatique des commandes");
-  }
-  return await response.json();
-}
-
-// Récupérer les produits exclus d'une formule
-async function getCommandeFormuleExclusions(commandeFormuleId) {
   try {
-    const response = await fetch(
-      `${API_URL}/commande-formules/${commandeFormuleId}/exclusions`,
-    );
-    if (!response.ok)
-      throw new Error("Erreur récupération produits exclus formule");
-    return await response.json();
+    return await apiPost("/commandes/auto-archive", {});
   } catch (error) {
-    console.error("Erreur API getCommandeFormuleExclusions:", error);
-    return [];
-  }
-}
-
-// ===========================================
-// COMMMANDE - EXCLUSIONS
-// ===========================================
-
-async function getCommandeFormuleExclusions(commandeFormuleId) {
-  try {
-    const response = await fetch(
-      `${API_URL}/commande-formules/${commandeFormuleId}/exclusions`,
+    console.error(
+      "Erreur lors de l'archivage automatique des commandes:",
+      error,
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log(
-      `📥 Exclusions récupérées pour formule ${commandeFormuleId}:`,
-      data,
-    );
-    return data;
-  } catch (error) {
-    console.error("Erreur API getCommandeFormuleExclusions:", error);
-    return [];
+    throw error;
   }
 }

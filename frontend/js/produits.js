@@ -9,17 +9,25 @@ let allProduits = [];
 let allCategories = [];
 let allTypes = [];
 
+// Variables pour le toggle et le tri
+let currentView = localStorage.getItem("produits_view") || "cards";
+let sortColumn = localStorage.getItem("produits_sort_column") || "name";
+let sortDirection = localStorage.getItem("produits_sort_direction") || "asc";
+
 let currentCategoryFilter = "";
 let currentTypeFilter = "";
 let currentSearchTerm = "";
 
 let currentEditingProduct = null;
 
+let currentFilteredProduits = [];
+
 // ===========================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
 // ===========================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  initViewToggle();
   loadInitialData();
   setupEventListeners();
 });
@@ -117,20 +125,120 @@ function populateEditTypeSelect() {
 }
 
 // ===========================================
+// GESTION DU TOGGLE VUE
+// ===========================================
+
+function initViewToggle() {
+  const viewCardsBtn = document.getElementById("view-cards");
+  const viewTableBtn = document.getElementById("view-table");
+
+  // Appliquer la vue sauvegardée
+  setViewMode(currentView);
+
+  viewCardsBtn.addEventListener("click", () => {
+    setViewMode("cards");
+  });
+
+  viewTableBtn.addEventListener("click", () => {
+    setViewMode("table");
+  });
+
+  function setViewMode(mode) {
+    currentView = mode;
+    localStorage.setItem("produits_view", mode);
+
+    const viewCardsBtn = document.getElementById("view-cards");
+    const viewTableBtn = document.getElementById("view-table");
+
+    if (mode === "cards") {
+      viewCardsBtn.classList.add("active");
+      viewTableBtn.classList.remove("active");
+    } else {
+      viewTableBtn.classList.add("active");
+      viewCardsBtn.classList.remove("active");
+    }
+
+    // Recharger les produits pour appliquer la nouvelle vue
+    displayProduits(allProduits);
+  }
+}
+
+// ===========================================
+// GESTION DU TRI
+// ===========================================
+
+function sortProduits(produits, column, direction) {
+  return [...produits].sort((a, b) => {
+    let aVal, bVal;
+
+    switch (column) {
+      case "name":
+        aVal = a.name.toLowerCase() || "";
+        bVal = b.name.toLowerCase() || "";
+        break;
+      case "category":
+        aVal = a.category_name?.toLowerCase() || "";
+        bVal = b.category_name?.toLowerCase() || "";
+        break;
+      case "type":
+        aVal = a.type_name?.toLowerCase() || "";
+        bVal = b.type_name?.toLowerCase() || "";
+        break;
+      default:
+        return 0;
+    }
+
+    if (aVal < bVal) return direction === "asc" ? -1 : 1;
+    if (aVal > bVal) return direction === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
+function handleSort(column) {
+  if (sortColumn === column) {
+    sortDirection = sortDirection === "asc" ? "desc" : "asc";
+  } else {
+    sortColumn = column;
+    sortDirection = "asc";
+  }
+
+  // Sauvegarder les préférences de tri
+  localStorage.setItem("produits_sort_column", sortColumn);
+  localStorage.setItem("produits_sort_direction", sortDirection);
+
+  // Réafficher les produits triés
+  displayProduits(currentFilteredProduits);
+}
+
+// ===========================================
 // CHARGEMENT DES PRODUITS
 // ===========================================
 
 async function loadProduits() {
   try {
-    const productsList = document.getElementById("products-list");
-    productsList.innerHTML = "<p>Chargement des produits...</p>";
-    allProduits = await getProduits();
-    displayProduits(allProduits);
+    const produits = await getProduits();
+
+    // Enrichir avec les noms de catégories/types
+    const enrichedProduits = produits.map((p) => {
+      // ✅ Gère les deux noms de champs (category_id ET categorie_id)
+      const catId = p.category_id || p.categorie_id;
+      const typeId = p.type_id;
+
+      return {
+        ...p,
+        category_id: catId,
+        type_id: typeId,
+        category_name:
+          allCategories.find((c) => c.id === catId)?.name || "Sans catégorie",
+        type_name: allTypes.find((t) => t.id === typeId)?.name || "Sans type",
+      };
+    });
+
+    allProduits = enrichedProduits;
+    currentFilteredProduits = enrichedProduits;
+    displayProduits(enrichedProduits);
   } catch (error) {
-    console.error("Erreur lors du chargement des produits :", error);
-    const productsList = document.getElementById("products-list");
-    productsList.innerHTML =
-      '<p style="color: red;">Erreur lors du chargement des produits.</p>';
+    console.error("Erreur chargement produits:", error);
   }
 }
 
@@ -139,18 +247,118 @@ async function loadProduits() {
 // ===========================================
 
 function displayProduits(produits) {
-  const productsList = document.getElementById("products-list");
-  if (produits.length === 0) {
-    productsList.innerHTML = "<p>Aucun produit disponible.</p>";
+  const container = document.getElementById("products-list");
+
+  if (!produits || produits.length === 0) {
+    if (currentView === "cards") {
+      container.className = "products-list";
+      container.innerHTML =
+        '<p style="text-align: center; color: #999; padding: 2rem;">Aucun produit trouvé</p>';
+    } else {
+      container.className = "products-table";
+      container.innerHTML = `
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="4" class="empty-table">Aucun produit trouvé</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
     return;
   }
 
-  productsList.innerHTML = "";
+  // Trier les produits
+  const sortedProduits = sortProduits(produits, sortColumn, sortDirection);
 
-  produits.forEach((produit) => {
-    const productItem = createProductElement(produit);
-    productsList.appendChild(productItem);
-  });
+  if (currentView === "cards") {
+    displayProduitsCards(sortedProduits, container);
+  } else {
+    displayProduitsTable(sortedProduits, container);
+  }
+}
+
+// ===========================================
+// AFFICHAGE VUE CARTES
+// ===========================================
+
+function displayProduitsCards(produits, container) {
+  container.className = "products-list";
+  container.innerHTML = produits
+    .map(
+      (produit) => `
+    <div class="product-item">
+      <div class="product-name">${produit.name}</div>
+      <div class="product-details">
+        <span class="badge category">${produit.category_name || "Sans catégorie"}</span>
+        <span class="badge type">${produit.type_name || "Sans type"}</span>
+      </div>
+      <div class="product-actions">
+        <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
+        <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
+      </div>
+    </div>
+  `,
+    )
+    .join("");
+}
+
+// ===========================================
+// AFFICHAGE VUE TABLEAU
+// ===========================================
+
+function displayProduitsTable(produits, container) {
+  container.className = "products-table";
+
+  const getSortClass = (column) => {
+    if (sortColumn !== column) return "sortable";
+    return sortDirection === "asc" ? "sort-asc" : "sort-desc";
+  };
+
+  container.innerHTML = `
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="${getSortClass("name")}" onclick="handleSort('name')">Nom</th>
+            <th class="${getSortClass("category")}" onclick="handleSort('category')">Catégorie</th>
+            <th class="${getSortClass("type")}" onclick="handleSort('type')">Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${produits
+            .map(
+              (produit) => `
+            <tr>
+              <td class="product-name">${produit.name}</td>
+              <td><span class="badge category">${produit.category_name || "Sans catégorie"}</span></td>
+              <td><span class="badge type">${produit.type_name || "Sans type"}</span></td>
+              <td>
+                <div class="table-actions">
+                  <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
+                  <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
+                </div>
+              </td>
+            </tr>
+          `,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 function createProductElement(produit) {
@@ -265,11 +473,12 @@ async function handleAddProduit(event) {
   try {
     const nouveauProduit = await createProduit({
       name: name,
-      categorie_id: categoryId || null,
+      category_id: categoryId || null,
       type_id: typeId || null,
     });
 
     allProduits.push(nouveauProduit);
+    currentFilteredProduits = allProduits;
     displayProduits(allProduits);
 
     // Vider le formulaire
@@ -302,6 +511,7 @@ async function handleDeleteProduit(produitId) {
   try {
     await deleteProduit(produitId);
     allProduits = allProduits.filter((p) => p.id !== produitId);
+    currentFilteredProduits = allProduits;
     displayProduits(allProduits);
     alert("Produit supprimé avec succès !");
   } catch (error) {
@@ -314,13 +524,22 @@ async function handleDeleteProduit(produitId) {
 // GESTION DE LA MODIFICATION
 // ===========================================
 
+function openEditModal(produitId) {
+  const produit = allProduits.find((p) => p.id === produitId);
+  if (!produit) {
+    console.error("Produit non trouvé.", produitId);
+    return;
+  }
+  handleEditProduct(produit);
+}
+
 function handleEditProduct(produit) {
   currentEditingProduct = produit;
 
   // Pré-remplir les champs de la modale
   document.getElementById("edit-product-name").value = produit.name;
   document.getElementById("edit-product-category").value =
-    produit.categorie_id || "";
+    produit.category_id || "";
   document.getElementById("edit-product-type").value = produit.type_id || "";
 
   // Afficher la modale
@@ -354,7 +573,7 @@ async function handleUpdateProduit(event) {
   try {
     const produitModifie = await updateProduit(currentEditingProduct.id, {
       name: name,
-      categorie_id: categoryId || null,
+      category_id: categoryId || null,
       type_id: typeId || null,
     });
 
@@ -403,6 +622,7 @@ function handleResetFilters() {
   document.getElementById("filter-category").value = "";
   document.getElementById("filter-type").value = "";
 
+  currentFilteredProduits = allProduits;
   displayProduits(allProduits);
 }
 
@@ -419,7 +639,8 @@ function applyFilters() {
   // Filtre par catégorie
   if (currentCategoryFilter) {
     filteredProduits = filteredProduits.filter(
-      (produit) => produit.categorie_id == currentCategoryFilter,
+      (produit) =>
+        (produit.category_id || produit.categorie_id) == currentCategoryFilter,
     );
   }
 
@@ -429,6 +650,8 @@ function applyFilters() {
       (produit) => produit.type_id == currentTypeFilter,
     );
   }
+
+  currentFilteredProduits = filteredProduits;
 
   displayProduits(filteredProduits);
 }
