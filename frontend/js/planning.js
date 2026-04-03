@@ -87,17 +87,10 @@ async function handleGeneratePlanning() {
   container.innerHTML = '<p style="text-align:center;">⏳ Chargement...</p>';
 
   try {
-    // 4. Appeler le backend
-    const url = `${API_URL}/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}`;
-    console.log("🌐 Appel API:", url);
+    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}`;
+    console.log("🌐 Appel API:", endpoint);
 
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Erreur API: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await apiGet(endpoint);
     console.log("✅ Données reçues:", data);
 
     // 5. Stocker les données globalement

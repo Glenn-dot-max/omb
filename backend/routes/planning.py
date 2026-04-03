@@ -149,7 +149,6 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
                 categories_response = supabase.table("categories")\
                     .select("id, name")\
                     .in_("id", list(categorie_ids))\
-                    .eq("franchise_id", current_user["franchise_id"])\
                     .execute()
                 
                 for cat in categories_response.data:
@@ -164,7 +163,6 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
                 types_response = supabase.table("types")\
                     .select("id, name")\
                     .in_("id", list(type_ids))\
-                    .eq("franchise_id", current_user["franchise_id"])\
                     .execute()
                 
                 for typ in types_response.data:

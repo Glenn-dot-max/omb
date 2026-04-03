@@ -331,3 +331,21 @@ async function autoArchiveCommandes() {
     throw error;
   }
 }
+
+// ===========================================
+// PLANNING
+// ===========================================
+
+async function getPlanningProduction(
+  dateDebut,
+  dateFin,
+  typeFormule = "toutes",
+) {
+  try {
+    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}`;
+    return await apiGet(endpoint);
+  } catch (error) {
+    console.error("Erreur API getPlanningProduction:", error);
+    return [];
+  }
+}
