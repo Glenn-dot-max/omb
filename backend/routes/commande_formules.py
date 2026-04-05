@@ -52,16 +52,6 @@ async def create_commande_formule(commande_formule: CommandeFormuleCreate):
 
         return serialize_date(commande_formule_data)
 
-
-@router.put("/{commande_formule_id}")
-async def update_commande_formule(commande_formule_id: int, commande_formule: CommandeFormuleUpdate):
-    """Update commande-formule association"""
-    update_data = {k: v for k, v in commande_formule.model_dump().items() if v is not None}
-    response = supabase.table("commande_formules").update(update_data).eq("id", commande_formule_id).execute()
-    if not response.data:
-        raise HTTPException(status_code=404, detail="Commande-Formule not found")
-    return serialize_date(response.data[0])
-
 @router.delete("/{commande_formule_id}")
 async def delete_commande_formule(commande_formule_id: int):
     """Remove a formule from a commande"""

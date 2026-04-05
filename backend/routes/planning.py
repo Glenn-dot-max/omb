@@ -9,7 +9,7 @@ router = APIRouter(prefix="/planning", tags=["planning"])
 supabase = get_supabase_client()
 
 @router.get("/production")
-async def get_planning_production(date_debut: str, date_fin: str, type_formule: str = "toutes"):
+async def get_planning_production(date_debut: str, date_fin: str, type_formule: str = "toutes", categorie: str = "tous"):
     """
     VERSION OPTIMISÉE - Récupération séparée puis jointure en mémoire
     """
@@ -34,9 +34,8 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
         
         all_commandes = all_commandes_response.data
 
-        # Séparer les commandes validées et non-validées
-        commandes = [c for c in all_commandes if c.get("validated", True)]  # Validées par défaut
-        commandes_non_validees = [c for c in all_commandes if not c.get("validated", True)]  # Non validées
+        commandes_non_validees = [c for c in all_commandes if c.get("validated") is False]
+        commandes = [c for c in all_commandes if c.get("validated") is not False]
 
         print(f"   ✅ {len(commandes)} commandes validées")
         print(f"   ⚠️ {len(commandes_non_validees)} commandes NON validées (exclues)")
@@ -262,6 +261,10 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
                 if not prod_info:
                     print(f"      ⚠️ Produit {produit_id} non trouvé")
                     continue
+
+                if categorie != "tous":
+                    if prod_info["type"].lower() != categorie.lower():
+                        continue
                 
                 # Ajouter au dictionnaire de la commande
                 if produit_id in commande_data["produits"]:
@@ -307,6 +310,10 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
                     if not prod_info:
                         print(f"      ⚠️ Produit {produit_id} non trouvé")
                         continue
+
+                    if categorie != "tous":
+                        if prod_info["type"].lower() != categorie.lower():
+                            continue
                     
                     # Ajouter au dictionnaire de la commande
                     if produit_id in commande_data["produits"]:
