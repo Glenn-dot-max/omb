@@ -26,7 +26,7 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
         # =========================================
         
         print("📦 Étape 1: Récupération des commandes...")
-        commandes_response = supabase.table("carnet_commande")\
+        all_commandes_response = supabase.table("carnet_commande")\
             .select("*")\
             .eq("franchise_id", current_user["franchise_id"])\
             .gte("delivery_date", date_debut)\
@@ -34,8 +34,14 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
             .order("delivery_date")\
             .execute()
         
-        commandes = commandes_response.data
-        print(f"   ✅ {len(commandes)} commandes récupérées")
+        all_commandes = all_commandes_response.data
+
+        # Séparer les commandes validées et non-validées
+        commandes = [c for c in all_commandes if not c.get("validated", False)]
+        commandes_non_validees = [c for c in all_commandes if c.get("validated", False)]
+
+        print(f"   ✅ {len(commandes)} commandes validées")
+        print(f"   ⚠️ {len(commandes_non_validees)} commandes NON validées (exclues)")
         
         if not commandes:
             return {
@@ -359,7 +365,17 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
                 "fin": date_fin
             },
             "commandes_count": len(commandes_filtrees),
-            "planning": planning_dict
+            "planning": planning_dict,
+            "commandes_non_validees": [
+                {
+                    "id": c["id"],
+                    "nom_client": c["nom_client"],
+                    "delivery_date": c["delivery_date"],
+                    "delivery_hour": c.get("delivery_hour", ""),
+                    "nombre_couverts": c.get("nombre_couverts", 0)
+                }
+                for c in commandes_non_validees
+            ]
         }
     
     except Exception as e:

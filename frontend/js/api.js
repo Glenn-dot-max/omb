@@ -349,3 +349,59 @@ async function getPlanningProduction(
     return [];
   }
 }
+
+// ===========================================
+// VALIDATION DE COMMANDE
+// ===========================================
+
+async function validateCommande(commandeId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commandes/${commandeId}/validate`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur validation commande");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API validateCommande:", error);
+    throw error;
+  }
+}
+
+// ===========================================
+// MISE À JOUR DES EXCLUSIONS D'UNE FORMULE
+// ===========================================
+
+async function updateCommandeFormuleExclusions(
+  commandeFormuleId,
+  produits_exclus,
+) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-formules/${commandeFormuleId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ produits_exclus }),
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur mise à jour exclusions");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API updateCommandeFormuleExclusions:", error);
+    throw error;
+  }
+}

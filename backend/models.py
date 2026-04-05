@@ -83,6 +83,7 @@ class CarnetCommandeBase(BaseModel):
     delivery_hour: time
     notes: Optional[constr(max_length=5000)] = None
     avec_service: bool = True
+    validated: bool = True
     
     @validator('nom_client')
     def validate_nom_client(cls, v):
@@ -126,7 +127,7 @@ class CarnetCommandeUpdate(BaseModel):
     delivery_hour: Optional[time] = None
     notes: Optional[constr(max_length=5000)] = None
     avec_service: Optional[bool] = None
-    
+    validated: Optional[bool] = None
     class Config:
         extra = 'forbid'
 

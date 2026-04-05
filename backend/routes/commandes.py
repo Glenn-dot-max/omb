@@ -146,5 +146,26 @@ async def delete_commande(commande_id: str, current_user: dict = Depends(get_cur
         raise HTTPException(status_code=404, detail="Commande not found")
     return {"message": "Commande deleted successfully"}
 
+@router.patch("/{commande_id}/validate")
+async def validate_commande(commande_id: str):
+    """
+    Valider une commande (passe validated à True)
+    """
+    try:
+        response = supabase.table("carnet_commande")\
+            .update({"validated": True})\
+            .eq("id", commande_id)\
+            .execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Commande not found")
+        
+        return {"message": "Commande validée avec succès", "commande": response.data[0]}
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erreur lors de la validation de la commande: {str(e)}"
+        )
 
 

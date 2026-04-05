@@ -158,3 +158,36 @@ async def get_formule_exclusions(commande_formule_id: int, current_user: dict = 
     
     # Retourner uniquement la liste des IDs des produits exclus
     return [row["produit_id"] for row in response.data]
+
+@router.patch("/{commande_formule_id}")
+async def update_commande_formule_exclusions(commande_formule_id: int, update_data: dict):
+    """Update exclusions for a commande-formule"""
+    produits_exclus = update_data.get("produits_exclus", [])
+    
+    print(f"📝 Mise à jour exclusions pour commande_formule {commande_formule_id}")
+    print(f"🚫 Nouveaux produits exclus : {produits_exclus}")
+    
+    # 1. Supprimer toutes les exclusions existantes
+    supabase.table("commande_formule_exclusions")\
+        .delete()\
+        .eq("commande_formule_id", commande_formule_id)\
+        .execute()
+    
+    # 2. Insérer les nouvelles exclusions
+    if produits_exclus:
+        exclusions_data = [
+            {
+                "commande_formule_id": commande_formule_id,
+                "produit_id": produit_id
+            }
+            for produit_id in produits_exclus
+        ]
+        supabase.table("commande_formule_exclusions").insert(exclusions_data).execute()
+        print(f"✅ {len(produits_exclus)} exclusion(s) ajoutée(s)")
+    else:
+        print("✅ Toutes les exclusions ont été supprimées")
+    
+    return {
+        "message": "Exclusions mises à jour avec succès", 
+        "produits_exclus": produits_exclus
+    }

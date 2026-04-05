@@ -309,7 +309,9 @@ function getDateLabel(date) {
 
 function createCommandeElement(commande, isUrgent = false) {
   const div = document.createElement("div");
-  div.className = `product-item ${isUrgent ? "urgent-item" : ""}`;
+
+  const isValidated = commande.validated !== false;
+  div.className = `product-item ${isUrgent ? "urgent-item" : ""} ${!isValidated ? "non-validated" : ""}`;
 
   // Nom du client
   const nameSpan = document.createElement("span");
@@ -319,6 +321,14 @@ function createCommandeElement(commande, isUrgent = false) {
   // Bandeau
   const bandeau = document.createElement("div");
   bandeau.className = "product-bandeau";
+
+  // Date de livraison dans le bandeau
+  const dateSpan = document.createElement("span");
+  const dateInfo = getDateInfo(commande.delivery_date);
+  dateSpan.textContent = `📅 ${dateInfo.text}`;
+  dateSpan.style.fontWeight = dateInfo.urgent ? "bold" : "normal";
+  dateSpan.style.color = "#f5a623";
+  bandeau.appendChild(dateSpan);
 
   // Heure de livraison dans le bandeau
   const heureSpan = document.createElement("span");
@@ -358,34 +368,76 @@ function createCommandeElement(commande, isUrgent = false) {
   const actionsDiv = document.createElement("div");
   actionsDiv.className = "product-actions";
 
-  const detailsBtn = document.createElement("button");
-  detailsBtn.className = "edit-btn";
-  detailsBtn.textContent = "👁️ Détails";
-  detailsBtn.onclick = () => handleViewDetails(commande);
+  // ==================================
+  // SI LA COMMANDE N'EST PAS VALIDÉE
+  // ==================================
+  if (!isValidated) {
+    const validationOverlay = document.createElement("div");
+    validationOverlay.className = "validation-overlay";
+    validationOverlay.innerHTML = `
+      <div class="validation-message">⚠️ Commande en attente de validation</div>
+      <div class="validation-actions">
+        <button class="validate-btn">✅ Confirmer la commande</button>
+        <button class="edit-commande-btn">✏️ Modifier la commande</button>
+        <button class="refuse-btn">❌ Abandonner</button>
+      </div>
+    `;
 
-  const editBtn = document.createElement("button");
-  editBtn.className = "edit-btn";
-  editBtn.textContent = "✏️ Modifier";
-  editBtn.onclick = () => handleEditCommande(commande);
+    // Événements pour les boutons de l'overlay
+    const btnConfirm = validationOverlay.querySelector(".validate-btn");
+    const btnAbandon = validationOverlay.querySelector(".refuse-btn");
+    const btnEdit = validationOverlay.querySelector(".edit-commande-btn");
 
-  const deleteBtn = document.createElement("button");
-  deleteBtn.className = "delete-btn";
-  deleteBtn.textContent = "🗑️ Supprimer";
-  deleteBtn.onclick = () => handleDeleteCommande(commande.id);
+    btnConfirm.onclick = (e) => {
+      e.stopPropagation();
+      handleValidateCommande(commande.id);
+    };
 
-  actionsDiv.appendChild(detailsBtn);
-  actionsDiv.appendChild(editBtn);
+    btnAbandon.onclick = (e) => {
+      e.stopPropagation();
+      handleDeleteCommande(commande.id);
+    };
 
-  // AJOUTER UN BOUTON ARCHIVER SI ON EST DANS L'ONGLET ACTIVE
-  if (currentTab === "active") {
-    const archiveBtn = document.createElement("button");
-    archiveBtn.className = "archive-btn";
-    archiveBtn.textContent = "🗄️ Archiver";
-    archiveBtn.onclick = () => handleArchiveCommande(commande.id);
-    actionsDiv.appendChild(archiveBtn);
+    btnEdit.onclick = (e) => {
+      e.stopPropagation();
+      handleEditCommande(commande);
+    };
+
+    div.appendChild(validationOverlay);
+  } else {
+    // ==================================
+    // SI LA COMMANDE EST VALIDÉE (AFFICHAGE NORMAL)
+    // ==================================
+
+    const detailsBtn = document.createElement("button");
+    detailsBtn.className = "edit-btn";
+    detailsBtn.textContent = "👁️ Détails";
+    detailsBtn.onclick = () => handleViewDetails(commande);
+
+    const editBtn = document.createElement("button");
+    editBtn.className = "edit-btn";
+    editBtn.textContent = "✏️ Modifier";
+    editBtn.onclick = () => handleEditCommande(commande);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-btn";
+    deleteBtn.textContent = "🗑️ Supprimer";
+    deleteBtn.onclick = () => handleDeleteCommande(commande.id);
+
+    actionsDiv.appendChild(detailsBtn);
+    actionsDiv.appendChild(editBtn);
+
+    // AJOUTER UN BOUTON ARCHIVER SI ON EST DANS L'ONGLET ACTIVE
+    if (currentTab === "active") {
+      const archiveBtn = document.createElement("button");
+      archiveBtn.className = "archive-btn";
+      archiveBtn.textContent = "🗄️ Archiver";
+      archiveBtn.onclick = () => handleArchiveCommande(commande.id);
+      actionsDiv.appendChild(archiveBtn);
+    }
+
+    actionsDiv.appendChild(deleteBtn);
   }
-
-  actionsDiv.appendChild(deleteBtn);
 
   // Assembler l'élément commande
   div.appendChild(nameSpan);
@@ -394,6 +446,21 @@ function createCommandeElement(commande, isUrgent = false) {
   div.appendChild(actionsDiv);
 
   return div;
+}
+
+// ===============================================
+// VALIDATION D'UNE COMMANDE
+// ===============================================
+
+async function handleValidateCommande(commandeId) {
+  try {
+    await validateCommande(commandeId);
+    showToast("✅ Commande validée avec succès!", "success");
+    await loadCommandes();
+  } catch (error) {
+    console.error("Erreur lors de la validation de la commande :", error);
+    showToast("Erreur lors de la validation de la commande.", "error");
+  }
 }
 
 // ===============================================
@@ -633,6 +700,7 @@ async function handleOpenCreateModal() {
   document.getElementById("create-delivery-hour").value = "10:00";
   document.getElementById("create-nombre-couverts").value = "1";
   document.getElementById("create-avec-service").checked = true;
+  document.getElementById("create-en-attente").checked = false;
   document.getElementById("create-notes").value = "";
   document.getElementById("formule-couverts").value = "1";
 
@@ -847,17 +915,27 @@ async function handleEditCommande(commande) {
       getCommandeProduits(commande.id),
     ]);
 
-    // 5. Convert to edit format
-    editFormules = formules.map((f) => {
-      const formuleData = allFormules.find((form) => form.id === f.formule_id);
-      return {
-        id: f.id,
-        formule_id: f.formule_id,
-        formule_name: formuleData ? formuleData.name : "Formule Inconnue",
-        formule_type: formuleData ? formuleData.type_formule : "",
-        couverts: f.quantite_finale,
-      };
-    });
+    // 5. Convert to edit format et charger les exclusions
+    editFormules = await Promise.all(
+      formules.map(async (f) => {
+        const formuleData = allFormules.find(
+          (form) => form.id === f.formule_id,
+        );
+
+        // Charger les exclusions existantes
+        const exclusions = await getCommandeFormuleExclusions(f.id);
+
+        return {
+          id: f.id,
+          formule_id: f.formule_id,
+          formule_name: formuleData ? formuleData.name : "Formule Inconnue",
+          formule_type: formuleData ? formuleData.type_formule : "",
+          couverts: f.quantite_finale,
+          produits_exclus: exclusions || [],
+          expanded: false,
+        };
+      }),
+    );
 
     editProduits = produits.map((p) => {
       const produitData = allProduits.find((prod) => prod.id === p.produit_id);
@@ -949,17 +1027,209 @@ function displayEditFormules() {
     const div = document.createElement("div");
     div.className = "item-row";
 
+    // Afficher un badge si des produits sont exclus
+    const exclusionsDisplay =
+      formule.produits_exclus && formule.produits_exclus.length > 0
+        ? `
+          <span class="exclusions-badge" title="🚫 ${formule.produits_exclus.length} produit(s) exclus"></span>
+          <span class="exclusions-warning" title="⚠️ Des produits ont été exclus de cette formule">❗</span>
+        `
+        : "";
+
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${formule.formule_name}</div>
-        <div class="item-detail">${formule.formule_type} • ${formule.couverts} couverts</div>
+        <div class="item-detail">
+          ${formule.formule_type} • ${formule.couverts} couverts
+          ${exclusionsDisplay}
+        </div>
+
+        <!-- Zone de composition -->
+        <div id="edit-composition-${index}" class="formule-composition" style="display: none; margin-top: 10px;">
+          <p><strong>📦 Composition :</strong></p>
+          <div id="edit-produits-formule-${index}">
+            <em>Chargement...</em>
+          </div>
+        </div>
       </div>
+
       <div class="item-actions">
+        <!-- Bouton pour voir/cacher la composition -->
+        <button class="btn-icon" onclick="toggleEditComposition(${index})" title="Voir la composition">
+          <span id="edit-toggle-icon-${index}">👁️</span>
+        </button>
         <button class="btn-icon" onclick="handleRemoveEditFormule(${index})" title="Retirer">🗑️</button>
       </div>
     `;
     container.appendChild(div);
   });
+}
+
+// ===============================================
+// Gestion de la composition en édition
+// ===============================================
+
+async function toggleEditComposition(index) {
+  console.log("🔍 Toggle composition pour la formule index:", index);
+
+  const compositionDiv = document.getElementById(`edit-composition-${index}`);
+  const icon = document.getElementById(`edit-toggle-icon-${index}`);
+
+  if (!compositionDiv || !icon) {
+    console.error("❌ Élément manquant !");
+    showToast("Erreur d'affichage. Veuillez réessayer.", "error");
+    return;
+  }
+
+  // Toggle affichage
+  if (compositionDiv.style.display === "none") {
+    // on affiche
+    compositionDiv.style.display = "block";
+    icon.textContent = "👁️‍🗨️";
+
+    // Charger les produits de la formule
+    await loadEditFormuleProduits(index);
+  } else {
+    // on cache
+    compositionDiv.style.display = "none";
+    icon.textContent = "👁️";
+  }
+}
+
+async function loadEditFormuleProduits(index) {
+  const formule = editFormules[index];
+  const container = document.getElementById(`edit-produits-formule-${index}`);
+
+  try {
+    const produits = await getFormuleProduits(formule.formule_id);
+
+    if (produits.length === 0) {
+      container.innerHTML =
+        '<p class="empty-list">Aucun produit dans cette formule.</p>';
+      return;
+    }
+
+    // Afficher la liste des produits avec checkbox
+    container.innerHTML = "";
+
+    // Message d'instruction
+    const infoDiv = document.createElement("div");
+    infoDiv.className = "composition-info";
+    infoDiv.innerHTML = `
+      <p style="margin: 0 0 12px 0; padding: 10px; background: #fffbea; border-left: 4px solid #f5c05c; color: #555; font-size: 13px; border-radius: 4px; line-height: 1.5;">
+        💡 <strong>Décochez</strong> les produits que vous souhaitez exlure de la formule pour cette commande.
+      </p>
+    `;
+    container.appendChild(infoDiv);
+
+    // Liste des produits
+    const produitsContainer = document.createElement("div");
+    produitsContainer.id = `edit-produits-container-${index}`;
+
+    produits.forEach((produit) => {
+      const produitData = allProduits.find((p) => p.id === produit.produit_id);
+      const produitName = produitData ? produitData.name : "Produit Inconnu";
+
+      const isExcluded = formule.produits_exclus.includes(produit.produit_id);
+      const isChecked = !isExcluded;
+
+      // Créer la ligne avec checkbox
+      const checkboxDiv = document.createElement("div");
+      checkboxDiv.className = "produit-checkbox";
+      checkboxDiv.innerHTML = `
+        <label>
+          <input
+            type="checkbox"
+            ${isChecked ? "checked" : ""}
+            data-produit-id="${produit.produit_id}"
+            onchange="handleEditProduitCheckChange(${index})"
+          />
+          <span style="font-style: italic;">${produitName}</span>
+        </label>
+      `;
+
+      produitsContainer.appendChild(checkboxDiv);
+    });
+
+    container.appendChild(produitsContainer);
+
+    // Bouton exclure
+    const btnDiv = document.createElement("div");
+    btnDiv.style.marginTop = "15px";
+    btnDiv.style.textAlign = "center";
+    btnDiv.innerHTML = `
+      <button
+        type="button"
+        class="btn-exclude"
+        onclick="confirmEditExclusions(${index})"
+      >
+        🚫 Exclure les produits décochés
+      </button>
+    `;
+    container.appendChild(btnDiv);
+  } catch (error) {
+    console.error(
+      "Erreur lors du chargement des produits de la formule :",
+      error,
+    );
+    container.innerHTML =
+      '<p style="color: red;">Erreur lors du chargement des produits.</p>';
+  }
+}
+
+// Gérer le changement du checkbox en édition
+function handleEditProduitCheckChange(index) {
+  const container = document.getElementById(`edit-produits-container-${index}`);
+  const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+
+  checkboxes.forEach((checkbox) => {
+    const label = checkbox.closest("label");
+    if (checkbox.checked) {
+      label.classList.remove("produit-unchecked");
+    } else {
+      label.classList.add("produit-unchecked");
+    }
+  });
+}
+
+// Confirmer les exclusions en édition
+function confirmEditExclusions(index) {
+  const container = document.getElementById(`edit-produits-container-${index}`);
+  const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+  const formule = editFormules[index];
+
+  // Récupérer les produits décochés
+  const produitsAExclure = [];
+  checkboxes.forEach((checkbox) => {
+    if (!checkbox.checked) {
+      const produitId = checkbox.getAttribute("data-produit-id");
+      const produitName = checkbox.nextElementSibling.textContent;
+      produitsAExclure.push({ id: produitId, name: produitName });
+    }
+  });
+
+  // Si aucun produit à exclure
+  if (produitsAExclure.length === 0) {
+    formule.produits_exclus = [];
+    showToast("✅ Tous les produits sont inclus dans la formule.", "success");
+    displayEditFormules();
+    return;
+  }
+
+  // Confirmer avec l'utilisateur
+  const listeProduits = produitsAExclure.map((p) => `- ${p.name}`).join("\n");
+  const confirmMsg = `Êtes-vous sûr de vouloir exclure les produits suivants de la formule "${formule.formule_name}" ?\n\n${listeProduits}`;
+
+  if (confirm(confirmMsg)) {
+    formule.produits_exclus = produitsAExclure.map((p) => p.id);
+    showToast(
+      `${produitsAExclure.length} produit(s) exclus de la formule.`,
+      "success",
+    );
+    displayEditFormules();
+  } else {
+    showToast("Exclusion annulée. Aucun changement n'a été effectué.", "info");
+  }
 }
 
 function displayEditProduits() {
@@ -1065,6 +1335,8 @@ function handleAddEditFormule() {
     formule_name: formule.name,
     formule_type: formule.type_formule,
     couverts: couverts,
+    produits_exclus: [],
+    expanded: false,
   });
 
   displayEditFormules();
@@ -1191,7 +1463,32 @@ async function handleSaveEditCommande() {
     console.log("✅ Commande mise à jour.");
 
     // ===============================================
-    // STEP 4 : CREATE NEW formules
+    // STEP 4 : UPDATE EXISTING FORMULES EXCLUSIONS
+    // ===============================================
+
+    const existingFormules = editFormules.filter((f) => f.id);
+
+    if (existingFormules.length > 0) {
+      console.log(
+        `🔄 Mise à jour exclusions pour ${existingFormules.length} formule(s) existante(s)...`,
+      );
+
+      for (const formule of existingFormules) {
+        console.log(
+          `  📝 Formule ${formule.formule_name}: exclusions =`,
+          formule.produits_exclus,
+        );
+        await updateCommandeFormuleExclusions(
+          formule.id,
+          formule.produits_exclus || [],
+        );
+      }
+
+      console.log("✅ Exclusions mises à jour pour les formules existantes.");
+    }
+
+    // ===============================================
+    // STEP 5 : CREATE NEW FORMULES & PRODUITS
     // ===============================================
 
     const newFormules = editFormules.filter((f) => !f.id);
@@ -1207,16 +1504,15 @@ async function handleSaveEditCommande() {
           commande_id: currentEditingCommande.id,
           formule_id: formule.formule_id,
           quantite_finale: formule.couverts,
+          produits_exclus: formule.produits_exclus || [],
         };
+        console.log(" ➕ Ajout formule:", formuleData);
+        console.log("    - Produits exclus:", formuleData.produits_exclus);
         await createCommandeFormule(formuleData);
       }
 
       console.log("✅ Nouvelles formules ajoutées.");
     }
-
-    // ===============================================
-    // STEP 5 : CREATE NEW produits
-    // ===============================================
 
     const newProduits = editProduits.filter((p) => !p.id);
 
@@ -1803,6 +2099,7 @@ async function handleCreateCommande() {
     document.getElementById("create-nombre-couverts").value,
   );
   const avecService = document.getElementById("create-avec-service").checked;
+  const enAttente = document.getElementById("create-en-attente").checked;
   const notes = document.getElementById("create-notes").value.trim();
 
   // ==========================================
@@ -1853,9 +2150,13 @@ async function handleCreateCommande() {
       avec_service: avecService,
       service: avecService, // Pour compatibilité avec l'API
       notes: notes || null, // null si vide
+      validated: !enAttente, // Pour compatibilité avec l'API
     };
 
     console.log("📤 Création de la commande:", commandeData);
+    console.log(
+      `✅ Statut validation: ${!enAttente ? "Validée directement" : "En attente"}`,
+    );
 
     // Appel API pour créer la commande
     const nouvelleCommande = await createCommande(commandeData);
@@ -1934,6 +2235,7 @@ async function handleCreateCommande() {
     document.getElementById("create-delivery-hour").value = "10:00";
     document.getElementById("create-nombre-couverts").value = "1";
     document.getElementById("create-avec-service").checked = true;
+    document.getElementById("create-en-attente").checked = false;
     document.getElementById("create-notes").value = "";
     document.getElementById("formule-couverts").value = "1";
 
