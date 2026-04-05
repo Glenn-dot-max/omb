@@ -100,6 +100,20 @@ async function handleGeneratePlanning() {
     const data = await response.json();
     console.log("✅ Données reçues:", data);
 
+    // Vérifier s'il y a des ocmmandes non validées
+    if (data.commandes_non_validees && data.commandes_non_validees.length > 0) {
+      const liste = data.commandes_non_validees
+        .map(
+          (c) =>
+            `• ${c.nom_client} - ${c.delivery_date} à ${c.delivery_hour} (${c.nombre_couverts} couverts)`,
+        )
+        .join("\n");
+
+      const message = `⚠️ Attention !\\${data.commandes_non_validees.length} commande(s) NON validée(s) ont été exclue(s) du planning:\\n\\n${liste}\\n\\nCes commandes ne sont PAS incluses dans ce planning.`;
+
+      alert(message);
+    }
+
     // 5. Stocker les données globalement
     planningData = data;
 

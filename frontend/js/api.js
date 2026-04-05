@@ -442,21 +442,6 @@ async function autoArchiveCommandes() {
   return await response.json();
 }
 
-// Récupérer les produits exclus d'une formule
-async function getCommandeFormuleExclusions(commandeFormuleId) {
-  try {
-    const response = await fetch(
-      `${API_URL}/commande-formules/${commandeFormuleId}/exclusions`,
-    );
-    if (!response.ok)
-      throw new Error("Erreur récupération produits exclus formule");
-    return await response.json();
-  } catch (error) {
-    console.error("Erreur API getCommandeFormuleExclusions:", error);
-    return [];
-  }
-}
-
 // ===========================================
 // COMMMANDE - EXCLUSIONS
 // ===========================================
@@ -480,5 +465,61 @@ async function getCommandeFormuleExclusions(commandeFormuleId) {
   } catch (error) {
     console.error("Erreur API getCommandeFormuleExclusions:", error);
     return [];
+  }
+}
+
+// ===========================================
+// VALIDATION DE COMMANDE
+// ===========================================
+
+async function validateCommande(commandeId) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commandes/${commandeId}/validate`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur validation commande");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API validateCommande:", error);
+    throw error;
+  }
+}
+
+// ===========================================
+// MISE À JOUR DES EXCLUSIONS D'UNE FORMULE
+// ===========================================
+
+async function updateCommandeFormuleExclusions(
+  commandeFormuleId,
+  produits_exclus,
+) {
+  try {
+    const response = await fetch(
+      `${API_URL}/commande-formules/${commandeFormuleId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ produits_exclus }),
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Erreur mise à jour exclusions");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API updateCommandeFormuleExclusions:", error);
+    throw error;
   }
 }
