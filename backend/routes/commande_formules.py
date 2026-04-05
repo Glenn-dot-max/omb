@@ -79,33 +79,6 @@ async def create_commande_formule(commande_formule: CommandeFormuleCreate, curre
 
         return serialize_date(commande_formule_data)
 
-
-@router.put("/{commande_formule_id}")
-async def update_commande_formule(commande_formule_id: int, commande_formule: CommandeFormuleUpdate, current_user: dict = Depends(get_current_user)):
-    """Update commande-formule association"""
-    existing = supabase.table("commande_formules")\
-        .select("commande_id")\
-        .eq("id", commande_formule_id)\
-        .execute()
-    
-    if not existing.data:
-        raise HTTPException(status_code=404, detail="Commande-Formule not found")
-    
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", existing.data[0]['commande_id'])\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
-    
-    if not commande_check.data:
-        raise HTTPException(status_code=404, detail="Commande not found")
-    
-    update_data = {k: v for k, v in commande_formule.model_dump().items() if v is not None}
-    response = supabase.table("commande_formules").update(update_data).eq("id", commande_formule_id).execute()
-    if not response.data:
-        raise HTTPException(status_code=404, detail="Commande-Formule not found")
-    return serialize_date(response.data[0])
-
 @router.delete("/{commande_formule_id}")
 async def delete_commande_formule(commande_formule_id: int, current_user: dict = Depends(get_current_user)):
     """Remove a formule from a commande"""

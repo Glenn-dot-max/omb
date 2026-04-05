@@ -69,6 +69,7 @@ async function handleGeneratePlanning() {
   const dateDebut = document.getElementById("date-debut").value;
   const dateFin = document.getElementById("date-fin").value;
   const typeFormule = document.getElementById("type-formule").value;
+  const categorieProduit = document.getElementById("categorie-produit").value;
   const afficherTotaux = document.getElementById("afficher-totaux").checked;
 
   // 2. Validation
@@ -87,13 +88,14 @@ async function handleGeneratePlanning() {
   container.innerHTML = '<p style="text-align:center;">⏳ Chargement...</p>';
 
   try {
-    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}`;
+    const categorieProduit = document.getElementById("categorie-produit").value;
+    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}&categorie=${categorieProduit}`;
     console.log("🌐 Appel API:", endpoint);
 
     const data = await apiGet(endpoint);
     console.log("✅ Données reçues:", data);
 
-    // Vérifier s'il y a des ocmmandes non validées
+    // Vérifier s'il y a des commandes non validées
     if (data.commandes_non_validees && data.commandes_non_validees.length > 0) {
       const liste = data.commandes_non_validees
         .map(
@@ -1081,7 +1083,15 @@ async function handleExportExcel() {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
-    const filename = `planning_production_${planningData.periode.debut}_to_${planningData.periode.fin}.xlsx`;
+    const categorieProduit = document.getElementById("categorie-produit").value;
+
+    let filename = `planning_production_${planningData.periode.debut}_to_${planningData.periode.fin}`;
+
+    if (categorieProduit) {
+      filename += `_${categorieProduit}`;
+    }
+
+    filename += `.xlsx`;
 
     // Télécharger
     const link = document.createElement("a");
