@@ -442,7 +442,7 @@ async function handleExportExcel() {
       if (commandes.length > 0) {
         commandes.forEach((cmd) => {
           const couvertsCell = worksheet.getCell(currentRow, colIdx);
-          couvertsCell.value = cmd.nombre_couverts || "";
+          couvertsCell.value = cmd.couverts || "";
           couvertsCell.font = { size: 9 };
           couvertsCell.fill = {
             type: "pattern",
