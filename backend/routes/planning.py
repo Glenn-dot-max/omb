@@ -35,8 +35,8 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
         all_commandes = all_commandes_response.data
 
         # Séparer les commandes validées et non-validées
-        commandes = [c for c in all_commandes if not c.get("validated", False)]
-        commandes_non_validees = [c for c in all_commandes if c.get("validated", False)]
+        commandes = [c for c in all_commandes if c.get("validated", True)]  # Validées par défaut
+        commandes_non_validees = [c for c in all_commandes if not c.get("validated", True)]  # Non validées
 
         print(f"   ✅ {len(commandes)} commandes validées")
         print(f"   ⚠️ {len(commandes_non_validees)} commandes NON validées (exclues)")
