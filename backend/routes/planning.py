@@ -247,6 +247,7 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
                 "client": commande.get('nom_client', ''),
                 "heure": commande.get("delivery_hour", ""),
                 "couverts": commande.get("nombre_couverts", 0),
+                "notes": commande.get("notes", ""),
                 "produits": {}
             }
             

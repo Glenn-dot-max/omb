@@ -671,6 +671,94 @@ async function handleExportExcel() {
 
     currentRow++;
 
+    // ============== EN-TÊTE: LIGNE 6 (NOTES) ==============
+    colIdx = 1;
+
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "";
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    colIdx++;
+
+    worksheet.getCell(currentRow, colIdx).value = "Notes";
+    worksheet.getCell(currentRow, colIdx).font = { italic: true, size: 10 };
+    worksheet.getCell(currentRow, colIdx).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFD9E1F2" },
+    };
+    worksheet.getCell(currentRow, colIdx).alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    colIdx++;
+
+    dates.forEach((date) => {
+      const commandes = planningData.planning[date].commandes || [];
+
+      if (commandes.length > 0) {
+        commandes.forEach((cmd) => {
+          const notesCell = worksheet.getCell(currentRow, colIdx);
+          notesCell.value = cmd.notes && cmd.notes.trim() ? "Voir notes" : "";
+          notesCell.font = { size: 9 };
+          notesCell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFD9E1F2" },
+          };
+          notesCell.alignment = {
+            vertical: "middle",
+            horizontal: "center",
+          };
+          colIdx++;
+        });
+
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      } else {
+        worksheet.getCell(currentRow, colIdx).value = "-";
+        worksheet.getCell(currentRow, colIdx).fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFD9E1F2" },
+        };
+        colIdx++;
+        if (afficherTotaux) {
+          worksheet.getCell(currentRow, colIdx).fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF4B084" },
+          };
+          colIdx++;
+        }
+      }
+    });
+
+    if (afficherTotaux) {
+      worksheet.getCell(currentRow, colIdx).fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF4B084" },
+      };
+    }
+    currentRow++;
+
     // ============== LIGNES DE PRODUITS PAR TYPE ET CATÉGORIE ==============
     for (const typeGroupe in produitsByType) {
       const categories = produitsByType[typeGroupe];
