@@ -14,12 +14,16 @@ API_PORT = 8000
 API_RELOAD = True
 
 # CORS Configuration
-# Détection automatique de l'environnement (Render définit la variable RENDER)
-IS_PRODUCTION = os.getenv("RENDER") is not None
+# Détection automatique de l'environnement
+IS_PRODUCTION = os.getenv("RENDER_SERVICE_NAME") is not None
 
 if IS_PRODUCTION:
     # En production : autoriser uniquement le frontend déployé
     CORS_ORIGINS = ["https://omb-frontend.onrender.com"]
 else:
-    # En développement : autoriser uniquement le frontend local
-    CORS_ORIGINS = ["http://localhost:8080"]
+    # En développement : autoriser le frontend local
+    CORS_ORIGINS = [
+        "http://localhost:5173",  # Vite (défaut)
+        "http://localhost:8080",  # Ancien serveur
+        "http://127.0.0.1:5173"
+    ]
