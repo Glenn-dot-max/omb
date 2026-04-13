@@ -99,7 +99,7 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
         if isinstance(delivery_hour_value, time):
             delivery_hour_str = delivery_hour_value.strftime("%H:%M")
         else:
-            delivery_hour_str = delivery_hour_value
+            delivery_hour_str = str(delivery_hour_value)
 
         paris_tz = ZoneInfo("Europe/Paris")
 
@@ -183,8 +183,8 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
         if isinstance(delivery_hour_value, time):
             delivery_hour_str = delivery_hour_value.strftime("%H:%M")
         else:
-            delivery_hour_str = delivery_hour_value
-            
+            delivery_hour_str = str(delivery_hour_value)
+
         paris_tz = ZoneInfo("Europe/Paris")
 
         if isinstance(delivery_date_value, str):
