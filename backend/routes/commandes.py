@@ -1,3 +1,5 @@
+from zoneinfo import ZoneInfo
+
 from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user
 from database import get_supabase_client
@@ -91,18 +93,28 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
 
     # Forcer l'interprétation en heure de Paris
     if 'delivery_date' in commande_data:
-        delivery_date_str = commande_data['delivery_date']
-        delivery_hour_str = commande_data.get('delivery_hour', '10:00')
+        delivery_date_value = commande_data['delivery_date']
+        delivery_hour_value = commande_data.get('delivery_hour', '10:00')
+
+        if isinstance(delivery_hour_value, time):
+            delivery_hour_str = delivery_hour_value.strftime("%H:%M")
+        else:
+            delivery_hour_str = delivery_hour_value
 
         paris_tz = ZoneInfo("Europe/Paris")
 
-        date_parts = delivery_date_str.split("-")
+        if isinstance(delivery_date_value, str):
+            date_parts = delivery_date_value.split("-")
+            year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+        else:
+            year, month, day = delivery_date_value.year, delivery_date_value.month, delivery_date_value.day
+
         hour_parts = delivery_hour_str.split(":")
 
         delivery_datetime_paris = datetime(
-            year=int(date_parts[0]),
-            month=int(date_parts[1]),
-            day=int(date_parts[2]),
+            year=year,
+            month=month,
+            day=day,
             hour=int(hour_parts[0]),
             minute=int(hour_parts[1]),
             tzinfo=paris_tz
@@ -148,7 +160,7 @@ async def archive_commande(commande_id: str, current_user: dict = Depends(get_cu
     """Archive une commande manuellement"""
     response = supabase.table("carnet_commande").update({
         "archived": True,
-        "archived_at": datetime.utcnow().isoformat()
+        "archived_at": datetime.now(ZoneInfo("Europe/Paris")).isoformat()
     }).eq("id", commande_id)\
     .eq("franchise_id", current_user["franchise_id"])\
     .execute()
@@ -165,18 +177,28 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
     update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
 
     if 'delivery_date' in update_data:
-        delivery_date_str = update_data['delivery_date']
-        delivery_hour_str = update_data.get('delivery_hour', '10:00')
+        delivery_date_value = update_data['delivery_date']
+        delivery_hour_value = update_data.get('delivery_hour', '10:00')
 
+        if isinstance(delivery_hour_value, time):
+            delivery_hour_str = delivery_hour_value.strftime("%H:%M")
+        else:
+            delivery_hour_str = delivery_hour_value
+            
         paris_tz = ZoneInfo("Europe/Paris")
 
-        date_parts = delivery_date_str.split("-")
+        if isinstance(delivery_date_value, str):
+            date_parts = delivery_date_value.split("-")
+            year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+        else:
+            year, month, day = delivery_date_value.year, delivery_date_value.month, delivery_date_value.day
+
         hour_parts = delivery_hour_str.split(":")
 
         delivery_datetime_paris = datetime(
-            year=int(date_parts[0]),
-            month=int(date_parts[1]),
-            day=int(date_parts[2]),
+            year=year,
+            month=month,
+            day=day,
             hour=int(hour_parts[0]),
             minute=int(hour_parts[1]),
             tzinfo=paris_tz

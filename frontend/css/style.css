@@ -2534,3 +2534,23 @@ body {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5) !important;
 }
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}

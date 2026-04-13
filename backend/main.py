@@ -76,13 +76,28 @@ app.add_middleware(
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Gestion des erreurs de validation Pydantic"""
+    errors = exc.errors()
     logger.warning(f"Validation error on {request.url}: {exc.errors()}")
     
+    formatted_errors = []
+    for error in errors:
+        formatted_error = {
+            "loc": list(error.get("loc", [])),
+            "msg": error.get("msg", ""),
+            "type": error.get("type", "")
+        }
+        if "ctx" in error and "error" in error["ctx"]:
+            ctx_error = error["ctx"]["error"]
+            formatted_error["msg"] = str(ctx_error)
+
+        formatted_errors.append(formatted_error)
+
+
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "detail": "Données invalides",
-            "errors": exc.errors() if DEBUG else "Veuillez vérifier les données envoyées",
+            "errors": formatted_errors,
         }
     )
 

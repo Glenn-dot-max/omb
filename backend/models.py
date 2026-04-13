@@ -95,11 +95,20 @@ class CarnetCommandeBase(BaseModel):
     
     @validator('delivery_date')
     def validate_delivery_date(cls, v):
-        if v < date.today():
-            raise ValueError('La date de livraison ne peut pas être dans le passé')
-        
+        from zoneinfo import ZoneInfo
         from datetime import timedelta
-        max_future = date.today() + timedelta(days=365)
+
+        paris_tz = ZoneInfo("Europe/Paris")
+        today_paris = datetime.now(paris_tz).date()
+        
+        if v < today_paris:
+            raise ValueError(
+                f'❌ DATE INVALIDE : La date {v.isoformat()} est dans le passé!\n'
+                f'Nous sommes le {today_paris.isoformat()}. '
+                f'Veuillez sélectionner une date à partir d\'aujourd\'hui.'
+            )
+        
+        max_future = today_paris + timedelta(days=365)
         if v > max_future:
             raise ValueError('La date de livraison est trop éloignée (max 1 an)')
         
