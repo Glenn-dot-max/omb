@@ -62,6 +62,19 @@ async function loadCommandes() {
     const commandesList = document.getElementById("commandes-list");
     commandesList.innerHTML = '<div class="loader"></div>';
 
+    if (currentTab === "active") {
+      try {
+        const result = await autoArchiveCommandes();
+        if (result.count > 0) {
+          console.log(
+            `📦 ${result.count} commande(s) automatiquement archivées.`,
+          );
+        }
+      } catch (error) {
+        console.error("Erreur lors de l'archivage automatique :", error);
+      }
+    }
+
     // Charger selon l'onglet actif
     let response;
     if (currentTab === "active") {
@@ -585,9 +598,6 @@ function setupEventListeners() {
 
   const tabArchived = document.getElementById("tab-archived");
   tabArchived.addEventListener("click", handleTabArchived);
-
-  const autoArchiveBtn = document.getElementById("auto-archive-btn");
-  autoArchiveBtn.addEventListener("click", handleAutoArchive);
 
   const openCreateModal = document.getElementById("open-create-modal");
   openCreateModal.addEventListener("click", handleOpenCreateModal);
@@ -1490,6 +1500,26 @@ async function handleSaveEditCommande() {
       return;
     }
 
+    const invalidCharsRegex = /[<>"'\\\/]/;
+    if (invalidCharsRegex.test(nomClient)) {
+      showToast(
+        " ❌ Le nom du client contient des caractères invalides (<>\"'\\/).",
+        "error",
+      );
+      const nomClientField = document.getElementById("create-nom-client");
+      if (nomClientField) {
+        nomClientField.focus();
+        nomClientField.style.border = "2px solid #ff3333";
+        nomClientField.style.backgroundColor = "#fff5f5";
+
+        setTimeout(() => {
+          nomClientField.style.border = "";
+          nomClientField.style.backgroundColor = "";
+        }, 3000);
+      }
+      return;
+    }
+
     if (!deliveryDate) {
       showToast("La date de livraison est requise.", "warning");
       return;
@@ -2178,6 +2208,26 @@ async function handleCreateCommande() {
     return;
   }
 
+  const invalidCharsRegex = /[<>"'\\\/]/;
+  if (invalidCharsRegex.test(nomClient)) {
+    showToast(
+      " ❌ Le nom du client contient des caractères invalides (<>\"'\\/).",
+      "error",
+    );
+    const nomClientField = document.getElementById("create-nom-client");
+    if (nomClientField) {
+      nomClientField.focus();
+      nomClientField.style.border = "2px solid #ff3333";
+      nomClientField.style.backgroundColor = "#fff5f5";
+
+      setTimeout(() => {
+        nomClientField.style.border = "";
+        nomClientField.style.backgroundColor = "";
+      }, 3000);
+    }
+    return;
+  }
+
   // Valider la date
   if (!deliveryDate) {
     showToast("La date de livraison est obligatoire.", "error");
@@ -2313,9 +2363,22 @@ async function handleCreateCommande() {
   } catch (error) {
     console.error("❌ Erreur lors de la création de la commande:", error);
 
-    if (error.message && error.message.includes("422")) {
+    let errorMessage = "Erreur lors de la création de la commande.";
+
+    if (error.response) {
+      const responseData = await error.response.json();
+      if (responseData.detail) {
+        errorMessage = responseData.detail;
+      }
+    }
+
+    // Détecter si c'est une erreur de date dans le passé
+    if (
+      errorMessage.includes("passé") ||
+      errorMessage.includes("DATE INVALIDE")
+    ) {
       showToast(
-        "⚠️ La date de livraison doit être dans le futur. Veuillez vérifier la date saisie.",
+        "❌ Vous ne pouvez pas créer une commande avec une date de livraison dans le passé.",
         "error",
       );
 
@@ -2332,7 +2395,6 @@ async function handleCreateCommande() {
       }
       return;
     }
-
     showToast(
       "Erreur lors de la création de la commande. Vérifiez la console pour plus de détails.",
       "error",
@@ -2384,24 +2446,5 @@ async function handleArchiveCommande(commandeId) {
   } catch (error) {
     console.error("Erreur lors de l'archivage de la commande :", error);
     showToast("Erreur lors de l'archivage de la commande.", "error");
-  }
-}
-
-async function handleAutoArchive() {
-  if (
-    !confirm("Voulez-vous archiver toutes les commandes de plus de 2 jours?")
-  ) {
-    return;
-  }
-
-  try {
-    const result = await autoArchiveCommandes();
-    showToast(result.message, "success");
-
-    // Recharger les commandes
-    await loadCommandes();
-  } catch (error) {
-    console.error("Erreur lors de l'auto-archivage :", error);
-    showToast("Erreur lors de l'auto-archivage des commandes.", "error");
   }
 }

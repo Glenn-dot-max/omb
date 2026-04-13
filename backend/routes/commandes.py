@@ -130,12 +130,12 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
 
 @router.post("/auto-archive")
 async def auto_archive_old_commandes(current_user: dict = Depends(get_current_user)):
-    """Archive automatiquement les commandes dont la date de livraison est dépassée depuis 2 jours"""
+    """Archive automatiquement les commandes dont la date de livraison est passée"""
     from zoneinfo import ZoneInfo
 
     paris_tz = ZoneInfo("Europe/Paris")
     today_paris = datetime.now(paris_tz).date()
-    cutoff_date = (today_paris - timedelta(days=2)).isoformat()
+    cutoff_date = today_paris.isoformat()
 
     # Archiver toutes les commandes concernées
     response = supabase.table("carnet_commande").update({
