@@ -25,13 +25,24 @@ def serialize_commande(commande):
 @router.get("/")
 async def get_commandes(current_user: dict = Depends(get_current_user)):
     """Get all commandes"""
+    from zoneinfo import ZoneInfo
+
     response = supabase.table("carnet_commande")\
         .select("*")\
         .eq("franchise_id", current_user["franchise_id"])\
         .eq("archived", False)\
         .order("delivery_date", desc=True)\
         .execute()
-    return [serialize_commande(commande) for commande in response.data]
+    
+    paris_tz = ZoneInfo("Europe/Paris")
+    paris_now = datetime.now(paris_tz)
+
+    return {
+        "commandes": [serialize_commande(commande) for commande in response.data],
+        "paris_date": paris_now.date().isoformat(),
+        "paris_datetime": paris_now.isoformat()
+    }
+    
 
 @router.get("/archived")
 async def get_archived_commandes(current_user: dict = Depends(get_current_user)):
@@ -74,22 +85,50 @@ async def get_commande(commande_id: str, current_user: dict = Depends(get_curren
 @router.post("/")
 async def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
     """Create a new commande"""
-    commande_data = serialize_commande(commande.model_dump())
+    from zoneinfo import ZoneInfo
+
+    commande_data = commande.model_dump()
+
+    # Forcer l'interprétation en heure de Paris
+    if 'delivery_date' in commande_data:
+        delivery_date_str = commande_data['delivery_date']
+        delivery_hour_str = commande_data.get('delivery_hour', '10:00')
+
+        paris_tz = ZoneInfo("Europe/Paris")
+
+        date_parts = delivery_date_str.split("-")
+        hour_parts = delivery_hour_str.split(":")
+
+        delivery_datetime_paris = datetime(
+            year=int(date_parts[0]),
+            month=int(date_parts[1]),
+            day=int(date_parts[2]),
+            hour=int(hour_parts[0]),
+            minute=int(hour_parts[1]),
+            tzinfo=paris_tz
+        )
+    
+        commande_data['delivery_date'] = delivery_datetime_paris.date().isoformat()
+    
+    commande_data = serialize_commande(commande_data)
     commande_data["franchise_id"] = current_user["franchise_id"]
+
     response = supabase.table("carnet_commande").insert(commande_data).execute()
     return serialize_commande(response.data[0])
 
 @router.post("/auto-archive")
 async def auto_archive_old_commandes(current_user: dict = Depends(get_current_user)):
     """Archive automatiquement les commandes dont la date de livraison est dépassée depuis 2 jours"""
+    from zoneinfo import ZoneInfo
 
-    # Calculer la date limite (aujourd'hui - 2 jours)
-    cutoff_date = (datetime.utcnow().date() - timedelta(days=2)).isoformat()
+    paris_tz = ZoneInfo("Europe/Paris")
+    today_paris = datetime.now(paris_tz).date()
+    cutoff_date = (today_paris - timedelta(days=2)).isoformat()
 
     # Archiver toutes les commandes concernées
     response = supabase.table("carnet_commande").update({
         "archived": True,
-        "archived_at": datetime.utcnow().isoformat()
+        "archived_at": datetime.now(paris_tz).isoformat()
     }).eq("franchise_id", current_user["franchise_id"])\
     .lt("delivery_date", cutoff_date)\
     .eq("archived", False)\
@@ -121,7 +160,29 @@ async def archive_commande(commande_id: str, current_user: dict = Depends(get_cu
 @router.put("/{commande_id}")
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
     """Update an existing commande"""
+    from zoneinfo import ZoneInfo
+
     update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
+
+    if 'delivery_date' in update_data:
+        delivery_date_str = update_data['delivery_date']
+        delivery_hour_str = update_data.get('delivery_hour', '10:00')
+
+        paris_tz = ZoneInfo("Europe/Paris")
+
+        date_parts = delivery_date_str.split("-")
+        hour_parts = delivery_hour_str.split(":")
+
+        delivery_datetime_paris = datetime(
+            year=int(date_parts[0]),
+            month=int(date_parts[1]),
+            day=int(date_parts[2]),
+            hour=int(hour_parts[0]),
+            minute=int(hour_parts[1]),
+            tzinfo=paris_tz
+        )
+    
+        update_data['delivery_date'] = delivery_datetime_paris.date().isoformat()
 
     update_data = serialize_commande(update_data)
 

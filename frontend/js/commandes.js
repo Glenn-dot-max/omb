@@ -41,10 +41,19 @@ async function loadCommandes() {
     commandesList.innerHTML = '<div class="loader"></div>';
 
     // Charger selon l'onglet actif
+    let response;
     if (currentTab === "active") {
-      allCommandes = await getCommandes();
+      response = await getCommandes();
     } else {
-      allCommandes = await getArchivedCommandes();
+      response = await getArchivedCommandes();
+    }
+
+    // Extraire les commandes et la date de Paris
+    if (response.commandes) {
+      allCommandes = response.commandes;
+      window.parisDate = response.paris_date;
+    } else {
+      allCommandes = response;
     }
 
     displayCommandes(allCommandes);
@@ -118,19 +127,26 @@ function displayCommandes(commandes) {
   // SÉPARER ET TRIER LES COMMANDES ACTIVES
   // ==============================================
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  let todayParis;
+  if (window.parisDate) {
+    const [pYear, pMonth, pDay] = window.parisDate.split("-").map(Number);
+    todayParis = new Date(pYear, pMonth - 1, pDay);
+    todayParis.setHours(0, 0, 0, 0);
+  } else {
+    todayParis = new Date();
+    todayParis.setHours(0, 0, 0, 0);
+  }
 
-  const tomorrow = new Date(today);
+  const tomorrow = new Date(todayParis);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const dayAfterTomorrow = new Date(today);
+  const dayAfterTomorrow = new Date(todayParis);
   dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 
-  const in7Days = new Date(today);
+  const in7Days = new Date(todayParis);
   in7Days.setDate(in7Days.getDate() + 7);
 
-  const in14Days = new Date(today);
+  const in14Days = new Date(todayParis);
   in14Days.setDate(in14Days.getDate() + 14);
 
   // Créer les groupes
@@ -141,10 +157,12 @@ function displayCommandes(commandes) {
   const commandesPlusTard = [];
 
   commandes.forEach((commande) => {
-    const commandeDate = new Date(commande.delivery_date + "T12:00:00");
+    const deliveryDateOnly = commande.delivery_date.split("T")[0];
+    const [year, month, day] = deliveryDateOnly.split("-").map(Number);
+    const commandeDate = new Date(year, month - 1, day);
     commandeDate.setHours(0, 0, 0, 0);
 
-    if (commandeDate.getTime() === today.getTime()) {
+    if (commandeDate.getTime() === todayParis.getTime()) {
       commandesAujourdHui.push(commande);
     } else if (commandeDate.getTime() === tomorrow.getTime()) {
       commandesDemain.push(commande);
@@ -199,7 +217,7 @@ function displayCommandes(commandes) {
   if (commandesAujourdHui.length > 0) {
     const section = createSection({
       title: "Aujourd'hui",
-      subtitle: getDateLabel(today),
+      subtitle: getDateLabel(todayParis),
       commandes: commandesAujourdHui,
       totalCouverts: getTotalCouverts(commandesAujourdHui),
       className: "today-section",
@@ -468,14 +486,22 @@ async function handleValidateCommande(commandeId) {
 // ===============================================
 
 function getDateInfo(dateString) {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  let today;
+  if (window.parisDate) {
+    const [pYear, pMonth, pDay] = window.parisDate.split("-").map(Number);
+    today = new Date(pYear, pMonth - 1, pDay);
+    today.setHours(0, 0, 0, 0);
+  } else {
+    today = new Date();
+    today.setHours(0, 0, 0, 0);
+  }
 
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const commandeDate = new Date(date);
+  const deliveryDateOnly = dateString.split("T")[0];
+  const [year, month, day] = deliveryDateOnly.split("-").map(Number);
+  const commandeDate = new Date(year, month - 1, day);
   commandeDate.setHours(0, 0, 0, 0);
 
   if (commandeDate.getTime() === today.getTime()) {
@@ -483,8 +509,10 @@ function getDateInfo(dateString) {
   } else if (commandeDate.getTime() === tomorrow.getTime()) {
     return { text: "Demain", urgent: true };
   } else {
+    const displayDate = new Date(dateString + "T00:00:00");
+    displayDate.setHours(0, 0, 0, 0);
     return {
-      text: date.toLocaleDateString("fr-FR"),
+      text: displayDate.toLocaleDateString("fr-FR"),
       urgent: false,
     };
   }
