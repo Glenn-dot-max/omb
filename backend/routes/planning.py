@@ -220,7 +220,7 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
                 formule_correspond = False
                 for cf in formules_commande:
                     formule_info = formules_info_map.get(cf["formule_id"])
-                    if formule_info and formule_info.get("type_formule") == type_formule:
+                    if formule_info and formule_info.get("type_formule", "").lower() == type_formule.lower():
                         formule_correspond = True
                         break
                 
