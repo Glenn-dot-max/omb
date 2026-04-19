@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Administration - Oh My Brunch</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/admin.css" />
+  </head>
+  <body>
+    <!-- NAVBAR (on la modifiera plus tard) -->
+    <nav class="navbar">
+      <div class="nav-brand">
+        <h1>🥐 Oh My Brunch - Admin</h1>
+      </div>
+      <div class="nav-links">
+        <a href="produits.html">Produits</a>
+        <a href="formules.html">Formules</a>
+        <a href="commandes.html">Commandes</a>
+        <a href="planning.html">Planning</a>
+        <a href="admin.html" class="active" style="background: transparent"
+          >🔧 Admin</a
+        >
+      </div>
+    </nav>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="admin-container">
+      <!-- ONGLETS -->
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="franchises">
+          🏢 Franchises
+        </button>
+        <button class="tab-btn" data-tab="users">👥 Utilisateurs</button>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- ONGLET FRANCHISES -->
+      <!-- ============================================ -->
+      <div class="tab-content active" id="franchises-tab">
+        <div class="tab-header">
+          <h2>🏢 Gestion des Franchises</h2>
+          <button class="btn-primary" id="btn-new-franchise">
+            ➕ Nouvelle Franchise
+          </button>
+        </div>
+
+        <!-- TABLEAU DES FRANCHISES -->
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Ville</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="franchises-tbody">
+              <!-- Rempli dynamiquement par JS -->
+              <tr>
+                <td colspan="6" class="loading">Chargement...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- ONGLET UTILISATEURS -->
+      <!-- ============================================ -->
+      <div class="tab-content" id="users-tab">
+        <div class="tab-header">
+          <h2>👥 Gestion des Utilisateurs</h2>
+          <button class="btn-primary" id="btn-new-user">
+            ➕ Nouvel Utilisateur
+          </button>
+        </div>
+
+        <!-- FILTRE PAR FRANCHISE -->
+        <div class="filter-container">
+          <label for="filter-franchise">Filtrer par franchise :</label>
+          <select id="filter-franchise">
+            <option value="">Toutes les franchises</option>
+            <!-- Rempli dynamiquement -->
+          </select>
+        </div>
+
+        <!-- TABLEAU DES UTILISATEURS -->
+        <div class="table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Nom</th>
+                <th>Franchise</th>
+                <th>Rôle</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <!-- Rempli dynamiquement par JS -->
+              <tr>
+                <td colspan="6" class="loading">Chargement...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MODAL : CRÉER/MODIFIER FRANCHISE -->
+    <!-- ============================================ -->
+    <div class="modal" id="franchise-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="franchise-modal-title">➕ Nouvelle Franchise</h3>
+          <button class="modal-close" onclick="closeFranchiseModal()">✕</button>
+        </div>
+        <form id="franchise-form">
+          <input type="hidden" id="franchise-id" />
+
+          <div class="form-group">
+            <label for="franchise-nom">Nom de la franchise *</label>
+            <input type="text" id="franchise-nom" required />
+          </div>
+
+          <div class="form-group">
+            <label for="franchise-city">Ville</label>
+            <input type="text" id="franchise-city" />
+          </div>
+
+          <div class="form-group">
+            <label for="franchise-address">Adresse</label>
+            <textarea id="franchise-address" rows="2"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="franchise-phone">Téléphone</label>
+            <input type="tel" id="franchise-phone" />
+          </div>
+
+          <div class="form-group">
+            <label for="franchise-email">Email</label>
+            <input type="email" id="franchise-email" />
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeFranchiseModal()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn-primary">✅ Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MODAL : CRÉER/MODIFIER UTILISATEUR -->
+    <!-- ============================================ -->
+    <div class="modal" id="user-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="user-modal-title">➕ Nouvel Utilisateur</h3>
+          <button class="modal-close" onclick="closeUserModal()">✕</button>
+        </div>
+        <form id="user-form">
+          <input type="hidden" id="user-id" />
+
+          <div class="form-group">
+            <label for="user-email">Email *</label>
+            <input type="email" id="user-email" required />
+          </div>
+
+          <div class="form-group">
+            <label for="user-fullname">Nom complet *</label>
+            <input type="text" id="user-fullname" required />
+          </div>
+
+          <div class="form-group">
+            <label for="user-franchise">Franchise *</label>
+            <select id="user-franchise" required>
+              <option value="">Sélectionnez une franchise</option>
+              <!-- Rempli dynamiquement -->
+            </select>
+          </div>
+
+          <div class="form-group" id="password-group">
+            <label for="user-password">Mot de passe *</label>
+            <div class="password-input">
+              <input type="text" id="user-password" required />
+              <button
+                type="button"
+                class="btn-generate"
+                onclick="generatePassword()"
+              >
+                🔄 Générer
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeUserModal()"
+            >
+              Annuler
+            </button>
+            <button type="submit" class="btn-primary">✅ Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+  </body>
+</html>

@@ -20,8 +20,26 @@ function saveUser(user) {
 }
 
 function getUser() {
-  const user = localStorage.getItem("omb_user");
-  return user ? JSON.parse(user) : null;
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+
+    const storedUser = localStorage.getItem("omb_user");
+    const userInfo = storedUser ? JSON.parse(storedUser) : {};
+
+    return {
+      id: payload.user_id,
+      email: payload.email,
+      franchise_id: payload.franchise_id,
+      franchise_nom: userInfo.franchise_nom || "Franchise",
+      role: payload.role || "USER",
+    };
+  } catch (e) {
+    console.error("Erreur décodage token:", e);
+    return null;
+  }
 }
 
 // ==============================================

@@ -1,7 +1,7 @@
 # backend/auth.py
 
 import os
-import bcrypt  # ← Doit être bcrypt, PAS passlib !
+import bcrypt 
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -76,6 +76,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     user_id = payload.get("user_id")
     email = payload.get("email")
     franchise_id = payload.get("franchise_id")
+    role = payload.get("role", "USER")
     
     if user_id is None or franchise_id is None:
         raise HTTPException(
@@ -87,5 +88,17 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     return {
         "user_id": user_id,
         "email": email,
-        "franchise_id": franchise_id
+        "franchise_id": franchise_id,
+        "role": role
     }
+
+def is_tech_admin(current_user: dict = Depends(get_current_user)):
+    """Vérifie que l'utilisateur est TECH_ADMIN"""
+    if current_user.get("role") != "TECH_ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès refusé: nécessite le rôle TECH_ADMIN"
+        )
+    return current_user
+
+

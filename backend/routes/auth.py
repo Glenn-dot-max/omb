@@ -35,7 +35,8 @@ async def login(credentials: LoginRequest):
     token_data = {
         "user_id": user["id"],
         "email": user["email"],
-        "franchise_id": user["franchise_id"]
+        "franchise_id": user["franchise_id"],
+        "role": user.get("role", "USER")
     }
     
     access_token = create_access_token(token_data)
@@ -48,7 +49,8 @@ async def login(credentials: LoginRequest):
             "id": user["id"],
             "email": user["email"],
             "franchise_id": user["franchise_id"],
-            "franchise_nom": user["franchises"]["nom"]
+            "franchise_nom": user["franchises"]["nom"],
+            "role": user.get("role", "USER")
         }
     }
 
@@ -75,5 +77,6 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         "id": user["id"],
         "email": user["email"],
         "franchise_id": user["franchise_id"],
-        "franchise_nom": user["franchises"]["nom"]
+        "franchise_nom": user["franchises"]["nom"],
+        "role": user.get("role", "USER")
     }

@@ -24,6 +24,14 @@ let currentTab = "active";
 document.addEventListener("DOMContentLoaded", () => {
   loadInitialData();
   setupEventListeners();
+
+  const currentuser = getUser();
+  if (currentuser && currentuser.role === "TECH_ADMIN") {
+    const adminLink = document.getElementById("admin-link");
+    if (adminLink) {
+      adminLink.style.display = "inline-block";
+    }
+  }
 });
 
 async function loadInitialData() {

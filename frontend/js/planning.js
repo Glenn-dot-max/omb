@@ -16,6 +16,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Attacher les évènements
   attachEventListeners();
+
+  const currentuser = getUser();
+  if (currentuser && currentuser.role === "TECH_ADMIN") {
+    const adminLink = document.getElementById("admin-link");
+    if (adminLink) {
+      adminLink.style.display = "inline-block";
+    }
+  }
 });
 
 // =======================================================
