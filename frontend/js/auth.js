@@ -91,6 +91,14 @@ async function login(email, password) {
     saveToken(data.access_token);
     saveUser(data.user);
 
+    if (data.user.must_change_password) {
+      return {
+        success: true,
+        user: data.user,
+        must_change_password: true,
+      };
+    }
+
     return {
       success: true,
       user: data.user,
@@ -250,6 +258,9 @@ function displayUserInfo() {
       <div class="user-franchise">${user.franchise_nom}</div>
     </div>
     <div class="menu-divider"></div>
+    <button onclick="window.location.href='mon-compte.html'" class="menu-btn">
+      👤 Mon compte
+    </button>
     <button onclick="logout()" class="logout-btn">
       🚪 Déconnexion
     </button>

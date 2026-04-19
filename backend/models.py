@@ -272,3 +272,13 @@ class UserInfo(BaseModel):
     email: str
     franchise_id: str
     franchise_nom: str
+
+# ===========================================
+# CHANGEMENT DE MOT DE PASSE
+# ===========================================
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+class ResetPasswordRequest(BaseModel):
+    new_password: str

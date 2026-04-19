@@ -137,6 +137,7 @@ async def create_user(user: UserCreate, current_user: dict = Depends(is_tech_adm
         "password_hash": hashed_password,
         "role": "USER",
         "active": True,
+        "must_change_password": True,
         "created_at": datetime.utcnow().isoformat()
     }
 
@@ -178,11 +179,19 @@ async def reset_password(
     """Réinitialise le mot de passe d'un utilisateur"""
     hashed_password = bcrypt.hashpw(reset.new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    response = supabase.table("users").update({"password_hash": hashed_password}).eq("id", user_id).execute()
+    response = supabase.table("users").update({
+        "password_hash": hashed_password,
+        "must_change_password": True,
+        "password_changed_at": datetime.utcnow().isoformat()
+    }).eq("id", user_id).execute()
+
     if not response.data:
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
     
-    return {"message": "Mot de passe réinitialisé avec succès"}
+    return {
+        "message": "Mot de passe réinitialisé avec succès",
+        "new_password": reset.new_password
+    }
 
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: str, current_user: dict = Depends(is_tech_admin)):

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon compte - Oh My Brunch</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <h1>🥐 Oh My Brunch</h1>
+      <ul class="nav-links">
+        <li><a href="produits.html">Produits</a></li>
+        <li><a href="formules.html">Formules</a></li>
+        <li><a href="commandes.html">Commandes</a></li>
+        <li><a href="planning.html">Planning</a></li>
+        <li>
+          <a href="admin.html" id="admin-link" style="display: none"
+            >🔧 Admin</a
+          >
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container">
+      <h2>👤 Mon compte</h2>
+
+      <!-- Informations utilisateur -->
+      <div class="form-card">
+        <h3>📋 Mes informations</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Email :</label>
+            <span id="user-email">-</span>
+          </div>
+          <div class="info-item">
+            <label>Franchise :</label>
+            <span id="user-franchise">-</span>
+          </div>
+          <div class="info-item">
+            <label>Rôle :</label>
+            <span id="user-role">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Changement de mot de passe -->
+      <div class="form-card">
+        <h3>🔒 Changer mon mot de passe</h3>
+
+        <div id="message-container"></div>
+
+        <form id="change-password-form">
+          <div class="form-group">
+            <label for="old-password">Mot de passe actuel *</label>
+            <input type="password" id="old-password" required />
+          </div>
+
+          <div class="form-group">
+            <label for="new-password">Nouveau mot de passe *</label>
+            <input type="password" id="new-password" required />
+            <small style="color: #666; font-size: 0.85rem">
+              Minimum 8 caractères, avec majuscule, minuscule et chiffre
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="confirm-password"
+              >Confirmer le nouveau mot de passe *</label
+            >
+            <input type="password" id="confirm-password" required />
+          </div>
+
+          <button type="submit" class="btn">✅ Changer mon mot de passe</button>
+        </form>
+      </div>
+
+      <!-- Déconnexion -->
+      <div class="form-card">
+        <h3>🚪 Déconnexion</h3>
+        <button class="btn-secondary" id="logout-btn">Se déconnecter</button>
+      </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+      requireAuth();
+
+      // Charger les infos utilisateur
+      window.addEventListener("DOMContentLoaded", async () => {
+        displayUserInfo();
+
+        // Afficher le lien Admin si TECH_ADMIN
+        const currentUser = getUser();
+        if (currentUser && currentUser.role === "TECH_ADMIN") {
+          const adminLink = document.getElementById("admin-link");
+          if (adminLink) {
+            adminLink.style.display = "inline-block";
+          }
+        }
+
+        // Afficher les infos
+        document.getElementById("user-email").textContent = currentUser.email;
+        document.getElementById("user-franchise").textContent =
+          currentUser.franchise_nom;
+        document.getElementById("user-role").textContent =
+          currentUser.role === "TECH_ADMIN" ? "Administrateur" : "Utilisateur";
+      });
+
+      // Formulaire de changement de mot de passe
+      const form = document.getElementById("change-password-form");
+      const messageContainer = document.getElementById("message-container");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const oldPassword = document.getElementById("old-password").value;
+        const newPassword = document.getElementById("new-password").value;
+        const confirmPassword =
+          document.getElementById("confirm-password").value;
+
+        // Validation
+        if (newPassword !== confirmPassword) {
+          showMessage("Les mots de passe ne correspondent pas.", "error");
+          return;
+        }
+
+        if (newPassword.length < 8) {
+          showMessage(
+            "Le mot de passe doit contenir au moins 8 caractères.",
+            "error",
+          );
+          return;
+        }
+
+        if (!/[A-Z]/.test(newPassword)) {
+          showMessage(
+            "Le mot de passe doit contenir au moins une majuscule.",
+            "error",
+          );
+          return;
+        }
+
+        if (!/[a-z]/.test(newPassword)) {
+          showMessage(
+            "Le mot de passe doit contenir au moins une minuscule.",
+            "error",
+          );
+          return;
+        }
+
+        if (!/[0-9]/.test(newPassword)) {
+          showMessage(
+            "Le mot de passe doit contenir au moins un chiffre.",
+            "error",
+          );
+          return;
+        }
+
+        if (oldPassword === newPassword) {
+          showMessage(
+            "Le nouveau mot de passe doit être différent de l'ancien.",
+            "error",
+          );
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_URL}/auth/change-password`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${getToken()}`,
+            },
+            body: JSON.stringify({
+              old_password: oldPassword,
+              new_password: newPassword,
+            }),
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(
+              error.detail || "Erreur lors du changement de mot de passe",
+            );
+          }
+
+          // Succès
+          showMessage("✅ Mot de passe changé avec succès !", "success");
+          form.reset();
+        } catch (error) {
+          console.error("Erreur:", error);
+          showMessage(error.message, "error");
+        }
+      });
+
+      function showMessage(message, type) {
+        const className =
+          type === "success" ? "success-message" : "error-message";
+        messageContainer.innerHTML = `<div class="${className}" style="padding: 1rem; margin-bottom: 1rem; border-radius: 6px; ${type === "success" ? "background: #d4edda; color: #155724;" : "background: #f8d7da; color: #721c24;"}">${message}</div>`;
+
+        setTimeout(() => {
+          messageContainer.innerHTML = "";
+        }, 5000);
+      }
+
+      // Bouton de déconnexion
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        if (confirm("Voulez-vous vraiment vous déconnecter ?")) {
+          logout();
+          window.location.href = "/pages/login.html";
+        }
+      });
+    </script>
+  </body>
+</html>

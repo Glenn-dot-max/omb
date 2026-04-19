@@ -136,6 +136,10 @@
           const result = await login(email, password);
 
           if (result.success) {
+            if (result.must_change_password) {
+              window.location.href = "change-password.html";
+              return;
+            }
             // Connexion réussie, rediriger
             window.location.href = "commandes.html";
           } else {
