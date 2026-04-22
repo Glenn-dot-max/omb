@@ -43,6 +43,18 @@ async function updateProduit(produitId, produit) {
   }
 }
 
+async function toggleProduitFranchise(produitId, FranchiseIds, active) {
+  try {
+    return await apiPatch(`/produits/${produitId}/franchises`, {
+      franchise_ids: FranchiseIds,
+      active: active,
+    });
+  } catch (error) {
+    console.error("Erreur API toggleProduitFranchise:", error);
+    throw error;
+  }
+}
+
 // ===========================================
 // FORMULES
 // ===========================================

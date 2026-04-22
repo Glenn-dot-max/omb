@@ -200,3 +200,85 @@ async def delete_user(user_id: str, current_user: dict = Depends(is_tech_admin))
     if not response.data:
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
     return {"message": "Utilisateur désactivé avec succès"}
+
+# ======================================
+# FRANCHISE - PRODUITS
+# ======================================
+
+@router.get("/franchises/{franchise_id}/produits")
+async def get_franchise_produits(
+    franchise_id: str,
+    current_user: dict = Depends(is_tech_admin)
+):
+    """
+    Récupère tous les produits actifs d'une franchise avec leurs catégories et types
+    """
+    
+    try:
+        print(f"📍 Récupération produits pour franchise {franchise_id}")
+        
+        # 1️⃣ Récupérer les liens franchise_produits actifs
+        liens_response = supabase.table("franchise_produits")\
+            .select("produit_id")\
+            .eq("franchise_id", franchise_id)\
+            .eq("active", True)\
+            .execute()
+        
+        print(f"✅ {len(liens_response.data)} liens trouvés")
+        
+        if not liens_response.data:
+            return []
+        
+        produit_ids = [lien["produit_id"] for lien in liens_response.data]
+        
+        # 2️⃣ Récupérer les produits (TOUT avec *)
+        produits_response = supabase.table("produits")\
+            .select("*")\
+            .in_("id", produit_ids)\
+            .execute()
+        
+        print(f"✅ {len(produits_response.data)} produits récupérés")
+        
+        if not produits_response.data:
+            return []
+        
+        # 3️⃣ Récupérer toutes les catégories
+        categories_response = supabase.table("categories")\
+            .select("*")\
+            .execute()
+        
+        categories_map = {cat["id"]: cat["name"] for cat in categories_response.data}
+        print(f"✅ {len(categories_map)} catégories chargées")
+        
+        # 4️⃣ Récupérer tous les types
+        types_response = supabase.table("types")\
+            .select("*")\
+            .execute()
+        
+        types_map = {typ["id"]: typ["name"] for typ in types_response.data}
+        print(f"✅ {len(types_map)} types chargés")
+        
+        # 5️⃣ Formatter les données pour le frontend
+        produits = []
+        for p in produits_response.data:
+            # Gérer les deux noms de colonnes possibles
+            cat_id = p.get("categorie_id") or p.get("category_id")
+            
+            produit_data = {
+                "id": p["id"],
+                "nom": p["name"],
+                "categorie": categories_map.get(cat_id) if cat_id else None,
+                "type": types_map.get(p.get("type_id")) if p.get("type_id") else None,
+                "active": True
+            }
+            produits.append(produit_data)
+            print(f"  📦 {produit_data['nom']} - {produit_data['categorie']} - {produit_data['type']}")
+        
+        print(f"✅ {len(produits)} produits formatés pour le frontend")
+        return produits
+    
+    except Exception as e:
+        print(f"❌ ERREUR get_franchise_produits: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")

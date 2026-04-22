@@ -35,7 +35,7 @@ class ProduitBase(BaseModel):
         return v
 
 class ProduitCreate(ProduitBase):
-    pass
+    franchise_ids: Optional[List[str]] = None
 
 class ProduitUpdate(BaseModel):
     name: Optional[constr(min_length=1, max_length=200, strip_whitespace=True)] = None
@@ -45,6 +45,9 @@ class ProduitUpdate(BaseModel):
     class Config:
         extra = 'forbid'
 
+class ToggleFranchisesRequest(BaseModel):
+    franchise_ids: List[str]
+    active: bool
 
 # ================ FORMULES MODÈLE ================
 
@@ -282,3 +285,31 @@ class ChangePasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     new_password: str
+
+# ===========================================
+# GESTION MULTI-FRANCH
+# ===========================================
+
+class FranchiseProduitResponse(BaseModel):
+    """Produit avec son statut actif/inactif pour une franchise"""
+    id: UUID
+    nom: str
+    categorie: str
+    type: str
+    active: bool
+
+    class Config:
+        from_attributes = True
+
+class FranchiseFormuleResponse(BaseModel):
+    """Formule avec son statut actif/inactif pour une franchise"""
+    id: UUID
+    nom: str
+    description: Optional[str] = None
+    nombre_couverts: int
+    type_formule: str
+    active: bool
+    produits_count: int = 0
+
+    class Config:
+        from_attributes = True

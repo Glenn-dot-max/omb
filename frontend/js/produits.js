@@ -8,6 +8,7 @@
 let allProduits = [];
 let allCategories = [];
 let allTypes = [];
+let allFranchises = [];
 
 // Variables pour le toggle et le tri
 let currentView = localStorage.getItem("produits_view") || "cards";
@@ -17,6 +18,7 @@ let sortDirection = localStorage.getItem("produits_sort_direction") || "asc";
 let currentCategoryFilter = "";
 let currentTypeFilter = "";
 let currentSearchTerm = "";
+let currentFranchiseFilter = "";
 
 let currentEditingProduct = null;
 
@@ -43,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadInitialData() {
   await loadCategories();
   await loadTypes();
+  await loadFranchises();
   await loadProduits();
 }
 
@@ -65,6 +68,114 @@ async function loadTypes() {
     populateEditTypeSelect();
   } catch (error) {
     console.error("Erreur lors du chargement des types :", error);
+  }
+}
+
+async function loadFranchises() {
+  try {
+    const currentUser = getUser();
+    const filterFranchise = document.getElementById("filter-franchise");
+    const franchiseSelector = document.getElementById("franchise-selector");
+
+    if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+      // Masquer le filtre de franchise pour les non-admins
+      if (filterFranchise) {
+        filterFranchise.style.display = "none";
+      }
+      if (franchiseSelector) {
+        franchiseSelector.style.display = "none";
+      }
+      console.log("✅ Filtre franchise masqué (utilisateur non TECH_ADMIN)");
+      return;
+    }
+
+    if (filterFranchise) {
+      filterFranchise.style.display = "block";
+    }
+    if (franchiseSelector) {
+      franchiseSelector.style.display = "block";
+    }
+
+    allFranchises = await apiGet("/admin/franchises");
+
+    populateFranchiseSelect();
+
+    populateFranchiseCheckboxes();
+
+    setupFranchiseAccordion();
+
+    console.log(
+      `✅ Filtre franchise activé pour TECH_ADMIN (${allFranchises.length} franchises chargées)`,
+    );
+  } catch (error) {
+    console.error("Erreur lors du chargement des franchises :", error);
+    const filterFranchise = document.getElementById("filter-franchise");
+    const franchiseSelector = document.getElementById("franchise-selector");
+    if (filterFranchise) {
+      filterFranchise.style.display = "none";
+    }
+    if (franchiseSelector) {
+      franchiseSelector.style.display = "none";
+    }
+  }
+}
+
+function populateFranchiseSelect() {
+  const select = document.getElementById("filter-franchise");
+  select.innerHTML = '<option value="">-- Toutes les franchises --</option>';
+  allFranchises.forEach((franchise) => {
+    const option = document.createElement("option");
+    option.value = franchise.id;
+    option.textContent = franchise.nom;
+    select.appendChild(option);
+  });
+}
+
+function populateFranchiseCheckboxes() {
+  const container = document.getElementById("franchise-checkboxes");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  allFranchises.forEach((franchise) => {
+    const label = document.createElement("label");
+    label.style.display = "flex";
+    label.style.alignItems = "center";
+    label.style.gap = "0.5rem";
+    label.style.padding = "0.5rem";
+    label.style.cursor = "pointer";
+    label.style.borderRadius = "3px";
+    label.style.transition = "background 0.2s";
+
+    label.addEventListener("mouseover", () => {
+      label.style.background = "#e9ecef";
+    });
+    label.addEventListener("mouseout", () => {
+      label.style.background = "transparent";
+    });
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = franchise.id;
+    checkbox.className = "franchise-checkbox";
+    checkbox.style.cursor = "pointer";
+
+    const text = document.createElement("span");
+    text.textContent = franchise.nom;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    container.appendChild(label);
+  });
+
+  const selectAllCheckbox = document.getElementById("select-all-franchises");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener("change", (e) => {
+      const checkboxes = document.querySelectorAll(".franchise-checkbox");
+      checkboxes.forEach((cb) => {
+        cb.checked = e.target.checked;
+      });
+    });
   }
 }
 
@@ -161,9 +272,25 @@ function initViewToggle() {
     if (mode === "cards") {
       viewCardsBtn.classList.add("active");
       viewTableBtn.classList.remove("active");
+
+      // Styles pour le bouton actif (cartes)
+      viewCardsBtn.style.background = "white";
+      viewCardsBtn.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+
+      // Styles pour le bouton inactif (tableau)
+      viewTableBtn.style.background = "transparent";
+      viewTableBtn.style.boxShadow = "none";
     } else {
       viewTableBtn.classList.add("active");
       viewCardsBtn.classList.remove("active");
+
+      // Styles pour le bouton actif (tableau)
+      viewTableBtn.style.background = "white";
+      viewTableBtn.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+
+      // Styles pour le bouton inactif (cartes)
+      viewCardsBtn.style.background = "transparent";
+      viewCardsBtn.style.boxShadow = "none";
     }
 
     // Recharger les produits pour appliquer la nouvelle vue
@@ -224,29 +351,66 @@ function handleSort(column) {
 
 async function loadProduits() {
   try {
-    const produits = await getProduits();
+    const currentUser = getUser();
+    let produits;
 
-    // Enrichir avec les noms de catégories/types
-    const enrichedProduits = produits.map((p) => {
-      // ✅ Gère les deux noms de champs (category_id ET categorie_id)
-      const catId = p.category_id || p.categorie_id;
-      const typeId = p.type_id;
+    if (
+      currentFranchiseFilter &&
+      currentUser &&
+      currentUser.role === "TECH_ADMIN"
+    ) {
+      console.log(
+        `🔍 Chargement des produits pour la franchise ID ${currentFranchiseFilter}`,
+      );
 
-      return {
-        ...p,
-        category_id: catId,
-        type_id: typeId,
-        category_name:
-          allCategories.find((c) => c.id === catId)?.name || "Sans catégorie",
-        type_name: allTypes.find((t) => t.id === typeId)?.name || "Sans type",
-      };
-    });
+      produits = await apiGet(
+        `/admin/franchises/${currentFranchiseFilter}/produits`,
+      );
 
-    allProduits = enrichedProduits;
-    currentFilteredProduits = enrichedProduits;
-    displayProduits(enrichedProduits);
+      produits = produits.filter((p) => p.active);
+
+      produits = produits.map((p) => {
+        const categorie = allCategories.find((c) => c.name === p.categorie);
+        const type = allTypes.find((t) => t.name === p.type);
+
+        return {
+          id: p.id,
+          name: p.nom,
+          category_id: categorie ? categorie.id : null,
+          type_id: type ? type.id : null,
+          category_name: p.categorie || "Sans catégorie",
+          type_name: p.type || "Sans type",
+        };
+      });
+
+      console.log(
+        `✅ ${produits.length} produits chargés pour la franchise ID ${currentFranchiseFilter}`,
+      );
+    } else {
+      console.log("📦 Chargement de tous les produits");
+      produits = await getProduits();
+
+      produits = produits.map((p) => {
+        const catId = p.category_id || p.categorie_id;
+        const typeId = p.type_id;
+
+        return {
+          ...p,
+          category_id: catId,
+          type_id: typeId,
+          category_name:
+            allCategories.find((c) => c.id === catId)?.name || "Sans catégorie",
+          type_name: allTypes.find((t) => t.id === typeId)?.name || "Sans type",
+        };
+      });
+    }
+
+    allProduits = produits;
+    currentFilteredProduits = produits;
+    displayProduits(produits);
   } catch (error) {
     console.error("Erreur chargement produits:", error);
+    alert("Erreur lors du chargement des produits.");
   }
 }
 
@@ -302,23 +466,60 @@ function displayProduits(produits) {
 // ===========================================
 
 function displayProduitsCards(produits, container) {
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
   container.className = "products-list";
   container.innerHTML = produits
-    .map(
-      (produit) => `
-    <div class="product-item">
-      <div class="product-name">${produit.name}</div>
-      <div class="product-details">
-        <span class="badge category">${produit.category_name || "Sans catégorie"}</span>
-        <span class="badge type">${produit.type_name || "Sans type"}</span>
-      </div>
-      <div class="product-actions">
-        <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
-        <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
-      </div>
-    </div>
-  `,
-    )
+    .map((produit) => {
+      // Générer le badge "Produit limité" si applicable
+      let limitedBadge = "";
+      if (isTechAdmin && produit.is_limited) {
+        const franchisesListJSON = JSON.stringify(produit.franchises).replace(
+          /"/g,
+          "&quot;",
+        );
+        const franchisesText = produit.franchises.join(", ");
+        limitedBadge = `
+          <span 
+            class="badge limited limited-icon" 
+            data-franchises='${franchisesListJSON}'
+            style="
+              background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
+              color: #3e2723;
+              font-weight: bold;
+              font-size: 1.2rem;
+              padding: 0.3rem 0.6rem;
+              cursor: help;
+              border-radius: 50%;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 32px;
+              height: 32px;
+            "
+            title="📍 Limité à : ${franchisesText} (${produit.nb_franchises}/${produit.total_franchises} franchises)"
+          >
+            📍
+          </span>
+        `;
+      }
+
+      return `
+        <div class="product-item">
+          <div class="product-name">${produit.name}</div>
+          <div class="product-details">
+            <span class="badge category">${produit.category_name || "Sans catégorie"}</span>
+            <span class="badge type">${produit.type_name || "Sans type"}</span>
+            ${limitedBadge}
+          </div>
+          <div class="product-actions">
+            <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
+            <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
+          </div>
+        </div>
+      `;
+    })
     .join("");
 }
 
@@ -347,22 +548,61 @@ function displayProduitsTable(produits, container) {
         </thead>
         <tbody>
           ${produits
-            .map(
-              (produit) => `
-            <tr>
-              <td class="product-name">${produit.name}</td>
-              <td><span class="badge category">${produit.category_name || "Sans catégorie"}</span></td>
-              <td><span class="badge type">${produit.type_name || "Sans type"}</span></td>
-              <td>
-                <div class="table-actions">
-                  <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
-                  <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
-                </div>
-              </td>
-            </tr>
-          `,
-            )
+            .map((produit) => {
+              // Générer le badge "Produit limité" si applicable
+              const currentUser = getUser();
+              const isTechAdmin =
+                currentUser && currentUser.role === "TECH_ADMIN";
+
+              let limitedBadge = "";
+              if (isTechAdmin && produit.is_limited) {
+                const franchisesListJSON = JSON.stringify(
+                  produit.franchises,
+                ).replace(/"/g, "&quot;");
+                const franchisesText = produit.franchises.join(", ");
+                limitedBadge = `
+                  <br>
+                  <span 
+                    class="badge limited limited-icon" 
+                    data-franchises='${franchisesListJSON}'
+                    style="
+                      background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
+                      color: #3e2723;
+                      font-weight: bold;
+                      font-size: 1.2rem;
+                      padding: 0.3rem 0.6rem;
+                      cursor: help;
+                      border-radius: 50%;
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      width: 32px;
+                      height: 32px;
+                      margin-top: 0.5rem;
+                    "
+                    title="📍 Limité à : ${franchisesText} (${produit.nb_franchises}/${produit.total_franchises})"
+                  >
+                    📍
+                  </span>
+                `;
+              }
+
+              return `
+                <tr>
+                  <td class="product-name">${produit.name}${limitedBadge}</td>
+                  <td><span class="badge category">${produit.category_name || "Sans catégorie"}</span></td>
+                  <td><span class="badge type">${produit.type_name || "Sans type"}</span></td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
+                      <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            })
             .join("")}
+                  
         </tbody>
       </table>
     </div>
@@ -440,6 +680,11 @@ function setupEventListeners() {
   const filterType = document.getElementById("filter-type");
   filterType.addEventListener("change", handleFilterChange);
 
+  const filterFranchise = document.getElementById("filter-franchise");
+  if (filterFranchise) {
+    filterFranchise.addEventListener("change", handleFranchiseChange);
+  }
+
   const resetBtn = document.getElementById("reset-filters");
   resetBtn.addEventListener("click", handleResetFilters);
 
@@ -463,6 +708,38 @@ function setupEventListeners() {
 }
 
 // ===========================================
+// GESTION DE L'ACCORDÉON FRANCHISES
+// ===========================================
+
+function setupFranchiseAccordion() {
+  const header = document.getElementById("franchise-accordion-header");
+  const content = document.getElementById("franchise-accordion-content");
+  const icon = document.getElementById("franchise-accordion-icon");
+
+  if (!header || !content || !icon) return;
+
+  let isOpen = false;
+
+  header.addEventListener("click", () => {
+    isOpen = !isOpen;
+
+    if (isOpen) {
+      // Ouvrir l'accordéon
+      content.style.maxHeight = content.scrollHeight + "px";
+      icon.style.transform = "rotate(180deg)";
+      header.style.background =
+        "linear-gradient(135deg, #d4862d 0%, #f4a460 100%)";
+    } else {
+      // Fermer l'accordéon
+      content.style.maxHeight = "0";
+      icon.style.transform = "rotate(0deg)";
+      header.style.background =
+        "linear-gradient(135deg, #f4a460 0%, #d4862d 100%)";
+    }
+  });
+}
+
+// ===========================================
 // GESTION DE L'AJOUT D'UN PRODUIT
 // ===========================================
 
@@ -478,13 +755,35 @@ async function handleAddProduit(event) {
     return;
   }
 
-  try {
-    const nouveauProduit = await createProduit({
-      name: name,
-      category_id: categoryId || null,
-      type_id: typeId || null,
-    });
+  const currentUser = getUser();
+  let franchiseIds = null;
 
+  if (currentUser && currentUser.role === "TECH_ADMIN") {
+    const checkedBoxes = document.querySelectorAll(
+      ".franchise-checkbox:checked",
+    );
+
+    if (checkedBoxes.length > 0) {
+      franchiseIds = Array.from(checkedBoxes).map((cb) => cb.value);
+      console.log(`✅ Franchises sélectionnées : ${franchiseIds.length}`);
+    } else {
+      console.log("⚠️ Aucune franchise sélectionnée, le produit sera global");
+      franchiseIds = [];
+    }
+  }
+
+  try {
+    const produitData = {
+      name: name,
+      categorie_id: categoryId ? parseInt(categoryId) : null,
+      type_id: typeId ? parseInt(typeId) : null,
+    };
+
+    if (currentUser && currentUser.role === "TECH_ADMIN") {
+      produitData.franchise_ids = franchiseIds;
+    }
+
+    const nouveauProduit = await createProduit(produitData);
     allProduits.push(nouveauProduit);
     currentFilteredProduits = allProduits;
     displayProduits(allProduits);
@@ -493,6 +792,11 @@ async function handleAddProduit(event) {
     document.getElementById("product-name").value = "";
     document.getElementById("product-category").value = "";
     document.getElementById("product-type").value = "";
+
+    const allCheckboxes = document.querySelectorAll(".franchise-checkbox");
+    allCheckboxes.forEach((cb) => (cb.checked = false));
+    const selectAll = document.getElementById("select-all-franchises");
+    if (selectAll) selectAll.checked = false;
 
     alert("Produit ajouté avec succès !");
   } catch (error) {
@@ -546,9 +850,12 @@ function handleEditProduct(produit) {
 
   // Pré-remplir les champs de la modale
   document.getElementById("edit-product-name").value = produit.name;
-  document.getElementById("edit-product-category").value =
-    produit.category_id || "";
-  document.getElementById("edit-product-type").value = produit.type_id || "";
+  document.getElementById("edit-product-category").value = produit.categorie_id
+    ? produit.categorie_id.toString()
+    : "";
+  document.getElementById("edit-product-type").value = produit.type_id
+    ? produit.type_id.toString()
+    : "";
 
   // Afficher la modale
   document.getElementById("edit-modal").style.display = "block";
@@ -581,8 +888,8 @@ async function handleUpdateProduit(event) {
   try {
     const produitModifie = await updateProduit(currentEditingProduct.id, {
       name: name,
-      category_id: categoryId || null,
-      type_id: typeId || null,
+      categorie_id: categoryId ? parseInt(categoryId) : null,
+      type_id: typeId ? parseInt(typeId) : null,
     });
 
     // Mettre à jour dans le tableau local
@@ -621,14 +928,37 @@ function handleFilterChange() {
   applyFilters();
 }
 
+function handleFranchiseChange() {
+  const currentUser = getUser();
+
+  // 🔒 DOUBLE VÉRIFICATION : Bloquer si pas TECH_ADMIN
+  if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+    console.warn("⚠️ Accès refusé : filtre franchise réservé aux TECH_ADMIN");
+    return;
+  }
+
+  currentFranchiseFilter = document.getElementById("filter-franchise").value;
+
+  if (currentFranchiseFilter) {
+    console.log(`🔍 Filtrage par franchise : ${currentFranchiseFilter}`);
+  } else {
+    console.log("🔍 Retour à tous les produits");
+  }
+
+  // Recharger les produits avec le nouveau filtre
+  loadProduits();
+}
+
 function handleResetFilters() {
   currentSearchTerm = "";
   currentCategoryFilter = "";
   currentTypeFilter = "";
+  currentFranchiseFilter = "";
 
   document.getElementById("search-input").value = "";
   document.getElementById("filter-category").value = "";
   document.getElementById("filter-type").value = "";
+  document.getElementById("filter-franchise").value = "";
 
   currentFilteredProduits = allProduits;
   displayProduits(allProduits);
@@ -662,4 +992,129 @@ function applyFilters() {
   currentFilteredProduits = filteredProduits;
 
   displayProduits(filteredProduits);
+}
+
+// ===========================================
+// TOOLTIP POUR PRODUITS LIMITÉS (EVENT DELEGATION)
+// ===========================================
+
+let tooltipElement = null;
+
+function initializeTooltipSystem() {
+  console.log("🚀 Initialisation du système de tooltip...");
+
+  // Créer l'élément tooltip
+  tooltipElement = document.createElement("div");
+  tooltipElement.id = "franchise-tooltip";
+  tooltipElement.style.position = "fixed";
+  tooltipElement.style.background =
+    "linear-gradient(135deg, #3e2723 0%, #5d4037 100%)";
+  tooltipElement.style.color = "white";
+  tooltipElement.style.padding = "1rem";
+  tooltipElement.style.borderRadius = "8px";
+  tooltipElement.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+  tooltipElement.style.zIndex = "10000";
+  tooltipElement.style.maxWidth = "300px";
+  tooltipElement.style.fontSize = "0.95rem";
+  tooltipElement.style.pointerEvents = "none";
+  tooltipElement.style.display = "none";
+  document.body.appendChild(tooltipElement);
+
+  console.log("✅ Tooltip créé et attaché au DOM");
+
+  // Event delegation : écouter sur le document entier
+  document.addEventListener("mouseover", handleMouseOver);
+  document.addEventListener("mouseout", handleMouseOut);
+  document.addEventListener("mousemove", handleMouseMove);
+
+  console.log("✅ Event listeners attachés");
+}
+
+function handleMouseOver(e) {
+  const badge = e.target.closest(".limited-icon");
+  if (badge) {
+    console.log("🎯 Survol détecté sur badge:", badge);
+    const franchisesData = badge.getAttribute("data-franchises");
+    console.log("📊 Données franchises:", franchisesData);
+
+    if (franchisesData) {
+      try {
+        const franchises = JSON.parse(franchisesData);
+        console.log("✅ Franchises parsées:", franchises);
+        showTooltip(e, franchises);
+      } catch (err) {
+        console.error("❌ Erreur parsing franchises:", err);
+      }
+    }
+  }
+}
+
+function handleMouseOut(e) {
+  const badge = e.target.closest(".limited-icon");
+  if (badge) {
+    console.log("👋 Sortie du badge");
+    hideTooltip();
+  }
+}
+
+function handleMouseMove(e) {
+  const badge = e.target.closest(".limited-icon");
+  if (badge && tooltipElement && tooltipElement.style.display === "block") {
+    tooltipElement.style.left = e.pageX + 15 + "px";
+    tooltipElement.style.top = e.pageY + 15 + "px";
+  }
+}
+
+function showTooltip(event, franchises) {
+  if (!tooltipElement) {
+    console.error("❌ Tooltip element not found!");
+    return;
+  }
+
+  console.log("📍 Affichage tooltip avec:", franchises);
+
+  // Contenu du tooltip avec style amélioré
+  tooltipElement.innerHTML = `
+    <strong style="display: block; margin-bottom: 0.75rem; color: #f4a460; font-size: 1rem;">
+      📍 Franchises concernées :
+    </strong>
+    ${franchises
+      .map(
+        (f) => `
+      <div style="
+        padding: 0.4rem 0.5rem;
+        margin: 0.25rem 0;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        border-left: 3px solid #f4a460;
+      ">
+        • ${f}
+      </div>
+    `,
+      )
+      .join("")}
+  `;
+
+  // Afficher et positionner le tooltip
+  tooltipElement.style.display = "block";
+  tooltipElement.style.left = event.pageX + 15 + "px";
+  tooltipElement.style.top = event.pageY + 15 + "px";
+
+  console.log("✅ Tooltip affiché à:", event.pageX, event.pageY);
+}
+
+function hideTooltip() {
+  if (tooltipElement) {
+    tooltipElement.style.display = "none";
+    console.log("🙈 Tooltip masqué");
+  }
+}
+
+// Initialiser immédiatement si le DOM est prêt, sinon attendre
+if (document.readyState === "loading") {
+  console.log("⏳ DOM en cours de chargement, attente...");
+  document.addEventListener("DOMContentLoaded", initializeTooltipSystem);
+} else {
+  console.log("✅ DOM déjà chargé, initialisation immédiate");
+  initializeTooltipSystem();
 }

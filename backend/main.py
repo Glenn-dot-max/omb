@@ -8,7 +8,7 @@ import json
 import os
 import logging
 from config import CORS_ORIGINS
-from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning, auth, admin
+from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning, auth, admin, franchise_catalogue
 from datetime import date, datetime
 
 
@@ -130,6 +130,7 @@ app.include_router(unite.router)
 app.include_router(planning.router)
 app.include_router(admin.router)
 app.include_router(auth.router)
+app.include_router(franchise_catalogue.router)
 
 
 # ============================================
