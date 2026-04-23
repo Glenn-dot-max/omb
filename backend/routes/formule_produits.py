@@ -41,11 +41,15 @@ async def create_formule_produit(formule_produit: FormuleProduitCreate, current_
     formule_check = supabase.table("formules")\
         .select("id")\
         .eq("id", str(formule_produit.formule_id))\
-        .eq("franchise_id", current_user["franchise_id"])\
         .execute()
     
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
+
+    if current_user.get("role") != "TECH_ADMIN":
+        franchise_formule_access = supabase.table("franchise_formules")\
+            .select("formule_id")\
+            REPRENDRE ICI 
 
     produit_check = supabase.table("produits")\
         .select("id")\

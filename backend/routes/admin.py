@@ -282,3 +282,66 @@ async def get_franchise_produits(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+    
+# ======================================
+# FRANCHISE - FORMULES
+# ======================================
+
+@router.get("/franchises/{franchise_id}/formules")
+async def get_franchise_formules(
+    franchise_id: str,
+    current_user: dict = Depends(is_tech_admin)
+):
+    """
+    Récupère toutes les formules actives d'une franchise
+    """
+    
+    try:
+        print(f"📍 Récupération formules pour franchise {franchise_id}")
+        
+        # 1️⃣ Récupérer les liens franchise_formules actifs
+        liens_response = supabase.table("franchise_formules")\
+            .select("formule_id")\
+            .eq("franchise_id", franchise_id)\
+            .eq("active", True)\
+            .execute()
+        
+        print(f"✅ {len(liens_response.data)} liens trouvés")
+        
+        if not liens_response.data:
+            return []
+        
+        formule_ids = [lien["formule_id"] for lien in liens_response.data]
+        
+        # 2️⃣ Récupérer les formules
+        formules_response = supabase.table("formules")\
+            .select("*")\
+            .in_("id", formule_ids)\
+            .execute()
+        
+        print(f"✅ {len(formules_response.data)} formules récupérées")
+        
+        if not formules_response.data:
+            return []
+        
+        # 3️⃣ Formatter les données pour le frontend
+        formules = []
+        for f in formules_response.data:
+            formule_data = {
+                "id": f["id"],
+                "nom": f["name"],
+                "type_formule": f.get("type_formule"),
+                "nombre_couverts": f.get("nombre_couverts"),
+                "active": True
+            }
+            formules.append(formule_data)
+            print(f"  🍽️ {formule_data['nom']} - {formule_data['type_formule']} - {formule_data['nombre_couverts']} couverts")
+        
+        print(f"✅ {len(formules)} formules formatées pour le frontend")
+        return formules
+    
+    except Exception as e:
+        print(f"❌ ERREUR get_franchise_formules: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")

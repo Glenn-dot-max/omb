@@ -54,9 +54,14 @@
           <option value="Non-Brunch">Non-Brunch</option>
         </select>
 
+        <!-- Filtre franchise -->
+        <select id="filter-franchise">
+          <option value="">-- Filtrer par franchise --</option>
+        </select>
+
         <button id="reset-filters" class="btn-secondary">Réinitialiser</button>
 
-        <!-- ✅ Toggle Vue (déplacé ici) -->
+        <!-- ✅ Toggle Vue -->
         <div
           class="view-toggle"
           style="margin-top: 1rem; float: right; clear: both"
@@ -288,6 +293,96 @@
             </div>
           </section>
         </div>
+
+        <!-- Sélection des franchises (visible uniquement pour les TECH_ADMIN) -->
+        <section
+          class="modal-section"
+          id="franchise-selector"
+          style="display: none"
+        >
+          <div
+            id="franchise-accordion-header"
+            style="
+              cursor: pointer;
+              padding: 1rem;
+              background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
+              color: #3e2723;
+              border-radius: 8px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-weight: bold;
+              transition: all 0.3s ease;
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            "
+          >
+            <span style="display: flex; align-items: center; gap: 0.5rem">
+              🏢 Limiter cette formule à certaines franchises
+            </span>
+            <span
+              id="franchise-accordion-icon"
+              style="font-size: 1.2rem; transition: transform 0.3s ease"
+            >
+              ▼
+            </span>
+          </div>
+          <div
+            id="franchise-accordion-content"
+            style="
+              max-height: 0;
+              overflow: hidden;
+              transition: max-height 0.3s ease;
+              background: #f8f9fa;
+              border-radius: 0 0 8px 8px;
+              margin-top: 0.5rem;
+            "
+          >
+            <div style="padding: 1rem">
+              <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem">
+                ⚠️ Si aucune franchise n'est cochée, la formule sera disponible
+                pour <strong>toutes les franchises</strong>.
+              </p>
+
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                  padding: 0.75rem;
+                  background: white;
+                  border: 6px;
+                  margin-bottom: 1rem;
+                  cursor: pointer;
+                  border: 2px solid #d4862d;
+                  font-weight: bold;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="select-all-franchises"
+                  style="cursor: pointer; width: 18px; height: 18px"
+                />
+                <span>🏢 Toutes les franchises</span>
+              </label>
+
+              <div
+                id="franchise-checkboxes"
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 0.5rem;
+                  max-height: 300px;
+                  overflow-y: auto;
+                  padding: 0.5rem;
+                  background: white;
+                  border-radius: 6px;
+                "
+              >
+                <!-- Les cases à cocher des franchises seront générées ici dynamiquement -->
+              </div>
+            </div>
+          </div>
+        </section>
 
         <!-- Actions finales -->
         <div class="modal-footer">

@@ -64,8 +64,11 @@ class FormuleBase(BaseModel):
             raise ValueError('Caractères non autorisés')
         return v.strip()
 
-class FormuleCreate(FormuleBase):
-    pass
+class FormuleCreate(BaseModel):
+    name: str
+    nombre_couverts: int = 1
+    type_formule: str = "Brunch"
+    franchise_ids: Optional[List[str]] = None  
 
 class FormuleUpdate(BaseModel):
     name: Optional[constr(min_length=1, max_length=200)] = None

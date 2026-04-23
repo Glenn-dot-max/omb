@@ -8,6 +8,7 @@
 let allFormules = [];
 let allProduits = [];
 let allUnites = [];
+let allFranchises = [];
 
 // Variables pour le toggle et le tri
 let currentView = localStorage.getItem("formulesView") || "cards";
@@ -17,6 +18,7 @@ let sortDirection = localStorage.getItem("formules_sort_direction") || "asc";
 // Variables de filtrage
 let currentTypeFilter = "";
 let currentSearchTerm = "";
+let currentFranchiseFilter = "";
 let currentFilteredFormules = [];
 
 let currentEditingFormule = null;
@@ -44,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadInitialData() {
   await loadFormules();
+  await loadFranchises();
   await loadUnite();
 }
 
@@ -58,6 +61,140 @@ async function loadUnite() {
   } catch (error) {
     console.error("Erreur lors du chargement des unités :", error);
   }
+}
+
+async function loadFranchises() {
+  try {
+    const currentUser = getUser();
+    const filterFranchise = document.getElementById("filter-franchise");
+    const franchiseSelector = document.getElementById("franchise-selector");
+
+    if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+      // Masquer le filtre de franchise pour les non-admins
+      if (filterFranchise) {
+        filterFranchise.style.display = "none";
+      }
+      if (franchiseSelector) {
+        franchiseSelector.style.display = "none";
+      }
+      console.log("✅ Filtre franchise masqué (utilisateur non TECH_ADMIN)");
+      return;
+    }
+
+    if (filterFranchise) {
+      filterFranchise.style.display = "block";
+    }
+    if (franchiseSelector) {
+      franchiseSelector.style.display = "block";
+    }
+
+    allFranchises = await apiGet("/admin/franchises");
+
+    populateFranchiseSelect();
+    populateFranchiseCheckboxes();
+    setupFranchiseAccordion();
+
+    console.log(
+      `✅ Filtre franchise activé pour TECH_ADMIN (${allFranchises.length} franchises chargées)`,
+    );
+  } catch (error) {
+    console.error("Erreur lors du chargement des franchises :", error);
+    const filterFranchise = document.getElementById("filter-franchise");
+    const franchiseSelector = document.getElementById("franchise-selector");
+    if (filterFranchise) {
+      filterFranchise.style.display = "none";
+    }
+    if (franchiseSelector) {
+      franchiseSelector.style.display = "none";
+    }
+  }
+}
+
+function populateFranchiseSelect() {
+  const select = document.getElementById("filter-franchise");
+  if (!select) return;
+
+  select.innerHTML = '<option value="">-- Toutes les franchises --</option>';
+  allFranchises.forEach((franchise) => {
+    const option = document.createElement("option");
+    option.value = franchise.id;
+    option.textContent = franchise.nom;
+    select.appendChild(option);
+  });
+}
+
+function populateFranchiseCheckboxes() {
+  const container = document.getElementById("franchise-checkboxes");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  allFranchises.forEach((franchise) => {
+    const label = document.createElement("label");
+    label.style.display = "flex";
+    label.style.alignItems = "center";
+    label.style.gap = "0.5rem";
+    label.style.padding = "0.5rem";
+    label.style.cursor = "pointer";
+    label.style.borderRadius = "3px";
+    label.style.transition = "background 0.2s";
+
+    label.addEventListener("mouseover", () => {
+      label.style.background = "#e9ecef";
+    });
+    label.addEventListener("mouseout", () => {
+      label.style.background = "transparent";
+    });
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = franchise.id;
+    checkbox.className = "franchise-checkbox";
+    checkbox.style.cursor = "pointer";
+
+    const text = document.createElement("span");
+    text.textContent = franchise.nom;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    container.appendChild(label);
+  });
+
+  const selectAllCheckbox = document.getElementById("select-all-franchises");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener("change", (e) => {
+      const checkboxes = document.querySelectorAll(".franchise-checkbox");
+      checkboxes.forEach((cb) => {
+        cb.checked = e.target.checked;
+      });
+    });
+  }
+}
+
+function setupFranchiseAccordion() {
+  const header = document.getElementById("franchise-accordion-header");
+  const content = document.getElementById("franchise-accordion-content");
+  const icon = document.getElementById("franchise-accordion-icon");
+
+  if (!header || !content || !icon) return;
+
+  let isOpen = false;
+
+  header.addEventListener("click", () => {
+    isOpen = !isOpen;
+
+    if (isOpen) {
+      content.style.maxHeight = content.scrollHeight + "px";
+      icon.style.transform = "rotate(180deg)";
+      header.style.background =
+        "linear-gradient(135deg, #d4862d 0%, #f4a460 100%)";
+    } else {
+      content.style.maxHeight = "0";
+      icon.style.transform = "rotate(0deg)";
+      header.style.background =
+        "linear-gradient(135deg, #f4a460 0%, #d4862d 100%)";
+    }
+  });
 }
 
 function populateUniteSelects() {
@@ -182,14 +319,46 @@ function handleSort(column) {
 // ===========================================
 // CHARGEMENT DES FORMULES
 // ===========================================
-
 async function loadFormules() {
   try {
+    const currentUser = getUser();
     const formulesList = document.getElementById("formules-list");
     formulesList.innerHTML = "<p>Chargement des formules...</p>";
-    allFormules = await getFormules();
-    currentFilteredFormules = allFormules;
-    displayFormules(allFormules);
+
+    let formules;
+
+    if (
+      currentFranchiseFilter &&
+      currentUser &&
+      currentUser.role === "TECH_ADMIN"
+    ) {
+      console.log(
+        `🔍 Chargement des formules pour la franchise ID ${currentFranchiseFilter}`,
+      );
+      formules = await apiGet(
+        `/admin/franchises/${currentFranchiseFilter}/formules`,
+      );
+
+      formules = formules.filter((f) => f.active);
+
+      formules = formules.map((f) => ({
+        id: f.id,
+        name: f.nom,
+        type_formule: f.type_formule,
+        nombre_couverts: f.nombre_couverts,
+      }));
+
+      console.log(
+        `✅ ${formules.length} formules chargées pour la franchise ID ${currentFranchiseFilter}`,
+      );
+    } else {
+      console.log("📦 Chargement de toutes les formules");
+      formules = await getFormules();
+    }
+
+    allFormules = formules;
+    currentFilteredFormules = formules;
+    displayFormules(formules);
   } catch (error) {
     console.error("Erreur lors du chargement des formules :", error);
     const formulesList = document.getElementById("formules-list");
@@ -250,25 +419,61 @@ function displayFormules(formules) {
 // ===========================================
 
 function displayFormulesCards(formules, container) {
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
   container.className = "products-list";
   container.innerHTML = formules
     .map((formule) => {
       const typeBadgeClass =
         formule.type_formule === "Brunch" ? "type" : "category";
 
+      let limitedBadge = "";
+      if (isTechAdmin && formule.is_limited) {
+        const franchisesListJSON = JSON.stringify(formule.franchises).replace(
+          /"/g,
+          "&quot;",
+        );
+        const franchisesText = formule.franchises.join(", ");
+        limitedBadge = `
+            <span
+              class="badge limited limited-icon"
+              data-franchises='${franchisesListJSON}'
+              style="
+                background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
+                color: #3e2723;
+                font-weight: bold;
+                font-size: 1.2rem;
+                padding: 0.3rem 0.6rem;
+                cursor: help;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+              "
+              title="📍 Limité à : ${franchisesText} (${formule.nb_franchises}/${formule.total_franchises} franchises)"
+            >
+              📍
+            </span>
+          `;
+      }
+
       return `
-        <div class="product-item">
-          <div class="product-name">${formule.name}</div>
-          <div class="product-details">
-            <span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span>
-            <span class="badge category">${formule.nombre_couverts} couverts</span>
+          <div class="product-item">
+            <div class="product-name">${formule.name}</div>
+            <div class="product-details">
+              <span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span>
+              <span class="badge category">${formule.nombre_couverts} couverts</span>
+              ${limitedBadge}
+            </div>
+            <div class="product-actions">
+              <button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>
+              <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
+            </div>
           </div>
-          <div class="product-actions">
-            <button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>
-            <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
-          </div>
-        </div>
-      `;
+        `;
     })
     .join("");
 }
@@ -299,6 +504,9 @@ function displayFormulesTable(formules, container) {
         <tbody>
           ${formules
             .map((formule) => {
+              const currentUser = getUser();
+              const isTechAdmin =
+                currentUser && currentUser.role === "TECH_ADMIN";
               const typeBadgeClass =
                 formule.type_formule === "Brunch" ? "type" : "category";
               const formuleJson = JSON.stringify(formule).replace(
@@ -306,9 +514,42 @@ function displayFormulesTable(formules, container) {
                 "&quot;",
               );
 
+              let limitedBadge = "";
+              if (isTechAdmin && formule.is_limited) {
+                const franchisesListJSON = JSON.stringify(
+                  formule.franchises,
+                ).replace(/"/g, "&quot;");
+                const franchisesText = formule.franchises.join(", ");
+                limitedBadge = `
+                  <br>
+                  <span 
+                    class="badge limited limited-icon" 
+                    data-franchises='${franchisesListJSON}'
+                    style="
+                      background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
+                      color: #3e2723;
+                      font-weight: bold;
+                      font-size: 1.2rem;
+                      padding: 0.3rem 0.6rem;
+                      cursor: help;
+                      border-radius: 50%;
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      width: 32px;
+                      height: 32px;
+                      margin-top: 0.5rem;
+                    "
+                    title="📍 Limité à : ${franchisesText} (${formule.nb_franchises}/${formule.total_franchises} franchises)"
+                  >
+                    📍
+                  </span>
+                `;
+              }
+
               return `
                 <tr>
-                  <td class="product-name">${formule.name}</td>
+                  <td class="product-name">${formule.name}${limitedBadge}</td>
                   <td><span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span></td>
                   <td>${formule.nombre_couverts}</td>
                   <td>
@@ -342,6 +583,11 @@ function setupEventListeners() {
 
   const filterType = document.getElementById("filter-type");
   filterType.addEventListener("change", handleFilterChange);
+
+  const filterFranchise = document.getElementById("filter-franchise");
+  if (filterFranchise) {
+    filterFranchise.addEventListener("change", handleFranchiseChange);
+  }
 
   const resetBtn = document.getElementById("reset-filters");
   resetBtn.addEventListener("click", handleResetFilters);
@@ -677,13 +923,38 @@ function handleFilterChange() {
   applyFilters();
 }
 
+function handleFranchiseChange() {
+  const currentuser = getUser();
+
+  if (!currentuser || currentuser.role !== "TECH_ADMIN") {
+    console.warn("⚠️ Accès refusé : filtre franchise réservé aux TECH_ADMIN");
+    return;
+  }
+
+  currentFranchiseFilter = document.getElementById("filter-franchise").value;
+
+  if (currentFranchiseFilter) {
+    console.log(`🔍 Filtrage par franchise : ${currentFranchiseFilter}`);
+  } else {
+    console.log("🔍 Retour à toutes les formules");
+  }
+
+  loadFormules();
+}
+
 function handleResetFilters() {
   currentSearchTerm = "";
   currentTypeFilter = "";
+  currentFranchiseFilter = "";
 
   document.getElementById("search-input").value = "";
   document.getElementById("filter-type").value = "";
+  const filterFranchise = document.getElementById("filter-franchise");
+  if (filterFranchise) {
+    filterFranchise.value = "";
+  }
 
+  currentFilteredFormules = allFormules;
   displayFormules(allFormules);
 }
 
@@ -862,15 +1133,38 @@ async function handleCreateFormuleWithProduits() {
     return;
   }
 
+  const currentUser = getUser();
+  let franchiseIds = null;
+
+  if (currentUser && currentUser.role === "TECH_ADMIN") {
+    const checkedBoxes = document.querySelectorAll(
+      ".franchise-checkbox:checked",
+    );
+
+    if (checkedBoxes.length > 0) {
+      franchiseIds = Array.from(checkedBoxes).map((cb) => cb.value);
+      console.log(`✅ Franchises sélectionnées : ${franchiseIds.length}`);
+    } else {
+      console.log(
+        "⚠️ Aucune franchise sélectionnée, la formule ne sera pas limitée",
+      );
+      franchiseIds = [];
+    }
+  }
+
   try {
-    // Créer la formule
-    const nouvelleFormule = await createFormule({
+    const formuleData = {
       name: name,
       nombre_couverts: parseInt(couverts),
       type_formule: type,
-    });
+    };
 
-    // 2. Ajouter tous les produits
+    if (currentUser && currentUser.role === "TECH_ADMIN") {
+      formuleData.franchise_ids = franchiseIds;
+    }
+
+    const nouvelleFormule = await createFormule(formuleData);
+
     for (const produit of tempProduitsToCreate) {
       await createFormuleProduit({
         formule_id: nouvelleFormule.id,
@@ -880,16 +1174,145 @@ async function handleCreateFormuleWithProduits() {
       });
     }
 
-    // 3. Ajouter à la liste et réafficher
     allFormules.push(nouvelleFormule);
     displayFormules(allFormules);
-
-    // 4. Fermer la modale
     closeCreateFormuleModal();
+
+    const allCheckboxes = document.querySelectorAll(".franchise-checkbox");
+    allCheckboxes.forEach((cb) => (cb.checked = false));
+    const selectAll = document.getElementById("select-all-franchises");
+    if (selectAll) selectAll.checked = false;
 
     alert(`Formule "${name}" créée avec succès !`);
   } catch (error) {
     console.error("Erreur création formule avec produits:", error);
-    alert("Erreur lors de la création de la formule.");
+
+    if (error.message && error.message.includes("existe déjà")) {
+      alert("❌ Cette formule existe déjà dans la base de données.");
+    } else {
+      alert("Erreur lors de la création de la formule.");
+    }
   }
+}
+
+// ===========================================
+// TOOLTIP POUR FORMULES LIMITÉES
+// ===========================================
+
+let tooltipElement = null;
+
+function initializeTooltipSystem() {
+  console.log("🚀 Initialisation du système de tooltip (formules)...");
+
+  tooltipElement = document.createElement("div");
+  tooltipElement.id = "franchise-tooltip-formules";
+  tooltipElement.style.position = "fixed";
+  tooltipElement.style.background =
+    "linear-gradient(135deg, #3e2723 0%, #5d4037 100%)";
+  tooltipElement.style.color = "white";
+  tooltipElement.style.padding = "1rem";
+  tooltipElement.style.borderRadius = "8px";
+  tooltipElement.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
+  tooltipElement.style.zIndex = "1000";
+  tooltipElement.style.maxWidth = "300px";
+  tooltipElement.style.fontSize = "0.9rem";
+  tooltipElement.style.pointerEvents = "none";
+  tooltipElement.style.display = "none";
+  document.body.appendChild(tooltipElement);
+
+  console.log("✅ Système de tooltip initialisé pour les formules limitées");
+
+  document.addEventListener("mouseover", handleMouseOver);
+  document.addEventListener("mousemove", handleMouseMove);
+  document.addEventListener("mouseout", handleMouseOut);
+
+  console.log("✅ Événements de tooltip attachés pour les formules limitées");
+}
+
+function handleMouseOver(e) {
+  const badge = e.target.closest(".limited-icon");
+  if (badge) {
+    console.log("🎯 Survol détecté sur badge:", badge);
+    const franchisesData = badge.getAttribute("data-franchises");
+    console.log("📊 Données de franchises extraites:", franchisesData);
+
+    if (franchisesData) {
+      try {
+        const franchises = JSON.parse(franchisesData);
+        console.log("✅ Franchises parsées:", franchises);
+        showTooltip(e, franchises);
+      } catch (err) {
+        console.error("❌ Erreur parsing franchises:", err);
+      }
+    }
+  }
+}
+
+function handleMouseOut(e) {
+  const badge = e.target.closest(".limited-icon");
+  if (badge) {
+    console.log("👋 Sortie du badge");
+    hideTooltip();
+  }
+}
+
+function handleMouseMove(e) {
+  const badge = e.target.closest(".limited-icon");
+  if (badge && tooltipElement.style.display === "block") {
+    tooltipElement.style.left = e.pageX + 15 + "px";
+    tooltipElement.style.top = e.pageY + 15 + "px";
+  }
+}
+
+function showTooltip(event, franchises) {
+  if (!tooltipElement) {
+    console.error("❌ Tooltip element not found!");
+    return;
+  }
+
+  console.log("📍 Affichage tooltip avec:", franchises);
+
+  // Contenu du tooltip avec style amélioré
+  tooltipElement.innerHTML = `
+    <strong style="display: block; margin-bottom: 0.75rem; color: #f4a460; font-size: 1rem;">
+      📍 Franchises concernées :
+    </strong>
+    ${franchises
+      .map(
+        (f) => `
+      <div style="
+        padding: 0.4rem 0.5rem;
+        margin: 0.25rem 0;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        border-left: 3px solid #f4a460;
+      ">
+        • ${f}
+      </div>
+    `,
+      )
+      .join("")}
+  `;
+
+  // Afficher et positionner le tooltip
+  tooltipElement.style.display = "block";
+  tooltipElement.style.left = event.pageX + 15 + "px";
+  tooltipElement.style.top = event.pageY + 15 + "px";
+
+  console.log("✅ Tooltip affiché à:", event.pageX, event.pageY);
+}
+
+function hideTooltip() {
+  if (tooltipElement) {
+    tooltipElement.style.display = "none";
+    console.log("✅ Tooltip caché");
+  }
+}
+
+if (document.readyState === "loading") {
+  console.log("⏳ DOM en cours de chargement, attente...");
+  document.addEventListener("DOMContentLoaded", initializeTooltipSystem);
+} else {
+  console.log("✅ DOM déjà chargé, initialisation immédiate du tooltip");
+  initializeTooltipSystem();
 }
