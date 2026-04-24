@@ -472,49 +472,71 @@ function displayProduitsCards(produits, container) {
   container.className = "products-list";
   container.innerHTML = produits
     .map((produit) => {
-      // Générer le badge "Produit limité" si applicable
-      let limitedBadge = "";
-      if (isTechAdmin && produit.is_limited) {
-        const franchisesListJSON = JSON.stringify(produit.franchises).replace(
-          /"/g,
-          "&quot;",
-        );
-        const franchisesText = produit.franchises.join(", ");
-        limitedBadge = `
-          <span 
-            class="badge limited limited-icon" 
-            data-franchises='${franchisesListJSON}'
-            style="
-              background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
-              color: #3e2723;
-              font-weight: bold;
-              font-size: 1.2rem;
-              padding: 0.3rem 0.6rem;
-              cursor: help;
-              border-radius: 50%;
-              display: inline-flex;
-              align-items: center;
-              justify-content: center;
-              width: 32px;
-              height: 32px;
-            "
-            title="📍 Limité à : ${franchisesText} (${produit.nb_franchises}/${produit.total_franchises} franchises)"
-          >
-            📍
-          </span>
-        `;
+      const categoryName = produit.category_name || "Non catégorisé";
+      const typeName = produit.type_name || "Sans type";
+
+      // ✅ NOUVELLE LOGIQUE : Afficher les franchises en texte
+      let franchiseInfo = "";
+      if (isTechAdmin) {
+        if (
+          produit.is_limited &&
+          produit.franchises &&
+          produit.franchises.length > 0
+        ) {
+          const franchisesText = produit.franchises.join(", ");
+          franchiseInfo = `
+            <div style="
+              margin-top: 0.75rem;
+              padding: 0.75rem;
+              background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+              border-left: 4px solid #d4862d;
+              border-radius: 6px;
+              font-size: 0.85rem;
+            ">
+              <div style="
+                color: #d4862d;
+                font-weight: 600;
+                margin-bottom: 0.4rem;
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+              ">
+                ���� Limité aux franchises :
+              </div>
+              <div style="color: #5d4037; line-height: 1.4;">${franchisesText}</div>
+              <div style="color: #999; font-size: 0.75rem; margin-top: 0.3rem;">
+                (${produit.nb_franchises}/${produit.total_franchises} franchises)
+              </div>
+            </div>
+          `;
+        } else {
+          franchiseInfo = `
+            <div style="
+              margin-top: 0.75rem;
+              padding: 0.5rem;
+              font-size: 0.85rem;
+              color: #666;
+              font-style: italic;
+              background: #f5f5f5;
+              border-radius: 4px;
+              text-align: center;
+            ">
+              ✓ Disponible pour toutes les franchises
+            </div>
+          `;
+        }
       }
 
       return `
         <div class="product-item">
           <div class="product-name">${produit.name}</div>
           <div class="product-details">
-            <span class="badge category">${produit.category_name || "Sans catégorie"}</span>
-            <span class="badge type">${produit.type_name || "Sans type"}</span>
-            ${limitedBadge}
+            <span class="badge category">${categoryName}</span>
+            <span class="badge type">${typeName}</span>
           </div>
+          ${franchiseInfo}
           <div class="product-actions">
-            <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
+            <button class="edit-btn" onclick="handleEditProduit(${JSON.stringify(produit).replace(/"/g, "&quot;")})">✏️ Modifier</button>
             <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
           </div>
         </div>
@@ -530,6 +552,9 @@ function displayProduitsCards(produits, container) {
 function displayProduitsTable(produits, container) {
   container.className = "products-table";
 
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
   const getSortClass = (column) => {
     if (sortColumn !== column) return "sortable";
     return sortDirection === "asc" ? "sort-asc" : "sort-desc";
@@ -543,58 +568,67 @@ function displayProduitsTable(produits, container) {
             <th class="${getSortClass("name")}" onclick="handleSort('name')">Nom</th>
             <th class="${getSortClass("category")}" onclick="handleSort('category')">Catégorie</th>
             <th class="${getSortClass("type")}" onclick="handleSort('type')">Type</th>
+            ${isTechAdmin ? '<th style="min-width: 200px;">Franchises</th>' : ""}
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           ${produits
             .map((produit) => {
-              // Générer le badge "Produit limité" si applicable
-              const currentUser = getUser();
-              const isTechAdmin =
-                currentUser && currentUser.role === "TECH_ADMIN";
+              const categoryName = produit.category_name || "Non catégorisé";
+              const typeName = produit.type_name || "Sans type";
+              const produitJson = JSON.stringify(produit).replace(
+                /"/g,
+                "&quot;",
+              );
 
-              let limitedBadge = "";
-              if (isTechAdmin && produit.is_limited) {
-                const franchisesListJSON = JSON.stringify(
-                  produit.franchises,
-                ).replace(/"/g, "&quot;");
-                const franchisesText = produit.franchises.join(", ");
-                limitedBadge = `
-                  <br>
-                  <span 
-                    class="badge limited limited-icon" 
-                    data-franchises='${franchisesListJSON}'
-                    style="
-                      background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
-                      color: #3e2723;
-                      font-weight: bold;
-                      font-size: 1.2rem;
-                      padding: 0.3rem 0.6rem;
-                      cursor: help;
-                      border-radius: 50%;
-                      display: inline-flex;
-                      align-items: center;
-                      justify-content: center;
-                      width: 32px;
-                      height: 32px;
-                      margin-top: 0.5rem;
-                    "
-                    title="📍 Limité à : ${franchisesText} (${produit.nb_franchises}/${produit.total_franchises})"
-                  >
-                    📍
-                  </span>
-                `;
+              // ✅ NOUVELLE LOGIQUE : Colonne franchises
+              let franchisesCell = "";
+              if (isTechAdmin) {
+                if (
+                  produit.is_limited &&
+                  produit.franchises &&
+                  produit.franchises.length > 0
+                ) {
+                  // Produit limité : afficher les franchises
+                  const franchisesText = produit.franchises.join(", ");
+                  franchisesCell = `
+                    <td style="font-size: 0.9rem;">
+                      <div style="
+                        color: #d4862d;
+                        font-weight: 600;
+                        margin-bottom: 0.3rem;
+                      ">
+                        📍 ${franchisesText}
+                      </div>
+                      <small style="color: #999;">
+                        (${produit.nb_franchises}/${produit.total_franchises} franchises)
+                      </small>
+                    </td>
+                  `;
+                } else {
+                  // Produit global
+                  franchisesCell = `
+                    <td style="
+                      color: #666;
+                      font-style: italic;
+                      text-align: center;
+                    ">
+                      Toutes les franchises
+                    </td>
+                  `;
+                }
               }
 
               return `
                 <tr>
-                  <td class="product-name">${produit.name}${limitedBadge}</td>
-                  <td><span class="badge category">${produit.category_name || "Sans catégorie"}</span></td>
-                  <td><span class="badge type">${produit.type_name || "Sans type"}</span></td>
+                  <td class="product-name">${produit.name}</td>
+                  <td><span class="badge category">${categoryName}</span></td>
+                  <td><span class="badge type">${typeName}</span></td>
+                  ${franchisesCell}
                   <td>
                     <div class="table-actions">
-                      <button class="edit-btn" onclick="openEditModal('${produit.id}')">✏️ Modifier</button>
+                      <button class="edit-btn" onclick='handleEditProduit(${produitJson})'>✏️ Modifier</button>
                       <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
                     </div>
                   </td>
@@ -602,7 +636,6 @@ function displayProduitsTable(produits, container) {
               `;
             })
             .join("")}
-                  
         </tbody>
       </table>
     </div>
@@ -992,129 +1025,4 @@ function applyFilters() {
   currentFilteredProduits = filteredProduits;
 
   displayProduits(filteredProduits);
-}
-
-// ===========================================
-// TOOLTIP POUR PRODUITS LIMITÉS (EVENT DELEGATION)
-// ===========================================
-
-let tooltipElement = null;
-
-function initializeTooltipSystem() {
-  console.log("🚀 Initialisation du système de tooltip...");
-
-  // Créer l'élément tooltip
-  tooltipElement = document.createElement("div");
-  tooltipElement.id = "franchise-tooltip";
-  tooltipElement.style.position = "fixed";
-  tooltipElement.style.background =
-    "linear-gradient(135deg, #3e2723 0%, #5d4037 100%)";
-  tooltipElement.style.color = "white";
-  tooltipElement.style.padding = "1rem";
-  tooltipElement.style.borderRadius = "8px";
-  tooltipElement.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
-  tooltipElement.style.zIndex = "10000";
-  tooltipElement.style.maxWidth = "300px";
-  tooltipElement.style.fontSize = "0.95rem";
-  tooltipElement.style.pointerEvents = "none";
-  tooltipElement.style.display = "none";
-  document.body.appendChild(tooltipElement);
-
-  console.log("✅ Tooltip créé et attaché au DOM");
-
-  // Event delegation : écouter sur le document entier
-  document.addEventListener("mouseover", handleMouseOver);
-  document.addEventListener("mouseout", handleMouseOut);
-  document.addEventListener("mousemove", handleMouseMove);
-
-  console.log("✅ Event listeners attachés");
-}
-
-function handleMouseOver(e) {
-  const badge = e.target.closest(".limited-icon");
-  if (badge) {
-    console.log("🎯 Survol détecté sur badge:", badge);
-    const franchisesData = badge.getAttribute("data-franchises");
-    console.log("📊 Données franchises:", franchisesData);
-
-    if (franchisesData) {
-      try {
-        const franchises = JSON.parse(franchisesData);
-        console.log("✅ Franchises parsées:", franchises);
-        showTooltip(e, franchises);
-      } catch (err) {
-        console.error("❌ Erreur parsing franchises:", err);
-      }
-    }
-  }
-}
-
-function handleMouseOut(e) {
-  const badge = e.target.closest(".limited-icon");
-  if (badge) {
-    console.log("👋 Sortie du badge");
-    hideTooltip();
-  }
-}
-
-function handleMouseMove(e) {
-  const badge = e.target.closest(".limited-icon");
-  if (badge && tooltipElement && tooltipElement.style.display === "block") {
-    tooltipElement.style.left = e.pageX + 15 + "px";
-    tooltipElement.style.top = e.pageY + 15 + "px";
-  }
-}
-
-function showTooltip(event, franchises) {
-  if (!tooltipElement) {
-    console.error("❌ Tooltip element not found!");
-    return;
-  }
-
-  console.log("📍 Affichage tooltip avec:", franchises);
-
-  // Contenu du tooltip avec style amélioré
-  tooltipElement.innerHTML = `
-    <strong style="display: block; margin-bottom: 0.75rem; color: #f4a460; font-size: 1rem;">
-      📍 Franchises concernées :
-    </strong>
-    ${franchises
-      .map(
-        (f) => `
-      <div style="
-        padding: 0.4rem 0.5rem;
-        margin: 0.25rem 0;
-        background: rgba(255,255,255,0.1);
-        border-radius: 4px;
-        border-left: 3px solid #f4a460;
-      ">
-        • ${f}
-      </div>
-    `,
-      )
-      .join("")}
-  `;
-
-  // Afficher et positionner le tooltip
-  tooltipElement.style.display = "block";
-  tooltipElement.style.left = event.pageX + 15 + "px";
-  tooltipElement.style.top = event.pageY + 15 + "px";
-
-  console.log("✅ Tooltip affiché à:", event.pageX, event.pageY);
-}
-
-function hideTooltip() {
-  if (tooltipElement) {
-    tooltipElement.style.display = "none";
-    console.log("🙈 Tooltip masqué");
-  }
-}
-
-// Initialiser immédiatement si le DOM est prêt, sinon attendre
-if (document.readyState === "loading") {
-  console.log("⏳ DOM en cours de chargement, attente...");
-  document.addEventListener("DOMContentLoaded", initializeTooltipSystem);
-} else {
-  console.log("✅ DOM déjà chargé, initialisation immédiate");
-  initializeTooltipSystem();
 }

@@ -428,52 +428,72 @@ function displayFormulesCards(formules, container) {
       const typeBadgeClass =
         formule.type_formule === "Brunch" ? "type" : "category";
 
-      let limitedBadge = "";
-      if (isTechAdmin && formule.is_limited) {
-        const franchisesListJSON = JSON.stringify(formule.franchises).replace(
-          /"/g,
-          "&quot;",
-        );
-        const franchisesText = formule.franchises.join(", ");
-        limitedBadge = `
-            <span
-              class="badge limited limited-icon"
-              data-franchises='${franchisesListJSON}'
-              style="
-                background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
-                color: #3e2723;
-                font-weight: bold;
-                font-size: 1.2rem;
-                padding: 0.3rem 0.6rem;
-                cursor: help;
-                border-radius: 50%;
-                display: inline-flex;
+      // ✅ NOUVELLE LOGIQUE : Afficher les franchises en texte
+      let franchiseInfo = "";
+      if (isTechAdmin) {
+        if (
+          formule.is_limited &&
+          formule.franchises &&
+          formule.franchises.length > 0
+        ) {
+          const franchisesText = formule.franchises.join(", ");
+          franchiseInfo = `
+            <div style="
+              margin-top: 0.75rem;
+              padding: 0.75rem;
+              background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+              border-left: 4px solid #d4862d;
+              border-radius: 6px;
+              font-size: 0.85rem;
+            ">
+              <div style="
+                color: #d4862d;
+                font-weight: 600;
+                margin-bottom: 0.4rem;
+                display: flex;
                 align-items: center;
-                justify-content: center;
-                width: 32px;
-                height: 32px;
-              "
-              title="📍 Limité à : ${franchisesText} (${formule.nb_franchises}/${formule.total_franchises} franchises)"
-            >
-              📍
-            </span>
+                gap: 0.3rem;
+              ">
+                📍 Limité aux franchises :
+              </div>
+              <div style="color: #5d4037; line-height: 1.4;">${franchisesText}</div>
+              <div style="color: #999; font-size: 0.75rem; margin-top: 0.3rem;">
+                (${formule.nb_franchises}/${formule.total_franchises} franchises)
+              </div>
+            </div>
           `;
+        } else {
+          franchiseInfo = `
+            <div style="
+              margin-top: 0.75rem;
+              padding: 0.5rem;
+              font-size: 0.85rem;
+              color: #666;
+              font-style: italic;
+              background: #f5f5f5;
+              border-radius: 4px;
+              text-align: center;
+            ">
+              ✓ Disponible pour toutes les franchises
+            </div>
+          `;
+        }
       }
 
       return `
-          <div class="product-item">
-            <div class="product-name">${formule.name}</div>
-            <div class="product-details">
-              <span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span>
-              <span class="badge category">${formule.nombre_couverts} couverts</span>
-              ${limitedBadge}
-            </div>
-            <div class="product-actions">
-              <button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>
-              <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
-            </div>
+        <div class="product-item">
+          <div class="product-name">${formule.name}</div>
+          <div class="product-details">
+            <span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span>
+            <span class="badge category">${formule.nombre_couverts} couverts</span>
           </div>
-        `;
+          ${franchiseInfo}
+          <div class="product-actions">
+            <button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>
+            <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
+          </div>
+        </div>
+      `;
     })
     .join("");
 }
@@ -484,6 +504,9 @@ function displayFormulesCards(formules, container) {
 
 function displayFormulesTable(formules, container) {
   container.className = "products-table";
+
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
 
   const getSortClass = (column) => {
     if (sortColumn !== column) return "sortable";
@@ -498,15 +521,13 @@ function displayFormulesTable(formules, container) {
             <th class="${getSortClass("name")}" onclick="handleSort('name')">Nom</th>
             <th class="${getSortClass("type")}" onclick="handleSort('type')">Type</th>
             <th class="${getSortClass("couverts")}" onclick="handleSort('couverts')">Couverts</th>
+            ${isTechAdmin ? '<th style="min-width: 200px;">Franchises</th>' : ""}
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           ${formules
             .map((formule) => {
-              const currentUser = getUser();
-              const isTechAdmin =
-                currentUser && currentUser.role === "TECH_ADMIN";
               const typeBadgeClass =
                 formule.type_formule === "Brunch" ? "type" : "category";
               const formuleJson = JSON.stringify(formule).replace(
@@ -514,44 +535,50 @@ function displayFormulesTable(formules, container) {
                 "&quot;",
               );
 
-              let limitedBadge = "";
-              if (isTechAdmin && formule.is_limited) {
-                const franchisesListJSON = JSON.stringify(
-                  formule.franchises,
-                ).replace(/"/g, "&quot;");
-                const franchisesText = formule.franchises.join(", ");
-                limitedBadge = `
-                  <br>
-                  <span 
-                    class="badge limited limited-icon" 
-                    data-franchises='${franchisesListJSON}'
-                    style="
-                      background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
-                      color: #3e2723;
-                      font-weight: bold;
-                      font-size: 1.2rem;
-                      padding: 0.3rem 0.6rem;
-                      cursor: help;
-                      border-radius: 50%;
-                      display: inline-flex;
-                      align-items: center;
-                      justify-content: center;
-                      width: 32px;
-                      height: 32px;
-                      margin-top: 0.5rem;
-                    "
-                    title="📍 Limité à : ${franchisesText} (${formule.nb_franchises}/${formule.total_franchises} franchises)"
-                  >
-                    📍
-                  </span>
-                `;
+              // ✅ NOUVELLE LOGIQUE : Colonne franchises
+              let franchisesCell = "";
+              if (isTechAdmin) {
+                if (
+                  formule.is_limited &&
+                  formule.franchises &&
+                  formule.franchises.length > 0
+                ) {
+                  // Formule limitée : afficher les franchises
+                  const franchisesText = formule.franchises.join(", ");
+                  franchisesCell = `
+                    <td style="font-size: 0.9rem;">
+                      <div style="
+                        color: #d4862d;
+                        font-weight: 600;
+                        margin-bottom: 0.3rem;
+                      ">
+                        📍 ${franchisesText}
+                      </div>
+                      <small style="color: #999;">
+                        (${formule.nb_franchises}/${formule.total_franchises} franchises)
+                      </small>
+                    </td>
+                  `;
+                } else {
+                  // Formule globale
+                  franchisesCell = `
+                    <td style="
+                      color: #666;
+                      font-style: italic;
+                      text-align: center;
+                    ">
+                      Toutes les franchises
+                    </td>
+                  `;
+                }
               }
 
               return `
                 <tr>
-                  <td class="product-name">${formule.name}${limitedBadge}</td>
+                  <td class="product-name">${formule.name}</td>
                   <td><span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span></td>
                   <td>${formule.nombre_couverts}</td>
+                  ${franchisesCell}
                   <td>
                     <div class="table-actions">
                       <button class="edit-btn" onclick='handleEditFormule(${formuleJson})'>✏️ Modifier</button>
@@ -1193,126 +1220,4 @@ async function handleCreateFormuleWithProduits() {
       alert("Erreur lors de la création de la formule.");
     }
   }
-}
-
-// ===========================================
-// TOOLTIP POUR FORMULES LIMITÉES
-// ===========================================
-
-let tooltipElement = null;
-
-function initializeTooltipSystem() {
-  console.log("🚀 Initialisation du système de tooltip (formules)...");
-
-  tooltipElement = document.createElement("div");
-  tooltipElement.id = "franchise-tooltip-formules";
-  tooltipElement.style.position = "fixed";
-  tooltipElement.style.background =
-    "linear-gradient(135deg, #3e2723 0%, #5d4037 100%)";
-  tooltipElement.style.color = "white";
-  tooltipElement.style.padding = "1rem";
-  tooltipElement.style.borderRadius = "8px";
-  tooltipElement.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
-  tooltipElement.style.zIndex = "1000";
-  tooltipElement.style.maxWidth = "300px";
-  tooltipElement.style.fontSize = "0.9rem";
-  tooltipElement.style.pointerEvents = "none";
-  tooltipElement.style.display = "none";
-  document.body.appendChild(tooltipElement);
-
-  console.log("✅ Système de tooltip initialisé pour les formules limitées");
-
-  document.addEventListener("mouseover", handleMouseOver);
-  document.addEventListener("mousemove", handleMouseMove);
-  document.addEventListener("mouseout", handleMouseOut);
-
-  console.log("✅ Événements de tooltip attachés pour les formules limitées");
-}
-
-function handleMouseOver(e) {
-  const badge = e.target.closest(".limited-icon");
-  if (badge) {
-    console.log("🎯 Survol détecté sur badge:", badge);
-    const franchisesData = badge.getAttribute("data-franchises");
-    console.log("📊 Données de franchises extraites:", franchisesData);
-
-    if (franchisesData) {
-      try {
-        const franchises = JSON.parse(franchisesData);
-        console.log("✅ Franchises parsées:", franchises);
-        showTooltip(e, franchises);
-      } catch (err) {
-        console.error("❌ Erreur parsing franchises:", err);
-      }
-    }
-  }
-}
-
-function handleMouseOut(e) {
-  const badge = e.target.closest(".limited-icon");
-  if (badge) {
-    console.log("👋 Sortie du badge");
-    hideTooltip();
-  }
-}
-
-function handleMouseMove(e) {
-  const badge = e.target.closest(".limited-icon");
-  if (badge && tooltipElement.style.display === "block") {
-    tooltipElement.style.left = e.pageX + 15 + "px";
-    tooltipElement.style.top = e.pageY + 15 + "px";
-  }
-}
-
-function showTooltip(event, franchises) {
-  if (!tooltipElement) {
-    console.error("❌ Tooltip element not found!");
-    return;
-  }
-
-  console.log("📍 Affichage tooltip avec:", franchises);
-
-  // Contenu du tooltip avec style amélioré
-  tooltipElement.innerHTML = `
-    <strong style="display: block; margin-bottom: 0.75rem; color: #f4a460; font-size: 1rem;">
-      📍 Franchises concernées :
-    </strong>
-    ${franchises
-      .map(
-        (f) => `
-      <div style="
-        padding: 0.4rem 0.5rem;
-        margin: 0.25rem 0;
-        background: rgba(255,255,255,0.1);
-        border-radius: 4px;
-        border-left: 3px solid #f4a460;
-      ">
-        • ${f}
-      </div>
-    `,
-      )
-      .join("")}
-  `;
-
-  // Afficher et positionner le tooltip
-  tooltipElement.style.display = "block";
-  tooltipElement.style.left = event.pageX + 15 + "px";
-  tooltipElement.style.top = event.pageY + 15 + "px";
-
-  console.log("✅ Tooltip affiché à:", event.pageX, event.pageY);
-}
-
-function hideTooltip() {
-  if (tooltipElement) {
-    tooltipElement.style.display = "none";
-    console.log("✅ Tooltip caché");
-  }
-}
-
-if (document.readyState === "loading") {
-  console.log("⏳ DOM en cours de chargement, attente...");
-  document.addEventListener("DOMContentLoaded", initializeTooltipSystem);
-} else {
-  console.log("✅ DOM déjà chargé, initialisation immédiate du tooltip");
-  initializeTooltipSystem();
 }

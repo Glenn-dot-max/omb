@@ -13,12 +13,22 @@ async def get_produits_by_formule(formule_id: str, current_user: dict = Depends(
     formule_check = supabase.table("formules")\
         .select("id")\
         .eq("id", formule_id)\
-        .eq("franchise_id", current_user["franchise_id"])\
         .execute()
     
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
     
+    if current_user.get("role") != "TECH_ADMIN":
+        franchise_access = supabase.table("franchise_formules")\
+            .select("formule_id")\
+            .eq("formule_id", formule_id)\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("active", True)\
+            .execute()
+        
+        if not franchise_access.data:
+            raise HTTPException(status_code=403, detail="Access denied to this formule")
+
     response = supabase.table("formule_produits").select("*, produits(name)").eq("formule_id", formule_id).execute()
 
     # Transformer les données pour aplatir la structure
@@ -49,16 +59,32 @@ async def create_formule_produit(formule_produit: FormuleProduitCreate, current_
     if current_user.get("role") != "TECH_ADMIN":
         franchise_formule_access = supabase.table("franchise_formules")\
             .select("formule_id")\
-            REPRENDRE ICI 
-
+            .eq("formule_id", str(formule_produit.formule_id))\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("active", True)\
+            .execute()
+        
+        if not franchise_formule_access.data:
+            raise HTTPException(status_code=403, detail="Access denied to this formule")
+        
     produit_check = supabase.table("produits")\
         .select("id")\
         .eq("id", str(formule_produit.produit_id))\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()  
+        .execute()
     
     if not produit_check.data:
         raise HTTPException(status_code=404, detail="Produit not found")
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        franchise_produit_access = supabase.table("franchise_produits")\
+            .select("produit_id")\
+            .eq("produit_id", str(formule_produit.produit_id))\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("active", True)\
+            .execute()
+        
+        if not franchise_produit_access.data:
+            raise HTTPException(status_code=403, detail="Access denied to this produit")
 
     # Convertir les UUIDs en string
     data = formule_produit.model_dump()
@@ -89,11 +115,21 @@ async def update_formule_produit(formule_produit_id: int, formule_produit: Formu
     formule_check = supabase.table("formules")\
         .select("id")\
         .eq("id", existing.data[0]['formule_id'])\
-        .eq("franchise_id", current_user["franchise_id"])\
         .execute()
     
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        franchise_access = supabase.table("franchise_formules")\
+            .select("formule_id")\
+            .eq("formule_id", existing.data[0]['formule_id'])\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("active", True)\
+            .execute()
+        
+        if not franchise_access.data:
+            raise HTTPException(status_code=403, detail="Access denied to this formule")
 
     update_data = {k: v for k, v in formule_produit.model_dump().items() if v is not None}
     response = supabase.table("formule_produits").update(update_data).eq("id", formule_produit_id).execute()
@@ -115,12 +151,22 @@ async def delete_formule_produit(formule_produit_id: int, current_user: dict = D
     formule_check = supabase.table("formules")\
         .select("id")\
         .eq("id", existing.data[0]['formule_id'])\
-        .eq("franchise_id", current_user["franchise_id"])\
         .execute()
     
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
     
+    if current_user.get("role") != "TECH_ADMIN":
+        franchise_access = supabase.table("franchise_formules")\
+            .select("formule_id")\
+            .eq("formule_id", existing.data[0]['formule_id'])\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("active", True)\
+            .execute()
+        
+        if not franchise_access.data:
+            raise HTTPException(status_code=403, detail="Access denied to this formule")
+
     response = supabase.table("formule_produits").delete().eq("id", formule_produit_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Formule-Produit not found")
