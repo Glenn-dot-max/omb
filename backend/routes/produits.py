@@ -32,7 +32,7 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
         # Créer un dictionnaire {id: nom} pour accès rapide
         franchise_map = {f["id"]: f["nom"] for f in all_franchises.data}
 
-        # 3️�� Récupérer TOUS les liens franchise_produits actifs (UNE SEULE REQUÊTE)
+        # 3️⃣ Récupérer TOUS les liens franchise_produits actifs (UNE SEULE REQUÊTE)
         all_liens = supabase.table("franchise_produits")\
             .select("produit_id, franchise_id")\
             .eq("active", True)\
@@ -59,7 +59,7 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
             # Ajouter les métadonnées
             produit["nb_franchises"] = nb_franchises_actives
             produit["total_franchises"] = total_franchises
-            produit["is_limited"] = nb_franchises_actives < total_franchises
+            produit["is_limited"] = 0 < nb_franchises_actives < total_franchises
             produit["franchises"] = sorted(franchises_liees)
         
         return produits
