@@ -39,68 +39,194 @@
         </div>
       </div>
 
-      <!-- Barre de recherche et filtres-->
-      <div class="search-card">
-        <h3>Rechercher et filtrer</h3>
-        <input
-          type="text"
-          id="search-input"
-          placeholder="🔍 Rechercher une formule..."
-        />
+      <!-- Barre de recherche et filtres -->
+      <div class="form-card">
+        <h3>🔍 Rechercher et filtrer</h3>
 
-        <select id="filter-type">
-          <option value="">-- Filtrer par type --</option>
-          <option value="Brunch">Brunch</option>
-          <option value="Non-Brunch">Non-Brunch</option>
-        </select>
+        <div style="display: grid; gap: 1.2rem">
+          <!-- Barre de recherche -->
+          <input
+            type="text"
+            id="search-input"
+            placeholder="🔍 Rechercher une formule..."
+            style="
+              font-size: 1.1rem;
+              padding: 1rem;
+              border: 2px solid #e0e0e0;
+              border-radius: 8px;
+              transition: all 0.3s;
+            "
+            onfocus="
+              this.style.borderColor = '#f4a460';
+              this.style.boxShadow = '0 0 0 3px rgba(244, 164, 96, 0.1)';
+            "
+            onblur="
+              this.style.borderColor = '#e0e0e0';
+              this.style.boxShadow = 'none';
+            "
+          />
 
-        <!-- Filtre franchise -->
-        <select id="filter-franchise">
-          <option value="">-- Filtrer par franchise --</option>
-        </select>
-
-        <button id="reset-filters" class="btn-secondary">Réinitialiser</button>
-
-        <!-- ✅ Toggle Vue -->
-        <div
-          class="view-toggle"
-          style="margin-top: 1rem; float: right; clear: both"
-        >
-          <button id="view-cards" class="toggle-btn active" title="Vue cartes">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
+          <!-- Filtres type et franchise sur la même ligne -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
+            <select
+              id="filter-type"
+              style="
+                font-size: 1.05rem;
+                padding: 1rem;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+                cursor: pointer;
+                transition: all 0.3s;
+              "
+              onfocus="
+                this.style.borderColor = '#f4a460';
+                this.style.boxShadow = '0 0 0 3px rgba(244, 164, 96, 0.1)';
+              "
+              onblur="
+                this.style.borderColor = '#e0e0e0';
+                this.style.boxShadow = 'none';
+              "
             >
-              <rect x="3" y="3" width="7" height="7" rx="1" />
-              <rect x="14" y="3" width="7" height="7" rx="1" />
-              <rect x="3" y="14" width="7" height="7" rx="1" />
-              <rect x="14" y="14" width="7" height="7" rx="1" />
-            </svg>
-          </button>
-          <button id="view-table" class="toggle-btn" title="Vue tableau">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
+              <option value="">🏷️ Filtrer par type</option>
+              <option value="Brunch">Brunch</option>
+              <option value="Non-Brunch">Non-Brunch</option>
+            </select>
+
+            <!-- Filtre franchise (affiché uniquement pour TECH_ADMIN) -->
+            <select
+              id="filter-franchise"
+              style="
+                display: none;
+                font-size: 1.05rem;
+                padding: 1rem;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+                cursor: pointer;
+                transition: all 0.3s;
+              "
+              onfocus="
+                this.style.borderColor = '#f4a460';
+                this.style.boxShadow = '0 0 0 3px rgba(244, 164, 96, 0.1)';
+              "
+              onblur="
+                this.style.borderColor = '#e0e0e0';
+                this.style.boxShadow = 'none';
+              "
             >
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-            </svg>
-          </button>
+              <option value="">🏢 Toutes les franchises</option>
+            </select>
+          </div>
+
+          <!-- Actions et toggle vue -->
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-top: 0.5rem;
+            "
+          >
+            <button
+              id="reset-filters"
+              class="btn-secondary"
+              style="
+                font-size: 1.05rem;
+                padding: 1rem 2rem;
+                background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.3s;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              "
+              onmouseover="
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+              "
+              onmouseout="
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+              "
+            >
+              🔄 Effacer les filtres
+            </button>
+
+            <!-- Toggle Vue -->
+            <div
+              class="view-toggle"
+              style="
+                display: flex;
+                gap: 0.5rem;
+                background: #f5f5f5;
+                padding: 0.3rem;
+                border-radius: 8px;
+              "
+            >
+              <button
+                id="view-cards"
+                class="toggle-btn active"
+                title="Vue cartes"
+                style="
+                  padding: 0.6rem 1rem;
+                  border: none;
+                  background: white;
+                  cursor: pointer;
+                  transition: all 0.3s;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  border-radius: 6px;
+                "
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </button>
+              <button
+                id="view-table"
+                class="toggle-btn"
+                title="Vue tableau"
+                style="
+                  padding: 0.6rem 1rem;
+                  border: none;
+                  background: transparent;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  transition: all 0.3s;
+                "
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-
       <!-- Liste des formules-->
       <div id="formules-list" class="products-list">
         <!-- Les formules seront affichées ici dynamiquement -->

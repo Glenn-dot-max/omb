@@ -28,41 +28,64 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
         # 2️⃣ Récupérer toutes les franchises (UNE SEULE REQUÊTE)
         all_franchises = supabase.table("franchises").select("id, nom").execute()
         total_franchises = len(all_franchises.data)
-        
-        # Créer un dictionnaire {id: nom} pour accès rapide
-        franchise_map = {f["id"]: f["nom"] for f in all_franchises.data}
 
-        # 3️⃣ Récupérer TOUS les liens franchise_produits actifs (UNE SEULE REQUÊTE)
-        all_liens = supabase.table("franchise_produits")\
-            .select("produit_id, franchise_id")\
-            .eq("active", True)\
-            .execute()
-        
-        # 4️⃣ Regrouper les liens par produit_id
+        # Créer un dictionnaire {id: nom} pour accès rapide
+        franchise_map = {str(f["id"]): f["nom"] for f in all_franchises.data}
+
+        # 3️⃣ Récupérer TOUS les liens en plusieurs pages (pagination)
         from collections import defaultdict
-        liens_par_produit = defaultdict(list)
-        for lien in all_liens.data:
-            liens_par_produit[lien["produit_id"]].append(lien["franchise_id"])
-        
-        # 5️⃣ Ajouter les métadonnées à chaque produit (EN MÉMOIRE)
-        for produit in produits:
-            franchise_ids = liens_par_produit.get(produit["id"], [])
+        all_liens_data = []
+        page_size = 1000
+        offset = 0
+
+        while True:
+            liens_page = supabase.table("franchise_produits")\
+                .select("produit_id, franchise_id")\
+                .eq("active", True)\
+                .range(offset, offset + page_size - 1)\
+                .execute()
             
-            # Récupérer les noms des franchises
+            if not liens_page.data:
+                break
+            
+            all_liens_data.extend(liens_page.data)
+            
+            if len(liens_page.data) < page_size:
+                break
+            
+            offset += page_size
+
+        # 4️⃣ Regrouper les liens par produit_id
+        liens_par_produit = defaultdict(list)
+        for lien in all_liens_data:
+            produit_id_str = str(lien["produit_id"])
+            franchise_id_str = str(lien["franchise_id"])
+            liens_par_produit[produit_id_str].append(franchise_id_str)
+    
+        enriched_produits = []
+
+        for produit in produits:
+            produit_id_str = str(produit["id"])
+            franchise_ids = liens_par_produit.get(produit_id_str, [])
+
             franchises_liees = [
-                franchise_map[fid] for fid in franchise_ids 
+                franchise_map[fid] for fid in franchise_ids
                 if fid in franchise_map
             ]
-            
+
             nb_franchises_actives = len(franchises_liees)
-            
-            # Ajouter les métadonnées
-            produit["nb_franchises"] = nb_franchises_actives
-            produit["total_franchises"] = total_franchises
-            produit["is_limited"] = 0 < nb_franchises_actives < total_franchises
-            produit["franchises"] = sorted(franchises_liees)
-        
-        return produits
+
+            enriched_produit = {
+                **produit,
+                "nb_franchises": nb_franchises_actives,
+                "total_franchises": total_franchises,
+                "is_limited": 0 < nb_franchises_actives < total_franchises,
+                "franchises": sorted(franchises_liees)
+            }
+
+            enriched_produits.append(enriched_produit)
+
+        return enriched_produits
     
     # Pour les utilisateurs franchisés
     franchise_id = current_user["franchise_id"]

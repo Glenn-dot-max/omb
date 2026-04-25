@@ -817,9 +817,9 @@ async function handleAddProduit(event) {
     }
 
     const nouveauProduit = await createProduit(produitData);
-    allProduits.push(nouveauProduit);
-    currentFilteredProduits = allProduits;
-    displayProduits(allProduits);
+
+    // ✅ RECHARGER tous les produits pour avoir les métadonnées
+    await loadProduits();
 
     // Vider le formulaire
     document.getElementById("product-name").value = "";
