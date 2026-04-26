@@ -12,10 +12,12 @@ let tempProduits = [];
 let allFormules = [];
 let allProduits = [];
 let allUnites = [];
+let allFranchises = [];
 let currentEditingCommande = null;
 let editFormules = [];
 let editProduits = [];
 let currentTab = "active";
+let currentFranchiseFilter = "";
 
 // ===============================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -35,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadInitialData() {
+  await loadFranchises();
   await loadCommandes();
   await loadDataForModal();
 
@@ -62,6 +65,68 @@ function displayParisTimeInfo() {
 }
 
 // ===============================================
+// CHARGER LES FRANCHISES (TECH_ADMIN)
+// ===============================================
+
+async function loadFranchises() {
+  console.log("🔍 loadFranchises() appelée !"); // ← AJOUT
+
+  try {
+    const currentUser = getUser();
+    console.log("👤 currentUser dans loadFranchises:", currentUser); // ← AJOUT
+    console.log("👤 Rôle:", currentUser?.role); // ← AJOUT
+
+    const filterFranchise = document.getElementById("filter-franchise");
+    console.log("📦 Élément filtre:", filterFranchise); // ← AJOUT
+
+    if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+      if (filterFranchise) {
+        filterFranchise.style.display = "none";
+      }
+      console.log("🔒 Utilisateur non TECH_ADMIN, filtre de franchise masqué.");
+      return;
+    }
+
+    console.log("✅ Utilisateur TECH_ADMIN détecté, affichage du filtre..."); // ← AJOUT
+
+    if (filterFranchise) {
+      filterFranchise.style.display = "block";
+      console.log("✅ Filtre display = block"); // ← AJOUT
+    } else {
+      console.warn("⚠️ Élément filter-franchise introuvable !"); // ← AJOUT
+    }
+
+    allFranchises = await apiGet("/admin/franchises");
+
+    populateFranchiseSelect();
+
+    console.log(
+      `✅ Filtre franchise activé pour TECH_ADMIN (${allFranchises.length} franchises chargées)`,
+    );
+  } catch (error) {
+    console.error("Erreur lors du chargement des franchises :", error);
+    const filterFranchise = document.getElementById("filter-franchise");
+    if (filterFranchise) {
+      filterFranchise.style.display = "none";
+    }
+  }
+}
+
+function populateFranchiseSelect() {
+  const select = document.getElementById("filter-franchise");
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Toutes les franchises</option>';
+
+  allFranchises.forEach((franchise) => {
+    const option = document.createElement("option");
+    option.value = franchise.id;
+    option.textContent = franchise.nom;
+    select.appendChild(option);
+  });
+}
+
+// ===============================================
 // CHARGEMENT DES COMMANDES
 // ===============================================
 
@@ -83,15 +148,35 @@ async function loadCommandes() {
       }
     }
 
-    // Charger selon l'onglet actif
+    const currentUser = getUser();
     let response;
-    if (currentTab === "active") {
-      response = await getCommandes();
+
+    if (
+      currentFranchiseFilter &&
+      currentUser &&
+      currentUser.role === "TECH_ADMIN"
+    ) {
+      console.log(
+        `🔍 Chargement des commandes pour la franchise ID ${currentFranchiseFilter}`,
+      );
+
+      if (currentTab === "active") {
+        response = await apiGet(
+          `/admin/franchises/${currentFranchiseFilter}/commandes?archived=false`,
+        );
+      } else {
+        response = await apiGet(
+          `/admin/franchises/${currentFranchiseFilter}/commandes?archived=true`,
+        );
+      }
     } else {
-      response = await getArchivedCommandes();
+      if (currentTab === "active") {
+        response = await getCommandes();
+      } else {
+        response = await getArchivedCommandes();
+      }
     }
 
-    // Extraire les commandes et la date de Paris
     if (response.commandes) {
       allCommandes = response.commandes;
       window.parisDate = response.paris_date;
@@ -597,6 +682,11 @@ function setupEventListeners() {
   const filterDate = document.getElementById("filter-date");
   filterDate.addEventListener("change", handleDateFilter);
 
+  const filterFranchise = document.getElementById("filter-franchise");
+  if (filterFranchise) {
+    filterFranchise.addEventListener("change", handleFranchiseChange);
+  }
+
   const resetBtn = document.getElementById("reset-filters");
   resetBtn.addEventListener("click", handleResetFilters);
 
@@ -700,14 +790,39 @@ function handleDateFilter(event) {
   applyFilters();
 }
 
+async function handleFranchiseChange() {
+  const currentUser = getUser();
+
+  if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+    console.warn("⚠️ Accès refusé : filtre franchise réservé aux TECH_ADMIN.");
+    return;
+  }
+
+  currentFranchiseFilter = document.getElementById("filter-franchise").value;
+
+  if (currentFranchiseFilter) {
+    console.log(`🔍 Filtrage par franchise : ${currentFranchiseFilter}`);
+  } else {
+    console.log("🔍 Retour à toutes les commandes");
+  }
+
+  await loadCommandes();
+}
+
 function handleResetFilters() {
   currentSearchTerm = "";
   currentDateFilter = "";
+  currentFranchiseFilter = "";
 
   document.getElementById("search-input").value = "";
   document.getElementById("filter-date").value = "";
 
-  displayCommandes(allCommandes);
+  const filterFranchise = document.getElementById("filter-franchise");
+  if (filterFranchise) {
+    filterFranchise.value = "";
+  }
+
+  loadCommandes();
 }
 
 function applyFilters() {

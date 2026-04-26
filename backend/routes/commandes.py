@@ -1,11 +1,14 @@
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
 from models import CarnetCommandeCreate, CarnetCommandeUpdate
 from datetime import datetime, date, time, timedelta
 from uuid import UUID
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/commandes", tags=["commandes"])
 supabase = get_supabase_client()
@@ -26,60 +29,87 @@ def serialize_commande(commande):
 
 @router.get("/")
 async def get_commandes(current_user: dict = Depends(get_current_user)):
-    """Get all commandes"""
-    from zoneinfo import ZoneInfo
+    """Get all commandes (TECH_ADMIN: all, USER: their franchise)"""
+    try:
+        query = supabase.table("carnet_commande").select("*")
 
-    response = supabase.table("carnet_commande")\
-        .select("*")\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .eq("archived", False)\
-        .order("delivery_date", desc=True)\
-        .execute()
-    
-    paris_tz = ZoneInfo("Europe/Paris")
-    paris_now = datetime.now(paris_tz)
+        if current_user["role"] != "TECH_ADMIN":
+            if not current_user.get("franchise_id"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Utilisateur sans franchise associée"
+                )
+            query = query.eq("franchise_id", current_user["franchise_id"])
 
-    return {
-        "commandes": [serialize_commande(commande) for commande in response.data],
-        "paris_date": paris_now.date().isoformat(),
-        "paris_datetime": paris_now.isoformat()
-    }
+        response = query\
+            .eq("archived", False)\
+            .order("delivery_date", desc=False)\
+            .execute()
+        
+        paris_tz = ZoneInfo("Europe/Paris")
+        paris_now = datetime.now(paris_tz)
+
+        return {
+            "commandes": [serialize_commande(commande) for commande in response.data],
+            "paris_date": paris_now.date().isoformat(),
+            "paris_datetime": paris_now.isoformat()
+        }
     
+    except Exception as e:
+        logger.error(f"Error loading commandes: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )   
 
 @router.get("/archived")
 async def get_archived_commandes(current_user: dict = Depends(get_current_user)):
-    """Get all archived commandes"""
-    response = supabase.table("carnet_commande")\
-        .select("*")\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .eq("archived", True)\
-        .order("delivery_date", desc=True)\
-        .execute()
-    return [serialize_commande(commande) for commande in response.data]
-
-@router.get("/archived/{commande_id}")
-async def get_archived_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
-    """Get a single archived commande by ID"""
-    response = supabase.table("carnet_commande")\
-        .select("*")\
-        .eq("id", commande_id)\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .eq("archived", True)\
-        .execute()
-    if not response.data:
-        raise HTTPException(status_code=404, detail="Archived commande not found")
-    return serialize_commande(response.data[0])
-
+    """Get all archived commandes (TECH_ADMIN: all, USER: their franchise)"""
+    
+    try:
+        # ✅ CORRECTION : Ne pas filtrer par franchise pour TECH_ADMIN
+        query = supabase.table("carnet_commande").select("*")
+        
+        # Si l'utilisateur n'est PAS TECH_ADMIN, filtrer par franchise
+        if current_user.get("role") != "TECH_ADMIN":
+            if not current_user.get("franchise_id"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Utilisateur sans franchise associée"
+                )
+            query = query.eq("franchise_id", current_user["franchise_id"])
+        
+        # Ajouter les filtres communs
+        response = query\
+            .eq("archived", True)\
+            .order("delivery_date", desc=True)\
+            .execute()
+        
+        return [serialize_commande(commande) for commande in response.data]
+    except Exception as e:
+        logger.error(f"Error loading archived commandes: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    
 
 @router.get("/{commande_id}")
 async def get_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Get a single Non-archived commande by ID"""
-    response = supabase.table("carnet_commande")\
-        .select("*")\
-        .eq("id", commande_id)\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .eq("archived", False)\
-        .execute()
+
+    query = supabase.table("carnet_commande").select("*").eq("id", commande_id).eq("archived", False)
+
+    if current_user["role"] != "TECH_ADMIN":
+        if not current_user.get("franchise_id"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Utilisateur sans franchise associée"
+            )
+        query = query.eq("franchise_id", current_user["franchise_id"])
+
+    response = query.execute()
+
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
     return serialize_commande(response.data[0])
@@ -131,39 +161,86 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
 @router.post("/auto-archive")
 async def auto_archive_old_commandes(current_user: dict = Depends(get_current_user)):
     """Archive automatiquement les commandes dont la date de livraison est passée"""
-    from zoneinfo import ZoneInfo
-
-    paris_tz = ZoneInfo("Europe/Paris")
-    today_paris = datetime.now(paris_tz).date()
-    cutoff_date = today_paris.isoformat()
-
-    # Archiver toutes les commandes concernées
-    response = supabase.table("carnet_commande").update({
-        "archived": True,
-        "archived_at": datetime.now(paris_tz).isoformat()
-    }).eq("franchise_id", current_user["franchise_id"])\
-    .lt("delivery_date", cutoff_date)\
-    .eq("archived", False)\
-    .execute()
-
-    # Compter le nombre de commandes archivées
-    count = len(response.data) if response.data else 0
-
-    return {
-        "message": f"{count} commande(s) archivée(s) automatiquement",
-        "count": count,
-        "cutoff_date": cutoff_date
-    }
+    
+    try:
+        paris_tz = ZoneInfo("Europe/Paris")
+        today_paris = datetime.now(paris_tz).date()
+        cutoff_date = today_paris.isoformat()
+        
+        # ✅ CORRECTION : Ne pas filtrer par franchise pour TECH_ADMIN
+        query = supabase.table("carnet_commande").select("id, delivery_date")
+        
+        # Si l'utilisateur n'est PAS TECH_ADMIN, filtrer par franchise
+        if current_user.get("role") != "TECH_ADMIN":
+            if not current_user.get("franchise_id"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Utilisateur sans franchise associée"
+                )
+            query = query.eq("franchise_id", current_user["franchise_id"])
+        
+        # Récupérer les commandes actives
+        response = query\
+            .eq("archived", False)\
+            .eq("validated", True)\
+            .execute()
+        
+        if not response.data:
+            return {"count": 0, "message": "Aucune commande à archiver"}
+        
+        commandes_a_archiver = []
+        
+        for commande in response.data:
+            delivery_date_str = commande["delivery_date"]
+            delivery_date_only = delivery_date_str.split("T")[0]
+            year, month, day = map(int, delivery_date_only.split("-"))
+            delivery_date = date(year, month, day)
+            
+            if delivery_date < today_paris:
+                commandes_a_archiver.append(commande["id"])
+        
+        if not commandes_a_archiver:
+            return {"count": 0, "message": "Aucune commande de J-1 à archiver"}
+        
+        # Archiver les commandes
+        for commande_id in commandes_a_archiver:
+            supabase.table("carnet_commande")\
+                .update({
+                    "archived": True,
+                    "archived_at": datetime.now(paris_tz).isoformat()
+                })\
+                .eq("id", commande_id)\
+                .execute()
+        
+        return {
+            "count": len(commandes_a_archiver),
+            "message": f"{len(commandes_a_archiver)} commande(s) archivée(s)",
+            "cutoff_date": cutoff_date
+        }
+    
+    except Exception as e:
+        logger.error(f"Erreur auto-archive: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+    
 
 @router.patch("/{commande_id}/archive")
 async def archive_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Archive une commande manuellement"""
-    response = supabase.table("carnet_commande").update({
+
+    query = supabase.table("carnet_commande").update({
         "archived": True,
         "archived_at": datetime.now(ZoneInfo("Europe/Paris")).isoformat()
-    }).eq("id", commande_id)\
-    .eq("franchise_id", current_user["franchise_id"])\
-    .execute()
+    }).eq("id", commande_id)
+
+    if current_user["role"] != "TECH_ADMIN":
+        if not current_user.get("franchise_id"):
+            raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
+        query = query.eq("franchise_id", current_user["franchise_id"])
+
+    response = query.execute()
 
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
@@ -208,11 +285,14 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
 
     update_data = serialize_commande(update_data)
 
-    response = supabase.table("carnet_commande")\
-        .update(update_data)\
-        .eq("id", commande_id)\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    query = supabase.table("carnet_commande").update(update_data).eq("id", commande_id)
+
+    if current_user["role"] != "TECH_ADMIN":
+        if not current_user.get("franchise_id"):
+            raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
+        query = query.eq("franchise_id", current_user["franchise_id"])
+
+    response = query.execute()
 
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
@@ -221,34 +301,46 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
 @router.delete("/{commande_id}")
 async def delete_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a commande"""
-    response = supabase.table("carnet_commande").delete()\
-        .eq("id", commande_id)\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+
+    query = supabase.table("carnet_commande").delete().eq("id", commande_id)
+
+    if current_user["role"] != "TECH_ADMIN":
+        if not current_user.get("franchise_id"):
+            raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
+        query = query.eq("franchise_id", current_user["franchise_id"])
+
+    response = query.execute()
+
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
     return {"message": "Commande deleted successfully"}
 
+
 @router.patch("/{commande_id}/validate")
-async def validate_commande(commande_id: str):
+async def validate_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """
     Valider une commande (passe validated à True)
     """
     try:
-        response = supabase.table("carnet_commande")\
-            .update({"validated": True})\
-            .eq("id", commande_id)\
-            .execute()
-        
+        query = supabase.table("carnet_commande").update({"validated": True}).eq("id", commande_id)
+
+        if current_user.get("role") != "TECH_ADMIN":
+            if not current_user.get("franchise_id"):
+                raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
+            query = query.eq("franchise_id", current_user["franchise_id"])
+
+        response = query.execute()
+
         if not response.data:
             raise HTTPException(status_code=404, detail="Commande not found")
         
-        return {"message": "Commande validée avec succès", "commande": response.data[0]}
+        return {"message": "Commande validée avec succès", "commande": serialize_commande(response.data[0])}
     
     except Exception as e:
         raise HTTPException(
             status_code=500, 
             detail=f"Erreur lors de la validation de la commande: {str(e)}"
         )
+
 
 

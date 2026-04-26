@@ -345,3 +345,54 @@ async def get_franchise_formules(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+    
+# ======================================
+# FRANCHISE - COMMANDES
+# ======================================
+
+@router.get("/franchises/{franchise_id}/commandes")
+async def get_franchise_commandes(
+    franchise_id: str,
+    archived: bool = False,
+    current_user: dict = Depends(is_tech_admin)
+):
+    """
+    Récupère les commandes d'une franchise spécifique (TECH_ADMIN uniquement)
+    """
+    try:
+        from routes.commandes import serialize_commande
+        from zoneinfo import ZoneInfo
+        from datetime import datetime
+        
+        print(f"📍 Récupération commandes pour franchise {franchise_id} (archived={archived})")
+        
+        # Récupérer les commandes de cette franchise
+        response = supabase.table("carnet_commande")\
+            .select("*")\
+            .eq("franchise_id", franchise_id)\
+            .eq("archived", archived)\
+            .order("delivery_date", desc=(archived))\
+            .execute()
+        
+        print(f"✅ {len(response.data)} commande(s) trouvée(s)")
+        
+        # Si commandes actives, retourner avec la date de Paris
+        if not archived:
+            paris_tz = ZoneInfo("Europe/Paris")
+            paris_now = datetime.now(paris_tz)
+            
+            return {
+                "commandes": [serialize_commande(cmd) for cmd in response.data],
+                "paris_date": paris_now.date().isoformat(),
+                "paris_datetime": paris_now.isoformat()
+            }
+        
+        # Sinon, juste les commandes archivées
+        return [serialize_commande(cmd) for cmd in response.data]
+    
+    except Exception as e:
+        print(f"❌ ERREUR get_franchise_commandes: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+    

@@ -267,17 +267,19 @@ class CreateUserRequest(BaseModel):
         if not re.search(r'[0-9]', v):
             raise ValueError('Le mot de passe doit contenir au moins un chiffre')
         return v
-    
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str
-    user: dict
 
 class UserInfo(BaseModel):
     id: str
     email: str
-    franchise_id: str
-    franchise_nom: str
+    franchise_id: Optional[str] = None
+    franchise_nom: Optional[str] = None
+    role: str
+    must_change_password: Optional[bool] = False
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user: UserInfo
+
 
 # ===========================================
 # CHANGEMENT DE MOT DE PASSE

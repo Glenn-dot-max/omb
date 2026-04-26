@@ -78,10 +78,17 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     franchise_id = payload.get("franchise_id")
     role = payload.get("role", "USER")
     
-    if user_id is None or franchise_id is None:
+    if user_id is None or email is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if role != "TECH_ADMIN" and franchise_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide: franchise_id manquant",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

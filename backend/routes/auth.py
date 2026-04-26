@@ -31,6 +31,10 @@ async def login(credentials: LoginRequest):
     if not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
     
+    franchise_nom = None
+    if user.get("franchises"):
+        franchise_nom = user["franchises"]["nom"]
+    
     # 3. Créer le token JWT
     token_data = {
         "user_id": user["id"],
@@ -49,7 +53,7 @@ async def login(credentials: LoginRequest):
             "id": user["id"],
             "email": user["email"],
             "franchise_id": user["franchise_id"],
-            "franchise_nom": user["franchises"]["nom"],
+            "franchise_nom": franchise_nom,
             "role": user.get("role", "USER"),
             "must_change_password": user.get("must_change_password", False)
         }
@@ -73,12 +77,16 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
     
     user = response.data[0]
+
+    franchise_nom = None
+    if user.get("franchises"):
+        franchise_nom = user["franchises"]["nom"]
     
     return {
         "id": user["id"],
         "email": user["email"],
         "franchise_id": user["franchise_id"],
-        "franchise_nom": user["franchises"]["nom"],
+        "franchise_nom": franchise_nom,
         "role": user.get("role", "USER")
     }
 
@@ -125,3 +133,4 @@ async def change_password(
     }).eq("id", current_user["user_id"]).execute()
 
     return {"message": "Mot de passe changé avec succès"}
+
