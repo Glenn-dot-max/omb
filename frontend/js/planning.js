@@ -3,6 +3,8 @@
 // =======================================================
 
 let planningData = null;
+let allFranchises = [];
+let currentFranchiseFilter = "";
 
 // =======================================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -13,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // initialiser les dates par défaut (aujourd'hui et dans 7 jours)
   initDefaultDates();
+
+  loadFranchises();
 
   // Attacher les évènements
   attachEventListeners();
@@ -52,6 +56,54 @@ function initDefaultDates() {
 }
 
 // =======================================================
+// CHARGER LES FRANCHISES (TECH_ADMIN)
+// =======================================================
+async function loadFranchises() {
+  try {
+    const currentUser = getUser();
+
+    if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+      const filterContainer = document.getElementById(
+        "franchise-filter-container",
+      );
+      if (filterContainer) {
+        filterContainer.style.display = "none";
+      }
+      console.log("🔒 Utilisateur non TECH_ADMIN, filtre de franchise masqué");
+      return;
+    }
+
+    console.log(
+      "✅ Utilisateur TECH_ADMIN détecté, chargement des franchises...",
+    );
+
+    const filterContainer = document.getElementById(
+      "franchise-filter-container",
+    );
+    if (filterContainer) {
+      filterContainer.style.display = "block";
+    }
+
+    allFranchises = await apiGet("/admin/franchises");
+
+    const select = document.getElementById("filter-franchise-planning");
+    if (select) {
+      select.innerHTML = `<option value="">Toutes les franchises</option>`;
+      allFranchises.forEach((franchise) => {
+        const option = document.createElement("option");
+        option.value = franchise.id;
+        option.textContent = franchise.nom;
+        select.appendChild(option);
+      });
+    }
+
+    console.log(`🌐 ${allFranchises.length} franchises chargées`);
+  } catch (error) {
+    console.error("❌ Erreur lors du chargement des franchises:", error);
+  }
+}
+
+// =======================================================
 // ATTACHER LES ÉVÈNEMENTS
 // =======================================================
 
@@ -80,6 +132,12 @@ async function handleGeneratePlanning() {
   const categorieProduit = document.getElementById("categorie-produit").value;
   const afficherTotaux = document.getElementById("afficher-totaux").checked;
 
+  const currentUser = getUser();
+  const franchiseFilter =
+    currentUser?.role === "TECH_ADMIN"
+      ? document.getElementById("filter-franchise-planning")?.value || ""
+      : "";
+
   // 2. Validation
   if (!dateDebut || !dateFin) {
     alert("⚠️ Veuillez sélectionner une période");
@@ -96,8 +154,7 @@ async function handleGeneratePlanning() {
   container.innerHTML = '<p style="text-align:center;">⏳ Chargement...</p>';
 
   try {
-    const categorieProduit = document.getElementById("categorie-produit").value;
-    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}&categorie=${categorieProduit}`;
+    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}&categorie=${categorieProduit}&franchise=${franchiseFilter}`;
     console.log("🌐 Appel API:", endpoint);
 
     const data = await apiGet(endpoint);

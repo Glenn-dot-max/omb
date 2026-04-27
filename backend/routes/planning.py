@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
+from streamlit import status
 from auth import get_current_user
 from database import get_supabase_client
 from datetime import datetime, date
@@ -10,7 +11,14 @@ router = APIRouter(prefix="/planning", tags=["planning"])
 supabase = get_supabase_client()
 
 @router.get("/production")
-async def get_planning_production(date_debut: str, date_fin: str, type_formule: str = "toutes", categorie: str = "tous", current_user: dict = Depends(get_current_user)):
+async def get_planning_production(
+    date_debut: str, 
+    date_fin: str, 
+    type_formule: str = "toutes", 
+    categorie: str = "tous",
+    franchise: str = "",  # ✅ AJOUTER CE PARAMÈTRE
+    current_user: dict = Depends(get_current_user)  # ✅ AJOUTER current_user
+):
     """
     VERSION OPTIMISÉE - Récupération séparée puis jointure en mémoire
     """
@@ -26,14 +34,33 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
         # =========================================
         
         print("📦 Étape 1: Récupération des commandes...")
-        all_commandes_response = supabase.table("carnet_commande")\
+        
+        # ✅ CONSTRUIRE LA REQUÊTE DE BASE
+        query = supabase.table("carnet_commande")\
             .select("*")\
-            .eq("franchise_id", current_user["franchise_id"])\
             .gte("delivery_date", date_debut)\
             .lte("delivery_date", date_fin)\
-            .order("delivery_date")\
-            .execute()
+            .order("delivery_date")
         
+        # ✅ GESTION DU FILTRAGE PAR FRANCHISE
+        if current_user.get("role") == "TECH_ADMIN":
+            # TECH_ADMIN : filtrer par franchise si spécifiée
+            if franchise:
+                query = query.eq("franchise_id", franchise)
+                print(f"    🔒 TECH_ADMIN - Filtrage par franchise: {franchise}")
+            else:
+                print(f"    🔓 TECH_ADMIN - Accès à TOUTES les franchises")
+        else:
+            # Utilisateur franchisé : filtrer par SA franchise
+            if not current_user.get("franchise_id"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Utilisateur sans franchise associée"
+                )
+            query = query.eq("franchise_id", current_user["franchise_id"])
+            print(f"    🔒 Filtrage par franchise utilisateur: {current_user['franchise_id']}")
+        
+        all_commandes_response = query.execute()
         all_commandes = all_commandes_response.data
 
         commandes_non_validees = [c for c in all_commandes if c.get("validated") is False]
@@ -80,7 +107,6 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
             formules_response = supabase.table("formules")\
                 .select("id, name, type_formule")\
                 .in_("id", list(formule_ids))\
-                .eq("franchise_id", current_user["franchise_id"])\
                 .execute()
             
             for f in formules_response.data:
@@ -132,7 +158,6 @@ async def get_planning_production(date_debut: str, date_fin: str, type_formule: 
             produits_response = supabase.table("produits")\
                 .select("id, name, categorie_id, type_id")\
                 .in_("id", list(produit_ids))\
-                .eq("franchise_id", current_user["franchise_id"])\
                 .execute()
             
             print(f"      ✅ {len(produits_response.data)} produits")
