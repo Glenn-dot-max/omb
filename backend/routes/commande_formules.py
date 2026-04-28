@@ -25,40 +25,48 @@ def serialize_date(data):
 @router.get("/commande/{commande_id}")
 async def get_formules_by_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Get all formules for a commande"""
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", commande_id)\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Construire la requête SANS l'exécuter
+    query = supabase.table("carnet_commande").select("id").eq("id", commande_id)
+    
+    # Ajouter le filtre franchise seulement si pas TECH_ADMIN
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    # MAINTENANT on exécute
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
+    
     response = supabase.table("commande_formules").select("*").eq("commande_id", commande_id).execute()
     return [serialize_date(commande_formule) for commande_formule in response.data]
 
 @router.post("/")
 async def create_commande_formule(commande_formule: CommandeFormuleCreate, current_user: dict = Depends(get_current_user)):
     """Add a formule to a commande"""
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", str(commande_formule.commande_id))\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier la commande
+    query = supabase.table("carnet_commande").select("id").eq("id", str(commande_formule.commande_id))
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
     
-    formule_check = supabase.table("formules")\
-        .select("id")\
-        .eq("id", str(commande_formule.formule_id))\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier la formule
+    formule_query = supabase.table("formules").select("id").eq("id", str(commande_formule.formule_id))
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        formule_query = formule_query.eq("franchise_id", current_user["franchise_id"])
+    
+    formule_check = formule_query.execute()
     
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
     
     produits_exclus = commande_formule.produits_exclus
-
     formule_data = serialize_date(commande_formule.model_dump(exclude={'produits_exclus'}))
 
     # Insérer la commande_formule
@@ -77,7 +85,7 @@ async def create_commande_formule(commande_formule: CommandeFormuleCreate, curre
         ]
         supabase.table("commande_formule_exclusions").insert(exclusions_data).execute()
 
-        return serialize_date(commande_formule_data)
+    return serialize_date(commande_formule_data)
 
 @router.delete("/{commande_formule_id}")
 async def delete_commande_formule(commande_formule_id: int, current_user: dict = Depends(get_current_user)):
@@ -90,11 +98,13 @@ async def delete_commande_formule(commande_formule_id: int, current_user: dict =
     if not existing.data:
         raise HTTPException(status_code=404, detail="Commande-Formule not found")
     
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", existing.data[0]['commande_id'])\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier la commande
+    query = supabase.table("carnet_commande").select("id").eq("id", existing.data[0]['commande_id'])
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
@@ -115,11 +125,13 @@ async def get_formule_exclusions(commande_formule_id: int, current_user: dict = 
     if not existing.data:
         raise HTTPException(status_code=404, detail="Commande-Formule not found")
     
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", existing.data[0]['commande_id'])\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier la commande
+    query = supabase.table("carnet_commande").select("id").eq("id", existing.data[0]['commande_id'])
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")

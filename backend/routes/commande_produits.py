@@ -26,11 +26,15 @@ def serialize_date(data):
 @router.get("/commande/{commande_id}")
 async def get_produits_by_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Get all produits for a commande"""
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", commande_id)\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Construire la requête SANS l'exécuter
+    query = supabase.table("carnet_commande").select("id").eq("id", commande_id)
+    
+    # Ajouter le filtre franchise seulement si pas TECH_ADMIN
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    # MAINTENANT on exécute
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
@@ -41,20 +45,24 @@ async def get_produits_by_commande(commande_id: str, current_user: dict = Depend
 @router.post("/")
 async def create_commande_produit(commande_produit: CommandeProduitCreate, current_user: dict = Depends(get_current_user)):
     """Add a produit to a commande"""
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", str(commande_produit.commande_id))\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier la commande
+    query = supabase.table("carnet_commande").select("id").eq("id", str(commande_produit.commande_id))
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
     
-    produit_check = supabase.table("produits")\
-        .select("id")\
-        .eq("id", str(commande_produit.produit_id))\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier le produit
+    produit_query = supabase.table("produits").select("id").eq("id", str(commande_produit.produit_id))
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        produit_query = produit_query.eq("franchise_id", current_user["franchise_id"])
+    
+    produit_check = produit_query.execute()
     
     if not produit_check.data:
         raise HTTPException(status_code=404, detail="Produit not found")
@@ -74,11 +82,13 @@ async def update_commande_produit(commande_produit_id: int, commande_produit: Co
     if not existing.data:
         raise HTTPException(status_code=404, detail="Commande-Produit not found")
     
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", existing.data[0]['commande_id'])\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier la commande
+    query = supabase.table("carnet_commande").select("id").eq("id", existing.data[0]['commande_id'])
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
@@ -100,11 +110,13 @@ async def delete_commande_produit(commande_produit_id: int, current_user: dict =
     if not existing.data:
         raise HTTPException(status_code=404, detail="Commande-Produit not found")
     
-    commande_check = supabase.table("carnet_commande")\
-        .select("id")\
-        .eq("id", existing.data[0]['commande_id'])\
-        .eq("franchise_id", current_user["franchise_id"])\
-        .execute()
+    # Vérifier la commande
+    query = supabase.table("carnet_commande").select("id").eq("id", existing.data[0]['commande_id'])
+    
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    commande_check = query.execute()
     
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
