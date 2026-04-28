@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
-from streamlit import status
+from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
 from datetime import datetime, date
@@ -16,7 +15,7 @@ async def get_planning_production(
     date_fin: str, 
     type_formule: str = "toutes", 
     categorie: str = "tous",
-    franchise: str = "",  # ✅ AJOUTER CE PARAMÈTRE
+    franchise_id: str = "", 
     current_user: dict = Depends(get_current_user)  # ✅ AJOUTER current_user
 ):
     """
@@ -28,7 +27,36 @@ async def get_planning_production(
         print(f"🚀 Génération du planning: {date_debut} → {date_fin}")
         print(f"   Type formule: {type_formule}")
         print(f"{'='*60}\n")
+
+        # ==========================================
+        # VALIDATION DES PARAMÈTRES
+        # ==========================================
+
+        try:
+            date_debut_obj = datetime.strptime(date_debut, "%Y-%m-%d")
+            date_fin_obj = datetime.strptime(date_fin, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Format de date invalide. Utilisez YYYY-MM-DD."
+            )
         
+        if date_debut_obj > date_fin_obj:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La date de début doit être antérieure ou égale à la date de fin."
+            )
+        
+        delta = (date_fin_obj - date_debut_obj).days
+        if delta > 365:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La période ne peut pas dépasser 365 jours."
+            )
+        
+        print(f"✅ Paramètres validés: {delta+1} jours à traiter")
+        
+
         # =========================================
         # ÉTAPE 1: RÉCUPÉRER LES COMMANDES
         # =========================================
@@ -45,16 +73,16 @@ async def get_planning_production(
         # ✅ GESTION DU FILTRAGE PAR FRANCHISE
         if current_user.get("role") == "TECH_ADMIN":
             # TECH_ADMIN : filtrer par franchise si spécifiée
-            if franchise:
-                query = query.eq("franchise_id", franchise)
-                print(f"    🔒 TECH_ADMIN - Filtrage par franchise: {franchise}")
+            if franchise_id:
+                query = query.eq("franchise_id", franchise_id)
+                print(f"    🔒 TECH_ADMIN - Filtrage par franchise: {franchise_id}")
             else:
                 print(f"    🔓 TECH_ADMIN - Accès à TOUTES les franchises")
         else:
             # Utilisateur franchisé : filtrer par SA franchise
             if not current_user.get("franchise_id"):
                 raise HTTPException(
-                    status_code=400,
+                    status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Utilisateur sans franchise associée"
                 )
             query = query.eq("franchise_id", current_user["franchise_id"])
@@ -411,14 +439,26 @@ async def get_planning_production(
             ]
         }
     
-    except Exception as e:
-        print(f"\n❌ ERREUR PLANNING:")
+    except ValueError as e:
+        print(f"\n❌ ERREUR DE VALIDATION:")
         print(f"   {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=f"Erreur de validation: {str(e)}"
+        )
+    
+    except HTTPException as e:
+        raise
+
+    except Exception as e:
+        print(f"\n❌ ERREUR PLANNING INTERNE:")
+        print(f"   Type: {type(e).__name__}")
+        print(f"   Message: {str(e)}")
         print(f"\n📋 Traceback:")
         traceback.print_exc()
         print(f"{'='*60}\n")
         
         raise HTTPException(
-            status_code=500, 
-            detail=f"Erreur lors de la génération du planning: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail="Erreur serveur lors de la génération du planning. Veuillez réessayer ou contacter le support."
         )
