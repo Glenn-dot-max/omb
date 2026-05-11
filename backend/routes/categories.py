@@ -39,10 +39,8 @@ async def create_categorie(categorie: CategorieCreate, current_user: dict = Depe
 
 @router.put("/{categorie_id}")
 async def update_categorie(categorie_id: int, categorie: CategorieUpdate, current_user: dict = Depends(get_current_user)):
-    """Update a category (TECH_ADMIN only)"""
-    # ⚠️ Seul TECH_ADMIN peut modifier
-    if current_user.get("role") != "TECH_ADMIN":
-        raise HTTPException(status_code=403, detail="Seul TECH_ADMIN peut modifier des catégories")
+    """Update a category (all authenticated users)"""
+    # ✅ Tous les utilisateurs connectés peuvent modifier
     
     existing = supabase.table("categories")\
         .select("id")\
@@ -73,10 +71,8 @@ async def update_categorie(categorie_id: int, categorie: CategorieUpdate, curren
 
 @router.delete("/{categorie_id}")
 async def delete_categorie(categorie_id: int, current_user: dict = Depends(get_current_user)):
-    """Delete a category (TECH_ADMIN only)"""
-    # ⚠️ Seul TECH_ADMIN peut supprimer
-    if current_user.get("role") != "TECH_ADMIN":
-        raise HTTPException(status_code=403, detail="Seul TECH_ADMIN peut supprimer des catégories")
+    """Delete a category (all authenticated users)"""
+    # ✅ Tous les utilisateurs connectés peuvent supprimer
     
     existing = supabase.table("categories")\
         .select("id")\

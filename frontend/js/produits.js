@@ -1067,11 +1067,9 @@ async function loadCategoriesManagement() {
   }
 }
 
-// Afficher les catégories avec boutons selon le rôle
+// Afficher les catégories avec boutons pour TOUS les utilisateurs
 function displayCategoriesManagement() {
   const list = document.getElementById("categories-list");
-  const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
 
   if (!list) return;
 
@@ -1104,9 +1102,6 @@ function displayCategoriesManagement() {
             ID: ${cat.id}
           </span>
         </div>
-        ${
-          isTechAdmin
-            ? `
         <div style="display: flex; gap: 0.5rem;">
           <button 
             onclick="openEditCategoryModal(${cat.id})"
@@ -1145,9 +1140,6 @@ function displayCategoriesManagement() {
             🗑️ Supprimer
           </button>
         </div>
-        `
-            : ""
-        }
       </div>
     `,
     )
