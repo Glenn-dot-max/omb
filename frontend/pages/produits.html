@@ -146,6 +146,93 @@
         </form>
       </div>
 
+      <!-- Gestion des catégories -->
+      <div class="form-card" id="categories-section" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+          "
+        >
+          <h3>📂 Gestion des catégories</h3>
+          <button
+            id="toggle-categories"
+            class="btn-secondary"
+            style="padding: 0.5rem 1rem; font-size: 0.9rem"
+          >
+            ▼ Afficher/Masquer
+          </button>
+        </div>
+
+        <div id="categories-content" style="display: none">
+          <div
+            style="
+              margin-bottom: 1.5rem;
+              padding: 1rem;
+              background: #f9f9f9;
+              border-radius: 8px;
+            "
+          >
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
+              ➕ Ajouter une catégorie
+            </h4>
+            <form id="add-category-form" style="display: flex; gap: 0.75rem">
+              <input
+                type="text"
+                id="category-name"
+                placeholder="Nom de la catégorie"
+                required
+                maxlength="100"
+                style="
+                  flex: 1;
+                  padding: 0.75rem;
+                  border: 2px solid #e0e0e0;
+                  border-radius: 6px;
+                "
+              />
+              <button type="submit" class="btn" style="padding: 0.75rem 1.5rem">
+                ➕ Ajouter
+              </button>
+            </form>
+          </div>
+
+          <!-- Liste des catégories -->
+          <div style="margin-bottom: 1rem">
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
+              📂 Liste des catégories
+            </h4>
+            <div
+              id="categories-list"
+              style="
+                display: grid;
+                gap: 0.5rem;
+                max-height: 300px;
+                overflow-y: auto;
+                padding: 0.5rem;
+              "
+            >
+              <!-- Les catégories seront affichées ici dynamiquement -->
+            </div>
+          </div>
+
+          <small
+            style="
+              color: #666;
+              display: block;
+              padding: 0.75rem;
+              background: #fff3cd;
+              border-radius: 6px;
+              border-left: 4px solid #ffc107;
+            "
+          >
+            ⚠️ <strong>Attention : </strong> Seul l'administrateur peut modifier
+            et supprimer une catégorie.
+          </small>
+        </div>
+      </div>
+
       <!-- Barre de recherche et filtres -->
       <div class="form-card">
         <h3>🔍 Rechercher et filtrer</h3>

@@ -1026,3 +1026,216 @@ function applyFilters() {
 
   displayProduits(filteredProduits);
 }
+
+// ============================================
+// GESTION DES CATÉGORIES
+// ============================================
+
+// Afficher la section catégories pour tous les utilisateurs
+function initCategoriesSection() {
+  const currentUser = getUser();
+  const categoriesSection = document.getElementById("categories-section");
+
+  if (currentUser) {
+    categoriesSection.style.display = "block";
+    loadCategoriesManagement();
+  }
+}
+
+// Toggle accordion
+document.getElementById("toggle-categories")?.addEventListener("click", () => {
+  const content = document.getElementById("categories-content");
+  const button = document.getElementById("toggle-categories");
+
+  if (content.style.display === "none") {
+    content.style.display = "block";
+    button.textContent = "▲ Masquer";
+  } else {
+    content.style.display = "none";
+    button.textContent = "▼ Afficher";
+  }
+});
+
+// Charger les catégories pour la gestion
+async function loadCategoriesManagement() {
+  try {
+    const data = await getCategories();
+    allCategories = data;
+    displayCategoriesManagement();
+  } catch (error) {
+    console.error("Erreur chargement catégories:", error);
+  }
+}
+
+// Afficher les catégories avec boutons selon le rôle
+function displayCategoriesManagement() {
+  const list = document.getElementById("categories-list");
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
+  if (!list) return;
+
+  if (allCategories.length === 0) {
+    list.innerHTML = `
+      <div style="text-align: center; padding: 2rem; color: #666;">
+        📭 Aucune catégorie
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = allCategories
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(
+      (cat) => `
+      <div style="
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 0.75rem 1rem; 
+        background: white; 
+        border: 1px solid #e0e0e0; 
+        border-radius: 6px;
+        transition: all 0.2s;
+      " onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-weight: 600; color: #3e2723;">${cat.name}</span>
+          <span style="font-size: 0.75rem; color: #999; background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 4px;">
+            ID: ${cat.id}
+          </span>
+        </div>
+        ${
+          isTechAdmin
+            ? `
+        <div style="display: flex; gap: 0.5rem;">
+          <button 
+            onclick="openEditCategoryModal(${cat.id})"
+            style="
+              padding: 0.4rem 0.8rem;
+              background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+              color: white;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 0.85rem;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+            onmouseover="this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.transform='translateY(0)'"
+          >
+            ✏️ Modifier
+          </button>
+          <button 
+            onclick="deleteCategoryFromManagement(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')"
+            style="
+              padding: 0.4rem 0.8rem;
+              background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+              color: white;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 0.85rem;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+            onmouseover="this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.transform='translateY(0)'"
+          >
+            🗑️ Supprimer
+          </button>
+        </div>
+        `
+            : ""
+        }
+      </div>
+    `,
+    )
+    .join("");
+}
+
+// Ajouter une catégorie (tous les utilisateurs)
+document
+  .getElementById("add-category-form")
+  ?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("category-name").value.trim();
+
+    if (!name) {
+      alert("⚠️ Le nom de la catégorie est requis");
+      return;
+    }
+
+    try {
+      await createCategory({ name });
+      alert("✅ Catégorie ajoutée avec succès !");
+      document.getElementById("category-name").value = "";
+
+      await loadCategoriesManagement();
+      await loadCategories();
+      await loadProduits();
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert(`❌ ${error.message || "Erreur lors de l'ajout de la catégorie"}`);
+    }
+  });
+
+// Modifier une catégorie (TECH_ADMIN uniquement)
+function openEditCategoryModal(categoryId) {
+  const category = allCategories.find((c) => c.id === categoryId);
+  if (!category) return;
+
+  const newName = prompt(
+    `Modifier la catégorie "${category.name}":\n\nNouveau nom:`,
+    category.name,
+  );
+
+  if (newName && newName.trim() !== "" && newName.trim() !== category.name) {
+    updateCategoryFromManagement(categoryId, newName.trim());
+  }
+}
+
+async function updateCategoryFromManagement(categoryId, newName) {
+  try {
+    await updateCategory(categoryId, { name: newName });
+    alert("✅ Catégorie modifiée avec succès !");
+
+    await loadCategoriesManagement();
+    await loadCategories();
+    await loadProduits();
+  } catch (error) {
+    console.error("Erreur:", error);
+    alert(`❌ ${error.message || "Erreur lors de la modification"}`);
+  }
+}
+
+// Supprimer une catégorie (TECH_ADMIN uniquement)
+async function deleteCategoryFromManagement(categoryId, categoryName) {
+  if (
+    !confirm(
+      `⚠️ Êtes-vous sûr de vouloir supprimer la catégorie "${categoryName}" ?\n\nCette action est irréversible.\n\n⚠️ La suppression échouera si des produits utilisent encore cette catégorie.`,
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await deleteCategoryById(categoryId);
+    alert("✅ Catégorie supprimée avec succès !");
+
+    await loadCategoriesManagement();
+    await loadCategories();
+    await loadProduits();
+  } catch (error) {
+    console.error("Erreur:", error);
+    alert(
+      `❌ Impossible de supprimer cette catégorie\n\nDes produits utilisent probablement encore cette catégorie.`,
+    );
+  }
+}
+
+// Initialiser au chargement
+window.addEventListener("DOMContentLoaded", () => {
+  initCategoriesSection();
+});

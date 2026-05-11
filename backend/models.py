@@ -318,3 +318,35 @@ class FranchiseFormuleResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# ===========================================
+# GESTION DES CATEGORIES ET TYPES
+# ===========================================
+
+class CategorieCreate(BaseModel):
+    name: constr(min_length=1, max_length=100, strip_whitespace=True)
+
+    @field_validator('name')
+    def validate_name(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Le nom de la catégorie ne peut pas être vide')
+        if re.search(r'[<>"\']', v):
+            raise ValueError('Caractères non autorisés dans le nom de la catégorie')
+        return v.strip()
+    
+    class Config:
+        extra = 'forbid'
+
+class CategorieUpdate(BaseModel):
+    name: constr(min_length=1, max_length=100, strip_whitespace=True)
+
+    @field_validator('name')
+    def validate_name(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Le nom de la catégorie ne peut pas être vide')
+        if re.search(r'[<>"\']', v):
+            raise ValueError('Caractères non autorisés dans le nom de la catégorie')
+        return v.strip()
+    
+    class Config:
+        extra = 'forbid'

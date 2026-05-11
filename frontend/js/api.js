@@ -417,3 +417,34 @@ async function updateCommandeFormuleExclusions(
     throw error;
   }
 }
+
+// ===========================================
+// CATEGORIES API
+// ===========================================
+
+async function createCategory(data) {
+  try {
+    return await apiPost("/categories/", data);
+  } catch (error) {
+    console.error("Erreur API createCategory:", error);
+    throw error;
+  }
+}
+
+async function updateCategory(categoryId, data) {
+  try {
+    return await apiPatch(`/categories/${categoryId}`, data);
+  } catch (error) {
+    console.error("Erreur API updateCategory:", error);
+    throw error;
+  }
+}
+
+async function deleteCategoryById(categoryId) {
+  try {
+    await apiDelete(`/categories/${categoryId}`);
+  } catch (error) {
+    console.error("Erreur API deleteCategoryById:", error);
+    throw error;
+  }
+}
