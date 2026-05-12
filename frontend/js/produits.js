@@ -676,7 +676,7 @@ function createProductElement(produit) {
   const editBtn = document.createElement("button");
   editBtn.className = "edit-btn";
   editBtn.textContent = "✏️ Modifier";
-  editBtn.onclick = () => handleEditProduct(produit);
+  editBtn.onclick = () => handleEditProduit(produit);
 
   // Bouton supprimer
   const deleteBtn = document.createElement("button");
@@ -875,10 +875,10 @@ function openEditModal(produitId) {
     console.error("Produit non trouvé.", produitId);
     return;
   }
-  handleEditProduct(produit);
+  handleEditProduit(produit);
 }
 
-function handleEditProduct(produit) {
+function handleEditProduit(produit) {
   currentEditingProduct = produit;
 
   // Pré-remplir les champs de la modale
