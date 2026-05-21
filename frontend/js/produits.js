@@ -47,6 +47,9 @@ async function loadInitialData() {
   await loadTypes();
   await loadFranchises();
   await loadProduits();
+
+  await initCategoriesSection();
+  await initTypesSection();
 }
 
 async function loadCategories() {
@@ -1042,7 +1045,7 @@ async function checkUserPermission(permissionKey) {
     const endpoint =
       permissionKey === "manage_categories" ? "/categories/" : "/types/";
 
-    const testResponse = await getchWithAuth(`${API_URL}${endpoint}`, {
+    const testResponse = await fetchWithAuth(`${API_URL}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1489,8 +1492,3 @@ async function deleteTypeFromManagement(typeId, typeName) {
     );
   }
 }
-// Initialiser au chargement
-window.addEventListener("DOMContentLoaded", () => {
-  initCategoriesSection();
-  initTypesSection();
-});
