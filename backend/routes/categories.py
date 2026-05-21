@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from auth import get_current_user
+from auth import get_current_user, check_permission
 from database import get_supabase_client
 from models import CategorieCreate, CategorieUpdate
 
@@ -40,8 +40,17 @@ async def create_categorie(categorie: CategorieCreate, current_user: dict = Depe
 @router.put("/{categorie_id}")
 async def update_categorie(categorie_id: int, categorie: CategorieUpdate, current_user: dict = Depends(get_current_user)):
     """Update a category (all authenticated users)"""
-    # ✅ Tous les utilisateurs connectés peuvent modifier
-    
+
+    # Vérifier les permissions
+
+    has_permission = await check_permission("manage_categories", current_user)
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé: vous n'avez pas la permission de gérer les catégories"
+        )
+        
     existing = supabase.table("categories")\
         .select("id")\
         .eq("id", categorie_id)\
@@ -72,8 +81,16 @@ async def update_categorie(categorie_id: int, categorie: CategorieUpdate, curren
 @router.delete("/{categorie_id}")
 async def delete_categorie(categorie_id: int, current_user: dict = Depends(get_current_user)):
     """Delete a category (all authenticated users)"""
-    # ✅ Tous les utilisateurs connectés peuvent supprimer
-    
+
+    # Vérifier les permissions
+    has_permission = await check_permission("manage_categories", current_user)
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="Accès refusé: vous n'avez pas la permission de gérer les catégories"
+        )
+
     existing = supabase.table("categories")\
         .select("id")\
         .eq("id", categorie_id)\

@@ -108,4 +108,22 @@ def is_tech_admin(current_user: dict = Depends(get_current_user)):
         )
     return current_user
 
+async def check_permission(permission_key: str, current_user: dict) -> bool:
+    """Check if user has a specific permission"""
+    from database import get_supabase_client
+
+    if current_user.get("role") == "TECH_ADMIN":
+        return True
+    
+    supabase = get_supabase_client()
+
+    result = supabase.table("franchise_permissions")\
+        .select("enabled")\
+        .eq("franchise_id", current_user["franchise_id"])\
+        .eq("permission_key", permission_key)\
+        .eq("enabled", True)\
+        .execute()
+    
+    return len(result.data) > 0
+
 
