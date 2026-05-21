@@ -40,6 +40,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadFranchises();
   await loadUsers();
 
+  await loadFranchisesForPermissions();
+
   // Gestion des onglets
   setupTabs();
 
@@ -532,4 +534,187 @@ function generateRandomPassword() {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return password;
+}
+
+// ============================================
+// GESTION DES PERMISSIONS
+// ============================================
+
+// Charger les franchises pour la gestion des permissions
+async function loadFranchisesForPermissions() {
+  try {
+    const franchises = await apiGet("/admin/franchises");
+    const select = document.getElementById("select-franchise-permissions");
+
+    // Vider le select
+    select.innerHTML =
+      '<option value="">-- Sélectionnez une franchise --</option>';
+
+    franchises.forEach((franchise) => {
+      const option = document.createElement("option");
+      option.value = franchise.id;
+      option.textContent = franchise.nom;
+      select.appendChild(option);
+    });
+
+    // Event listener pour charger les permissions
+    select.addEventListener("change", (e) => {
+      if (e.target.value) {
+        loadFranchisePermissions(e.target.value);
+      } else {
+        document.getElementById("permissions-container").style.display = "none";
+        document.getElementById("no-franchise-selected").style.display =
+          "block";
+      }
+    });
+  } catch (error) {
+    console.error("Erreur chargement franchises pour permissions:", error);
+    alert("Erreur lors du chargement des franchises");
+  }
+}
+
+// Charger les permissions d'une franchise
+async function loadFranchisePermissions(franchiseId) {
+  try {
+    const data = await apiGet(`/admin/permissions/franchise/${franchiseId}`);
+
+    // Afficher le container
+    document.getElementById("permissions-container").style.display = "block";
+    document.getElementById("no-franchise-selected").style.display = "none";
+
+    // Afficher le nom de la franchise
+    document.getElementById("selected-franchise-name").textContent =
+      data.franchise.nom;
+
+    // Afficher les permissions
+    const container = document.getElementById("permissions-list");
+    container.innerHTML = data.permissions
+      .map(
+        (perm) => `
+      <div style="
+        padding: 1.25rem;
+        background: white;
+        border: 2px solid ${perm.enabled ? "#4CAF50" : "#e0e0e0"};
+        border-radius: 10px;
+        transition: all 0.3s;
+        box-shadow: ${perm.enabled ? "0 4px 12px rgba(76, 175, 80, 0.2)" : "0 2px 4px rgba(0,0,0,0.05)"};
+      ">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+              <span style="font-size: 1.5rem;">${perm.icon}</span>
+              <div>
+                <div style="font-weight: 600; color: #3e2723; font-size: 1.05rem;">
+                  ${perm.name}
+                </div>
+                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
+                  ${perm.description}
+                </div>
+              </div>
+            </div>
+            ${
+              perm.enabled && perm.updated_at
+                ? `
+              <div style="font-size: 0.75rem; color: #999; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #f0f0f0;">
+                📅 Dernière modification : ${new Date(
+                  perm.updated_at,
+                ).toLocaleDateString("fr-FR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            `
+                : ""
+            }
+          </div>
+          <label style="
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.75rem 1.25rem;
+            background: ${perm.enabled ? "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)" : "linear-gradient(135deg, #ccc 0%, #999 100%)"};
+            color: white;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            min-width: 140px;
+            justify-content: center;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <input 
+              type="checkbox" 
+              ${perm.enabled ? "checked" : ""}
+              onchange="togglePermission('${franchiseId}', '${perm.key}', this.checked)"
+              style="display: none;"
+            />
+            <span style="font-size: 1rem;">${perm.enabled ? "✅ Activée" : "❌ Désactivée"}</span>
+          </label>
+        </div>
+      </div>
+    `,
+      )
+      .join("");
+  } catch (error) {
+    console.error("Erreur chargement permissions:", error);
+    alert(
+      `Erreur : ${error.message || "Impossible de charger les permissions"}`,
+    );
+  }
+}
+
+// Activer/Désactiver une permission
+async function togglePermission(franchiseId, permissionKey, enabled) {
+  try {
+    await apiPost(`/admin/permissions/franchise/${franchiseId}`, {
+      permission_key: permissionKey,
+      enabled: enabled,
+    });
+
+    // Feedback visuel
+    const toastMsg = enabled
+      ? "✅ Permission activée"
+      : "❌ Permission désactivée";
+    showToast(toastMsg, enabled ? "success" : "info");
+
+    // Recharger les permissions pour mettre à jour l'interface
+    loadFranchisePermissions(franchiseId);
+  } catch (error) {
+    console.error("Erreur modification permission:", error);
+    alert(
+      `❌ Erreur : ${error.message || "Impossible de modifier la permission"}`,
+    );
+
+    // Recharger pour remettre l'état correct
+    loadFranchisePermissions(franchiseId);
+  }
+}
+
+// Fonction toast pour feedback utilisateur (optionnelle)
+function showToast(message, type = "info") {
+  // Si tu veux un système de notifications élégant
+  const toast = document.createElement("div");
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    background: ${type === "success" ? "#4CAF50" : type === "error" ? "#f44336" : "#2196F3"};
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+    font-weight: 600;
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = "slideOut 0.3s ease";
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
 }
