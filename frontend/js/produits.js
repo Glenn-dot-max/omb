@@ -1037,28 +1037,50 @@ function applyFilters() {
 async function checkUserPermission(permissionKey) {
   const currentUser = getUser();
 
+  // ✅ TECH_ADMIN a toutes les permissions
   if (currentUser && currentUser.role === "TECH_ADMIN") {
     return true;
   }
 
+  // ✅ Pour les autres utilisateurs, on teste en essayant de créer
   try {
     const endpoint =
       permissionKey === "manage_categories" ? "/categories/" : "/types/";
 
-    const testResponse = await fetchWithAuth(`${API_URL}${endpoint}`, {
+    const response = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      body: JSON.stringify({ name: "__permission_check__" + Date.now() }),
+      body: JSON.stringify({ name: "__test_permission_" + Date.now() }),
     });
 
-    return true;
-  } catch (error) {
-    if (error.message && error.message.includes("403")) {
+    // ✅ Si on reçoit 401 ou 403 → pas de permission
+    if (response.status === 401 || response.status === 403) {
+      console.log(
+        `❌ Permission refusée pour ${permissionKey} (status: ${response.status})`,
+      );
       return false;
     }
-    return true;
+
+    // ✅ Si on reçoit 200, 201, 409 (doublon), 422 (validation) → on a la permission
+    if (response.status >= 200 && response.status < 500) {
+      console.log(
+        `✅ Permission accordée pour ${permissionKey} (status: ${response.status})`,
+      );
+      return true;
+    }
+
+    // ✅ Autre erreur → pas de permission par sécurité
+    console.warn(
+      `⚠️ Status inattendu pour ${permissionKey}: ${response.status}`,
+    );
+    return false;
+  } catch (error) {
+    console.error(`Erreur vérification permission ${permissionKey}:`, error);
+    // En cas d'erreur réseau, on refuse l'accès par sécurité
+    return false;
   }
 }
 
