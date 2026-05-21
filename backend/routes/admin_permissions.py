@@ -114,7 +114,7 @@ async def update_franchise_permission(franchise_id: str, permission: PermissionU
         response = supabase.table("franchise_permissions")\
             .update({
                 "enabled": permission.enabled,
-                "granted_by": current_user["id"],
+                "granted_by": current_user["user_id"],
             })\
             .eq("franchise_id", franchise_id)\
             .eq("permission_key", permission.permission_key).execute()
@@ -124,7 +124,7 @@ async def update_franchise_permission(franchise_id: str, permission: PermissionU
                 "franchise_id": franchise_id,
                 "permission_key": permission.permission_key,
                 "enabled": permission.enabled,
-                "granted_by": current_user["id"],
+                "granted_by": current_user["user_id"],
             }).execute()
         
     return {
