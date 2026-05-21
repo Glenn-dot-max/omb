@@ -57,15 +57,25 @@ async def create_commande_produit(commande_produit: CommandeProduitCreate, curre
         raise HTTPException(status_code=404, detail="Commande not found")
     
     # Vérifier le produit
-    produit_query = supabase.table("produits").select("id").eq("id", str(commande_produit.produit_id))
-    
     if current_user.get("role") != "TECH_ADMIN":
-        produit_query = produit_query.eq("franchise_id", current_user["franchise_id"])
-    
-    produit_check = produit_query.execute()
-    
-    if not produit_check.data:
-        raise HTTPException(status_code=404, detail="Produit not found")
+        franchise_produit_check = supabase.table("franchise_produits")\
+            .select("produit_id")\
+            .eq("produit_id", str(commande_produit.produit_id))\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("active", True)\
+            .execute()
+        
+        if not franchise_produit_check.data:
+            raise HTTPException(status_code=404, detail="Produit not found in your franchise")
+        
+    else:  
+        produit_check = supabase.table("produits")\
+            .select("id")\
+            .eq("id", str(commande_produit.produit_id))\
+            .execute()
+        
+        if not produit_check.data:
+            raise HTTPException(status_code=404, detail="Produit not found")
     
     produit_data = serialize_date(commande_produit.model_dump())
     response = supabase.table("commande_produits").insert(produit_data).execute()
