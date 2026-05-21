@@ -18,8 +18,15 @@ async def get_categories(current_user: dict = Depends(get_current_user)):
 @router.post("/")
 async def create_categorie(categorie: CategorieCreate, current_user: dict = Depends(get_current_user)):
     """Create a new category (all authenticated users)"""
-    # ✅ Tous les utilisateurs peuvent créer
-    
+
+    has_permission = await check_permission("manage_categories", current_user)
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="❌ Vous n'avez pas les droits pour créer des catégories.\n\n"
+                   "Contactez l'administrateur technique (TECH_ADMIN) pour obtenir cette permission."
+        )
+
     existing = supabase.table("categories")\
         .select("id")\
         .ilike("name", categorie.name)\

@@ -1027,18 +1027,56 @@ function applyFilters() {
   displayProduits(filteredProduits);
 }
 
+// ===========================================
+// VÉRIFICATION DES PERMISSIONS
+// ===========================================
+
+async function checkUserPermission(permissionKey) {
+  const currentUser = getUser();
+
+  if (currentUser && currentUser.role === "TECH_ADMIN") {
+    return true;
+  }
+
+  try {
+    const endpoint =
+      permissionKey === "manage_categories" ? "/categories/" : "/types/";
+
+    const testResponse = await getchWithAuth(`${API_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: "__permission_check__" + Date.now() }),
+    });
+
+    return true;
+  } catch (error) {
+    if (error.message && error.message.includes("403")) {
+      return false;
+    }
+    return true;
+  }
+}
+
 // ============================================
 // GESTION DES CATÉGORIES
 // ============================================
 
 // Afficher la section catégories pour tous les utilisateurs
-function initCategoriesSection() {
+async function initCategoriesSection() {
   const currentUser = getUser();
   const categoriesSection = document.getElementById("categories-section");
 
-  if (currentUser) {
+  if (!currentUser) return;
+
+  const hasPermission = await checkUserPermission("manage_categories");
+
+  if (hasPermission) {
     categoriesSection.style.display = "block";
     loadCategoriesManagement();
+  } else {
+    categoriesSection.style.display = "none";
   }
 }
 
@@ -1082,6 +1120,9 @@ function displayCategoriesManagement() {
     return;
   }
 
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
   list.innerHTML = allCategories
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(
@@ -1102,6 +1143,9 @@ function displayCategoriesManagement() {
             ID: ${cat.id}
           </span>
         </div>
+        ${
+          isTechAdmin
+            ? `
         <div style="display: flex; gap: 0.5rem;">
           <button 
             onclick="openEditCategoryModal(${cat.id})"
@@ -1140,6 +1184,9 @@ function displayCategoriesManagement() {
             🗑️ Supprimer
           </button>
         </div>
+        `
+            : ""
+        }
       </div>
     `,
     )
@@ -1232,13 +1279,19 @@ async function deleteCategoryFromManagement(categoryId, categoryName) {
 // ============================================
 
 // Afficher la section types pour tous les utilisateurs
-function initTypesSection() {
+async function initTypesSection() {
   const currentUser = getUser();
   const typesSection = document.getElementById("types-section");
 
-  if (currentUser) {
+  if (!currentUser) return;
+
+  const hasPermission = await checkUserPermission("manage_types");
+
+  if (hasPermission) {
     typesSection.style.display = "block";
     loadTypesManagement();
+  } else {
+    typesSection.style.display = "none";
   }
 }
 
@@ -1282,6 +1335,9 @@ function displayTypesManagement() {
     return;
   }
 
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
   list.innerHTML = allTypes
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(
@@ -1303,6 +1359,9 @@ function displayTypesManagement() {
             ID: ${type.id}
           </span>
         </div>
+        ${
+          isTechAdmin
+            ? `
         <div style="display: flex; gap: 0.5rem;">
           <button 
             onclick="openEditTypeModal(${type.id})"
@@ -1341,6 +1400,9 @@ function displayTypesManagement() {
             🗑️ Supprimer
           </button>
         </div>
+        `
+            : ""
+        }
       </div>
     `,
     )

@@ -25,7 +25,15 @@ async def get_types(current_user: dict = Depends(get_current_user)):
 @router.post("/")
 async def create_type(type_data: TypeCreate, current_user: dict = Depends(get_current_user)):
     """Create a new type (all authenticated users)"""
-    # ✅ Tous les utilisateurs peuvent créer
+
+    has_permission = await check_permission("manage_types", current_user)
+
+    if not has_permission:
+        raise HTTPException(
+            status_code=403,
+            detail="❌ Vous n'avez pas les droits pour créer des types.\n\n"
+                   "Contactez l'administrateur technique (TECH_ADMIN) pour obtenir cette permission."
+        )    
     
     # Vérifier si le type existe déjà
     existing = supabase.table("types")\
