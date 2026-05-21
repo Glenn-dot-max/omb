@@ -1227,7 +1227,208 @@ async function deleteCategoryFromManagement(categoryId, categoryName) {
   }
 }
 
+// ============================================
+// GESTION DES TYPES
+// ============================================
+
+// Afficher la section types pour tous les utilisateurs
+function initTypesSection() {
+  const currentUser = getUser();
+  const typesSection = document.getElementById("types-section");
+
+  if (currentUser) {
+    typesSection.style.display = "block";
+    loadTypesManagement();
+  }
+}
+
+// Toggle accordion types
+document.getElementById("toggle-types")?.addEventListener("click", () => {
+  const content = document.getElementById("types-content");
+  const button = document.getElementById("toggle-types");
+
+  if (content.style.display === "none") {
+    content.style.display = "block";
+    button.textContent = "▲ Masquer";
+  } else {
+    content.style.display = "none";
+    button.textContent = "▼ Afficher/Masquer";
+  }
+});
+
+// Charger les types pour la gestion
+async function loadTypesManagement() {
+  try {
+    const data = await getTypes();
+    allTypes = data;
+    displayTypesManagement();
+  } catch (error) {
+    console.error("Erreur chargement types:", error);
+  }
+}
+
+// Afficher les types avec boutons pour TOUS les utilisateurs
+function displayTypesManagement() {
+  const list = document.getElementById("types-list");
+
+  if (!list) return;
+
+  if (allTypes.length === 0) {
+    list.innerHTML = `
+      <div style="text-align: center; padding: 2rem; color: #666;">
+        📭 Aucun type
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = allTypes
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(
+      (type) => `
+      <div style="
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        padding: 0.75rem 1rem; 
+        background: white; 
+        border: 1px solid #e0e0e0; 
+        border-radius: 6px;
+        transition: all 0.2s;
+        margin-bottom: 0.5rem;
+      " onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-weight: 600; color: #3e2723;">${type.name}</span>
+          <span style="font-size: 0.75rem; color: #999; background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 4px;">
+            ID: ${type.id}
+          </span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button 
+            onclick="openEditTypeModal(${type.id})"
+            style="
+              padding: 0.4rem 0.8rem;
+              background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+              color: white;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 0.85rem;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+            onmouseover="this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.transform='translateY(0)'"
+          >
+            ✏️ Modifier
+          </button>
+          <button 
+            onclick="deleteTypeFromManagement(${type.id}, '${type.name.replace(/'/g, "\\'")}')"
+            style="
+              padding: 0.4rem 0.8rem;
+              background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+              color: white;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 0.85rem;
+              font-weight: 600;
+              transition: all 0.2s;
+            "
+            onmouseover="this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.transform='translateY(0)'"
+          >
+            🗑️ Supprimer
+          </button>
+        </div>
+      </div>
+    `,
+    )
+    .join("");
+}
+
+// Ajouter un type (tous les utilisateurs)
+document
+  .getElementById("add-type-form")
+  ?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("type-name").value.trim();
+
+    if (!name) {
+      alert("⚠️ Le nom du type est requis");
+      return;
+    }
+
+    try {
+      await createType({ name });
+      alert("✅ Type ajouté avec succès !");
+      document.getElementById("type-name").value = "";
+
+      await loadTypesManagement();
+      await loadTypes();
+      await loadProduits();
+    } catch (error) {
+      console.error("Erreur:", error);
+      alert(`❌ ${error.message || "Erreur lors de l'ajout du type"}`);
+    }
+  });
+
+// Modifier un type
+function openEditTypeModal(typeId) {
+  const type = allTypes.find((t) => t.id === typeId);
+  if (!type) return;
+
+  const newName = prompt(
+    `Modifier le type "${type.name}":\n\nNouveau nom:`,
+    type.name,
+  );
+
+  if (newName && newName.trim() !== "" && newName.trim() !== type.name) {
+    updateTypeFromManagement(typeId, newName.trim());
+  }
+}
+
+async function updateTypeFromManagement(typeId, newName) {
+  try {
+    await updateType(typeId, { name: newName });
+    alert("✅ Type modifié avec succès !");
+
+    await loadTypesManagement();
+    await loadTypes();
+    await loadProduits();
+  } catch (error) {
+    console.error("Erreur:", error);
+    alert(`❌ ${error.message || "Erreur lors de la modification"}`);
+  }
+}
+
+// Supprimer un type
+async function deleteTypeFromManagement(typeId, typeName) {
+  if (
+    !confirm(
+      `⚠️ Êtes-vous sûr de vouloir supprimer le type "${typeName}" ?\n\nCette action est irréversible.\n\n⚠️ La suppression échouera si des produits utilisent encore ce type.`,
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await deleteTypeById(typeId);
+    alert("✅ Type supprimé avec succès !");
+
+    await loadTypesManagement();
+    await loadTypes();
+    await loadProduits();
+  } catch (error) {
+    console.error("Erreur:", error);
+    alert(
+      `❌ Impossible de supprimer ce type\n\nDes produits utilisent probablement encore ce type.`,
+    );
+  }
+}
 // Initialiser au chargement
 window.addEventListener("DOMContentLoaded", () => {
   initCategoriesSection();
+  initTypesSection();
 });

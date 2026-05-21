@@ -448,3 +448,65 @@ async function deleteCategoryById(categoryId) {
     throw error;
   }
 }
+
+// ===========================================
+// TYPES
+// ===========================================
+
+async function createType(type) {
+  try {
+    const response = await fetchWithAuth(`${API_URL}/types/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(type),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.detail || `HTTP error! status: ${response.status}`,
+      );
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API createType:", error);
+    throw error;
+  }
+}
+
+async function updateType(typeId, type) {
+  try {
+    const response = await fetchWithAuth(`${API_URL}/types/${typeId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(type),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.detail || `HTTP error! status: ${response.status}`,
+      );
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API updateType:", error);
+    throw error;
+  }
+}
+
+async function deleteTypeById(typeId) {
+  try {
+    const response = await fetchWithAuth(`${API_URL}/types/${typeId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.detail || `HTTP error! status: ${response.status}`,
+      );
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Erreur API deleteTypeById:", error);
+    throw error;
+  }
+}

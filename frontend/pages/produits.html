@@ -227,9 +227,64 @@
               border-left: 4px solid #ffc107;
             "
           >
-            ⚠️ <strong>Attention : </strong> Une catégorie ne peut pas être
-            supprimée que si aucun produit ne l'utilise.
+            ⚠️ <strong>Attention : </strong> Vous ne pouvez supprimer une
+            catégorie que si aucun produit ne l'utilise.
           </small>
+        </div>
+      </div>
+
+      <!-- Gestion des types -->
+      <div class="form-card" id="types-section" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+          "
+        >
+          <h3>🏷️ Gestion des types</h3>
+          <button
+            id="toggle-types"
+            class="btn-secondary"
+            style="padding: 0.5rem 1rem; font-size: 0.9rem"
+          >
+            ▼ Afficher/Masquer
+          </button>
+        </div>
+
+        <div id="types-content" style="display: none">
+          <!-- Formulaire d'ajout -->
+          <form id="add-type-form" style="margin-bottom: 1.5rem">
+            <div style="display: flex; gap: 0.5rem">
+              <input
+                type="text"
+                id="type-name"
+                placeholder="Nom du type"
+                required
+                maxlength="100"
+                style="
+                  flex: 1;
+                  padding: 0.75rem;
+                  border: 2px solid #e0e0e0;
+                  border-radius: 6px;
+                  font-size: 1rem;
+                "
+              />
+              <button type="submit" class="btn" style="white-space: nowrap">
+                ➕ Ajouter
+              </button>
+            </div>
+          </form>
+
+          <!-- Liste des types -->
+          <div id="types-list"></div>
+
+          <!-- Message d'information -->
+          <p style="color: #666; font-size: 0.85rem; margin-top: 1rem">
+            💡 Les types permettent de classer vos produits (Sucré, Salé,
+            Boissons....)
+          </p>
         </div>
       </div>
 
