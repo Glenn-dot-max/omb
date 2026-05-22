@@ -5,6 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Produits - Oh My Brunch</title>
     <link rel="stylesheet" href="../css/style.css" />
+    <style>
+      /* ===== MODALES CATÉGORIES / TYPES ===== */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal-box {
+        background: #fff;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 580px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        animation: modalIn 0.25s ease;
+      }
+      @keyframes modalIn {
+        from { transform: translateY(-30px); opacity: 0; }
+        to   { transform: translateY(0);     opacity: 1; }
+      }
+      .modal-overlay .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #3e2723;
+        border-radius: 12px 12px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        border-bottom: none;
+      }
+      .modal-overlay .modal-header h3 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.2rem;
+      }
+      .modal-close {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 1.4rem;
+        cursor: pointer;
+        padding: 0.25rem 0.6rem;
+        border-radius: 4px;
+        transition: background 0.2s;
+        line-height: 1;
+      }
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .modal-overlay .modal-body {
+        padding: 1.5rem;
+        max-height: none;
+      }
+    </style>
   </head>
   <body>
     <!-- Navigation -->
@@ -16,27 +81,41 @@
         <li><a href="commandes.html">Commandes</a></li>
         <li><a href="planning.html">Planning</a></li>
         <li>
-          <a href="admin.html" id="admin-link" style="display: none"
-            >🔧 Admin</a
-          >
+          <a href="admin.html" id="admin-link" style="display: none">🔧 Admin</a>
         </li>
       </ul>
     </nav>
 
-    <!-- Contenu principal -->
     <main class="container">
       <h2>📦 Gestion des Produits</h2>
 
-      <!-- Formulaire d'ajout -->
+      <!-- ===== ENCART CATÉGORIES + TYPES ===== -->
+      <div class="form-card" id="categories-types-section" style="display: none">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+          <button
+            id="toggle-categories"
+            class="btn-secondary"
+            style="flex: 1; min-width: 200px"
+            onclick="openCatTypModal('modal-categories')"
+          >
+            📂 Gérer les catégories
+          </button>
+          <button
+            id="toggle-types"
+            class="btn-secondary"
+            style="flex: 1; min-width: 200px"
+            onclick="openCatTypModal('modal-types')"
+          >
+            🏷️ Gérer les types
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== FORMULAIRE AJOUT PRODUIT ===== -->
       <div class="form-card">
         <h3>Ajouter un produit</h3>
         <form id="add-product-form">
-          <input
-            type="text"
-            id="product-name"
-            placeholder="Nom du produit"
-            required
-          />
+          <input type="text" id="product-name" placeholder="Nom du produit" required />
           <select id="product-category" required>
             <option value="">-- Catégorie --</option>
           </select>
@@ -44,98 +123,30 @@
             <option value="">-- Type --</option>
           </select>
 
+          <!-- Sélecteur franchises (TECH_ADMIN uniquement) -->
           <div id="franchise-selector" style="display: none; margin-top: 1rem">
-            <div
-              style="
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                overflow: hidden;
-                background: #f9f9f9;
-              "
-            >
-              <!-- Header cliquable -->
+            <div style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #f9f9f9;">
               <div
                 id="franchise-accordion-header"
-                style="
-                  padding: 1rem;
-                  background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
-                  color: #3e2723;
-                  cursor: pointer;
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  font-weight: bold;
-                  transition: background 0.3s;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                "
+                style="padding: 1rem; background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%); color: #3e2723; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; transition: background 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
               >
                 <span>📍 Pour quelles franchises ?</span>
-                <span
-                  id="franchise-accordion-icon"
-                  style="font-size: 1.2rem; transition: transform 0.3s"
-                  >▼</span
-                >
+                <span id="franchise-accordion-icon" style="font-size: 1.2rem; transition: transform 0.3s">▼</span>
               </div>
-
-              <!-- Contenu déroulant -->
               <div
                 id="franchise-accordion-content"
-                style="
-                  max-height: 0;
-                  overflow: hidden;
-                  transition: max-height 0.3s ease-out;
-                  background: white;
-                "
+                style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background: white;"
               >
                 <div style="padding: 1rem">
-                  <!-- Tout sélectionner -->
-                  <div
-                    style="
-                      margin-bottom: 1rem;
-                      padding-bottom: 0.75rem;
-                      border-bottom: 2px solid #e9ecef;
-                    "
-                  >
-                    <label
-                      style="
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                        cursor: pointer;
-                        font-weight: bold;
-                      "
-                    >
-                      <input
-                        type="checkbox"
-                        id="select-all-franchises"
-                        style="cursor: pointer; width: 18px; height: 18px"
-                      />
-                      <span style="font-size: 1.05rem"
-                        >✅ Toutes les franchises</span
-                      >
+                  <div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e9ecef;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: bold;">
+                      <input type="checkbox" id="select-all-franchises" style="cursor: pointer; width: 18px; height: 18px" />
+                      <span style="font-size: 1.05rem">✅ Toutes les franchises</span>
                     </label>
                   </div>
-
-                  <!-- Liste des franchises -->
-                  <div
-                    id="franchise-checkboxes"
-                    style="max-height: 250px; overflow-y: auto"
-                  >
-                    <!-- Les checkboxes seront ajoutées dynamiquement ici -->
-                  </div>
-
-                  <!-- Info -->
-                  <small
-                    style="
-                      color: #666;
-                      display: block;
-                      margin-top: 1rem;
-                      padding-top: 0.75rem;
-                      border-top: 1px solid #e9ecef;
-                    "
-                  >
-                    💡 Si aucune franchise n'est sélectionnée, le produit sera
-                    ajouté à toutes les franchises.
+                  <div id="franchise-checkboxes" style="max-height: 250px; overflow-y: auto"></div>
+                  <small style="color: #666; display: block; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #e9ecef;">
+                    💡 Si aucune franchise n'est sélectionnée, le produit sera ajouté à toutes les franchises.
                   </small>
                 </div>
               </div>
@@ -146,357 +157,69 @@
         </form>
       </div>
 
-      <!-- Gestion des catégories -->
-      <div class="form-card" id="categories-section" style="display: none">
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-          "
-        >
-          <h3>📂 Gestion des catégories</h3>
-          <button
-            id="toggle-categories"
-            class="btn-secondary"
-            style="padding: 0.5rem 1rem; font-size: 0.9rem"
-          >
-            ▼ Afficher/Masquer
-          </button>
-        </div>
-
-        <div id="categories-content" style="display: none">
-          <div
-            id="add-category-container"
-            style="
-              display: none;
-              margin-bottom: 1.5rem;
-              padding: 1rem;
-              background: #f9f9f9;
-              border-radius: 8px;
-            "
-          >
-            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
-              ➕ Ajouter une catégorie
-            </h4>
-            <form id="add-category-form" style="display: flex; gap: 0.75rem">
-              <input
-                type="text"
-                id="category-name"
-                placeholder="Nom de la catégorie"
-                required
-                maxlength="100"
-                style="
-                  flex: 1;
-                  padding: 0.75rem;
-                  border: 2px solid #e0e0e0;
-                  border-radius: 6px;
-                "
-              />
-              <button type="submit" class="btn" style="padding: 0.75rem 1.5rem">
-                ➕ Ajouter
-              </button>
-            </form>
-          </div>
-
-          <!-- Liste des catégories -->
-          <div style="margin-bottom: 1rem">
-            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
-              📂 Liste des catégories
-            </h4>
-            <div
-              id="categories-list"
-              style="
-                display: grid;
-                gap: 0.5rem;
-                max-height: 300px;
-                overflow-y: auto;
-                padding: 0.5rem;
-              "
-            >
-              <!-- Les catégories seront affichées ici dynamiquement -->
-            </div>
-          </div>
-
-          <small
-            style="
-              color: #666;
-              display: block;
-              padding: 0.75rem;
-              background: #fff3cd;
-              border-radius: 6px;
-              border-left: 4px solid #ffc107;
-            "
-          >
-            ⚠️ <strong>Attention : </strong> Une catégorie ne peut pas être
-            supprimée que si aucun produit ne l'utilise.
-          </small>
-        </div>
-      </div>
-
-      <!-- Gestion des types -->
-      <div class="form-card" id="types-section" style="display: none">
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-          "
-        >
-          <h3>🏷️ Gestion des types</h3>
-          <button
-            id="toggle-types"
-            class="btn-secondary"
-            style="padding: 0.5rem 1rem; font-size: 0.9rem"
-          >
-            ▼ Afficher/Masquer
-          </button>
-        </div>
-
-        <div id="types-content" style="display: none">
-          <div
-            id="add-type-container"
-            style="
-              display: none;
-              margin-bottom: 1.5rem;
-              padding: 1rem;
-              background: #f9f9f9;
-              border-radius: 8px;
-            "
-          >
-            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
-              ➕ Ajouter un type
-            </h4>
-            <form id="add-type-form" style="display: flex; gap: 0.75rem">
-              <input
-                type="text"
-                id="type-name"
-                placeholder="Nom du type"
-                required
-                maxlength="100"
-                style="
-                  flex: 1;
-                  padding: 0.75rem;
-                  border: 2px solid #e0e0e0;
-                  border-radius: 6px;
-                "
-              />
-              <button type="submit" class="btn" style="padding: 0.75rem 1.5rem">
-                ➕ Ajouter
-              </button>
-            </form>
-          </div>
-
-          <!-- Liste des types -->
-          <div style="margin-bottom: 1rem">
-            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
-              🏷️ Liste des types
-            </h4>
-            <div
-              id="types-list"
-              style="
-                display: grid;
-                gap: 0.5rem;
-                max-height: 300px;
-                overflow-y: auto;
-                padding: 0.5rem;
-              "
-            >
-              <!-- Les types seront affichés ici dynamiquement -->
-            </div>
-          </div>
-
-          <small
-            style="
-              color: #666;
-              display: block;
-              padding: 0.75rem;
-              background: #fff3cd;
-              border-radius: 6px;
-              border-left: 4px solid #ffc107;
-            "
-          >
-            ⚠️ <strong>Attention : </strong> Un type ne peut pas être supprimé
-            que si aucun produit ne l'utilise.
-          </small>
-        </div>
-      </div>
-
-      <!-- Barre de recherche et filtres -->
+      <!-- ===== BARRE DE RECHERCHE ET FILTRES ===== -->
       <div class="form-card">
         <h3>🔍 Rechercher et filtrer</h3>
-
         <div style="display: grid; gap: 1.2rem">
-          <!-- barre de recherche -->
+
           <input
             type="text"
             id="search-input"
             placeholder="🔍 Rechercher un produit..."
-            style="
-              font-size: 1.1rem;
-              padding: 1rem;
-              border: 2px solid #e0e0e0;
-              border-radius: 8px;
-              transition: all 0.3s;
-            "
-            onfocus="
-              this.style.borderColor = '#f4a460';
-              this.style.boxShadow = '0 0 0 3px rgba(244, 164, 96, 0.1)';
-            "
-            onblur="
-              this.style.borderColor = '#e0e0e0';
-              this.style.boxShadow = 'none';
-            "
+            style="font-size: 1.1rem; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.3s;"
+            onfocus="this.style.borderColor='#f4a460'; this.style.boxShadow='0 0 0 3px rgba(244,164,96,0.1)';"
+            onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none';"
           />
 
-          <!-- filtres catégorie et type sur la même ligne -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
             <select
               id="filter-category"
-              style="
-                font-size: 1.05rem;
-                padding: 1rem;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                background: white;
-                cursor: pointer;
-                transition: all 0.3s;
-              "
-              onfocus="
-                this.style.borderColor = '#f4a460';
-                this.style.boxShadow = '0 0 0 3px rgba(244, 164, 96, 0.1)';
-              "
-              onblur="
-                this.style.borderColor = '#e0e0e0';
-                this.style.boxShadow = 'none';
-              "
+              style="font-size: 1.05rem; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;"
+              onfocus="this.style.borderColor='#f4a460'; this.style.boxShadow='0 0 0 3px rgba(244,164,96,0.1)';"
+              onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none';"
             >
               <option value="">📂 Filtrer par catégorie</option>
             </select>
-
             <select
               id="filter-type"
-              style="
-                font-size: 1.05rem;
-                padding: 1rem;
-                border: 2px solid #e0e0e0;
-                border-radius: 8px;
-                background: white;
-                cursor: pointer;
-                transition: all 0.3s;
-              "
-              onfocus="
-                this.style.borderColor = '#f4a460';
-                this.style.boxShadow = '0 0 0 3px rgba(244, 164, 96, 0.1)';
-              "
-              onblur="
-                this.style.borderColor = '#e0e0e0';
-                this.style.boxShadow = 'none';
-              "
+              style="font-size: 1.05rem; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;"
+              onfocus="this.style.borderColor='#f4a460'; this.style.boxShadow='0 0 0 3px rgba(244,164,96,0.1)';"
+              onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none';"
             >
               <option value="">🏷️ Filtrer par type</option>
             </select>
           </div>
 
-          <!-- filtre franchise (affiché uniquement pour TECH_ADMIN) -->
+          <!-- Filtre franchise (TECH_ADMIN uniquement) -->
           <select
             id="filter-franchise"
-            style="
-              display: none;
-              font-size: 1.05rem;
-              padding: 1rem;
-              border: 2px solid #e0e0e0;
-              border-radius: 8px;
-              background: white;
-              cursor: pointer;
-              transition: all 0.3s;
-            "
-            onfocus="
-              this.style.borderColor = '#f4a460';
-              this.style.boxShadow = '0 0 0 3px rgba(244, 164, 96, 0.1)';
-            "
-            onblur="
-              this.style.borderColor = '#e0e0e0';
-              this.style.boxShadow = 'none';
-            "
+            style="display: none; font-size: 1.05rem; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s;"
+            onfocus="this.style.borderColor='#f4a460'; this.style.boxShadow='0 0 0 3px rgba(244,164,96,0.1)';"
+            onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none';"
           >
             <option value="">🏢 Toutes les franchises</option>
           </select>
 
-          <!-- Actions et toggle vue -->
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-top: 0.5rem;
-            "
-          >
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
             <button
               id="reset-filters"
               class="btn-secondary"
-              style="
-                font-size: 1.05rem;
-                padding: 1rem 2rem;
-                background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: all 0.3s;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-              "
-              onmouseover="
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-              "
-              onmouseout="
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-              "
-              onmouseup="
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-              "
+              style="font-size: 1.05rem; padding: 1rem 2rem; background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+              onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)';"
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)';"
             >
               🔄 Effacer les filtres
             </button>
 
-            <!-- ✅ Toggle Vue -->
-            <div
-              class="view-toggle"
-              style="
-                display: flex;
-                gap: 0.5rem;
-                background: #f5f5f5;
-                padding: 0.3rem;
-                border-radius: 8px;
-              "
-            >
+            <!-- Toggle vue cartes / tableau -->
+            <div class="view-toggle" style="display: flex; gap: 0.5rem; background: #f5f5f5; padding: 0.3rem; border-radius: 8px;">
               <button
                 id="view-cards"
                 class="toggle-btn active"
                 title="Vue cartes"
-                style="
-                  padding: 0.6rem 1rem;
-                  border: none;
-                  background: white;
-                  cursor: pointer;
-                  transition: all 0.3s;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                "
+                style="padding: 0.6rem 1rem; border: none; background: white; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="3" width="7" height="7" rx="1" />
                   <rect x="14" y="3" width="7" height="7" rx="1" />
                   <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -507,23 +230,9 @@
                 id="view-table"
                 class="toggle-btn"
                 title="Vue tableau"
-                style="
-                  padding: 0.6rem 1rem;
-                  border: none;
-                  background: transparent;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  transition: all 0.3s;
-                "
+                style="padding: 0.6rem 1rem; border: none; background: transparent; border-radius: 6px; cursor: pointer; transition: all 0.3s;"
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="8" y1="6" x2="21" y2="6" />
                   <line x1="8" y1="12" x2="21" y2="12" />
                   <line x1="8" y1="18" x2="21" y2="18" />
@@ -537,45 +246,128 @@
         </div>
       </div>
 
-      <!-- Liste des produits -->
+      <!-- ===== LISTE DES PRODUITS ===== -->
       <div id="products-list" class="products-list">
         <!-- Les produits s'afficheront ici dynamiquement -->
       </div>
     </main>
 
-    <!-- Modale de modification -->
+    <!-- ================================================
+         MODALE CATÉGORIES
+    ================================================ -->
+    <div id="modal-categories" class="modal-overlay" onclick="closeCatTypModalOutside(event, 'modal-categories')">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>📂 Gérer les catégories</h3>
+          <button class="modal-close" onclick="closeCatTypModal('modal-categories')">✕</button>
+        </div>
+        <div class="modal-body">
+
+          <!-- Formulaire ajout (masqué par JS si pas TECH_ADMIN) -->
+          <div id="add-category-container" style="display: none; padding: 1rem; background: #f9f9f9; border-radius: 8px;">
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">➕ Ajouter une catégorie</h4>
+            <form id="add-category-form" style="display: flex; gap: 0.75rem">
+              <input
+                type="text"
+                id="category-name"
+                placeholder="Nom de la catégorie"
+                required
+                maxlength="100"
+                style="flex: 1; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px;"
+              />
+              <button type="submit" class="btn" style="padding: 0.75rem 1.5rem">➕ Ajouter</button>
+            </form>
+          </div>
+
+          <!-- Liste des catégories -->
+          <div style="margin-top: 1.5rem">
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">📂 Liste des catégories</h4>
+            <div
+              id="categories-list"
+              style="display: grid; gap: 0.5rem; max-height: 350px; overflow-y: auto; padding: 0.5rem;"
+            >
+              <!-- Catégories dynamiques ici -->
+            </div>
+          </div>
+
+          <small style="color: #666; display: block; margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+            ⚠️ <strong>Attention : </strong> Une catégorie ne peut pas être supprimée si un produit l'utilise.
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================
+         MODALE TYPES
+    ================================================ -->
+    <div id="modal-types" class="modal-overlay" onclick="closeCatTypModalOutside(event, 'modal-types')">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>🏷️ Gérer les types</h3>
+          <button class="modal-close" onclick="closeCatTypModal('modal-types')">✕</button>
+        </div>
+        <div class="modal-body">
+
+          <!-- Formulaire ajout (masqué par JS si pas TECH_ADMIN) -->
+          <div id="add-type-container" style="display: none; padding: 1rem; background: #f9f9f9; border-radius: 8px;">
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">➕ Ajouter un type</h4>
+            <form id="add-type-form" style="display: flex; gap: 0.75rem">
+              <input
+                type="text"
+                id="type-name"
+                placeholder="Nom du type"
+                required
+                maxlength="100"
+                style="flex: 1; padding: 0.75rem; border: 2px solid #e0e0e0; border-radius: 6px;"
+              />
+              <button type="submit" class="btn" style="padding: 0.75rem 1.5rem">➕ Ajouter</button>
+            </form>
+          </div>
+
+          <!-- Liste des types -->
+          <div style="margin-top: 1.5rem">
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">🏷️ Liste des types</h4>
+            <div
+              id="types-list"
+              style="display: grid; gap: 0.5rem; max-height: 350px; overflow-y: auto; padding: 0.5rem;"
+            >
+              <!-- Types dynamiques ici -->
+            </div>
+          </div>
+
+          <small style="color: #666; display: block; margin-top: 1rem; padding: 0.75rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+            ⚠️ <strong>Attention : </strong> Un type ne peut pas être supprimé si un produit l'utilise.
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================
+         MODALE MODIFICATION PRODUIT (existante)
+    ================================================ -->
     <div id="edit-modal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
           <h3>Modifier le produit</h3>
           <span class="close-modal">&times;</span>
         </div>
-
         <form id="edit-product-form">
-          <input
-            type="text"
-            id="edit-product-name"
-            placeholder="Nom du produit"
-            required
-          />
+          <input type="text" id="edit-product-name" placeholder="Nom du produit" required />
           <select id="edit-product-category" required>
             <option value="">-- Catégorie --</option>
           </select>
           <select id="edit-product-type" required>
             <option value="">-- Type --</option>
           </select>
-
           <div class="modal-actions">
-            <button type="button" class="btn-secondary" id="cancel-edit">
-              Annuler
-            </button>
+            <button type="button" class="btn-secondary" id="cancel-edit">Annuler</button>
             <button type="submit" class="btn">Enregistrer</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Scripts JavaScript -->
+    <!-- Scripts -->
     <script src="../js/config.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/api.js"></script>
@@ -584,6 +376,24 @@
       requireAuth();
       window.addEventListener("DOMContentLoaded", () => {
         displayUserInfo();
+      });
+
+      // ===== Gestion modales catégories / types =====
+      function openCatTypModal(id) {
+        document.getElementById(id).classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeCatTypModal(id) {
+        document.getElementById(id).classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      function closeCatTypModalOutside(event, id) {
+        if (event.target.id === id) closeCatTypModal(id);
+      }
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal-overlay.active').forEach(m => closeCatTypModal(m.id));
+        }
       });
     </script>
   </body>

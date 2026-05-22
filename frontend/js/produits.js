@@ -181,6 +181,7 @@ function populateFranchiseCheckboxes() {
 
 function populateCategorySelect() {
   const select = document.getElementById("product-category");
+  select.innerHTML = '<option value="">-- Catégorie --</option>';
   allCategories.forEach((cat) => {
     const option = document.createElement("option");
     option.value = cat.id;
@@ -191,6 +192,7 @@ function populateCategorySelect() {
 
 function populateTypeSelect() {
   const select = document.getElementById("product-type");
+  select.innerHTML = '<option value="">-- Type --</option>';
   allTypes.forEach((type) => {
     const option = document.createElement("option");
     option.value = type.id;
@@ -201,6 +203,7 @@ function populateTypeSelect() {
 
 function populateFilterCategorySelect() {
   const select = document.getElementById("filter-category");
+  select.innerHTML = '<option value="">📂 Filtrer par catégorie</option>';
   allCategories.forEach((cat) => {
     const option = document.createElement("option");
     option.value = cat.id;
@@ -211,6 +214,7 @@ function populateFilterCategorySelect() {
 
 function populateFilterTypeSelect() {
   const select = document.getElementById("filter-type");
+  select.innerHTML = '<option value="">🏷️ Filtrer par type</option>';
   allTypes.forEach((type) => {
     const option = document.createElement("option");
     option.value = type.id;
@@ -1034,22 +1038,32 @@ function applyFilters() {
 // Afficher la section catégories avec restrictions selon le rôle
 function initCategoriesSection() {
   const currentUser = getUser();
-  const categoriesSection = document.getElementById("categories-section");
+  const categoriesSection = document.getElementById("categories-types-section");
   const addCategoryContainer = document.getElementById(
     "add-category-container",
   );
+  const btnCategories = document.getElementById("toggle-categories");
+  const btnTypes = document.getElementById("toggle-types");
 
   if (currentUser && currentUser.role === "TECH_ADMIN") {
     categoriesSection.style.display = "block";
-    if (addCategoryContainer) {
-      addCategoryContainer.style.display = "block";
-    }
+
+    // Boutons mode gestion
+    if (btnCategories) btnCategories.textContent = "📂 Gérer les catégories";
+    if (btnTypes) btnTypes.textContent = "🏷️ Gérer les types";
+
+    if (addCategoryContainer) addCategoryContainer.style.display = "block";
+
     loadCategoriesManagement();
   } else if (currentUser) {
     categoriesSection.style.display = "block";
-    if (addCategoryContainer) {
-      addCategoryContainer.style.display = "none";
-    }
+
+    if (btnCategories)
+      btnCategories.textContent = "📂 Consulter les catégories";
+    if (btnTypes) btnTypes.textContent = "🏷️ Consulter les types";
+
+    if (addCategoryContainer) addCategoryContainer.style.display = "none";
+
     loadCategoriesManagement();
   } else {
     categoriesSection.style.display = "none";
@@ -1324,23 +1338,18 @@ async function deleteCategoryFromManagement(categoryId, categoryName) {
 // Afficher la section types avec restrictions selon le rôle
 function initTypesSection() {
   const currentUser = getUser();
-  const typesSection = document.getElementById("types-section");
   const addTypeContainer = document.getElementById("add-type-container");
 
   if (currentUser && currentUser.role === "TECH_ADMIN") {
-    typesSection.style.display = "block";
     if (addTypeContainer) {
       addTypeContainer.style.display = "block";
     }
     loadTypesManagement();
   } else if (currentUser) {
-    typesSection.style.display = "block";
     if (addTypeContainer) {
       addTypeContainer.style.display = "none";
     }
     loadTypesManagement();
-  } else {
-    typesSection.style.display = "none";
   }
 }
 
