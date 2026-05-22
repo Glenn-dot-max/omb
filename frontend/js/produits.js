@@ -1317,7 +1317,291 @@ async function deleteCategoryFromManagement(categoryId, categoryName) {
   }
 }
 
+// ===========================================
+// GESTION DES TYPES
+// ===========================================
+
+// Afficher la section types avec restrictions selon le rôle
+function initTypesSection() {
+  const currentUser = getUser();
+  const typesSection = document.getElementById("types-section");
+  const addTypeContainer = document.getElementById("add-type-container");
+
+  if (currentUser && currentUser.role === "TECH_ADMIN") {
+    typesSection.style.display = "block";
+    if (addTypeContainer) {
+      addTypeContainer.style.display = "block";
+    }
+    loadTypesManagement();
+  } else if (currentUser) {
+    typesSection.style.display = "block";
+    if (addTypeContainer) {
+      addTypeContainer.style.display = "none";
+    }
+    loadTypesManagement();
+  } else {
+    typesSection.style.display = "none";
+  }
+}
+
+// Toggle accordion types
+document.getElementById("toggle-types")?.addEventListener("click", () => {
+  const content = document.getElementById("types-content");
+  const button = document.getElementById("toggle-types");
+
+  if (content.style.display === "none") {
+    content.style.display = "block";
+    button.textContent = "▲ Masquer";
+  } else {
+    content.style.display = "none";
+    button.textContent = "▼ Afficher";
+  }
+});
+
+// Charger les types pour la gestion
+async function loadTypesManagement() {
+  try {
+    const data = await getTypes();
+    allTypes = data;
+    displayTypesManagement();
+  } catch (error) {
+    console.error("Erreur chargement types:", error);
+  }
+}
+
+function displayTypesManagement() {
+  const list = document.getElementById("types-list");
+
+  if (!list) return;
+
+  if (allTypes.length === 0) {
+    list.innerHTML = `
+      <div style="
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #999;
+        font-size: 1rem;
+      ">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <div>Aucun type disponible</div>
+      </div>
+    `;
+    return;
+  }
+
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
+  list.innerHTML = allTypes
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(
+      (type) => `
+        <div class="type-item" style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.25rem;
+          border-bottom: 0.75rem;
+          background: white;
+          border: 1px solid #e8e8e8;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        "
+        onmouseover="this.style.boxShadow='0 4px 12px rgba(212, 134, 45, 0.15)'; this.style.borderColor='#d4862d';"
+        onmouseout="this.style.boxShadow='0 1px 3px rgba(0, 0, 0, 0.05)'; this.style.borderColor='#e8e8e8';">
+          
+          <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.2rem;
+              box-shadow: 0 2px 4px rgba(212, 134, 45, 0.3);
+            ">
+              🗂️
+            </div>
+
+            <div style="flex: 1;">
+              <div style="
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+              ">
+                ${type.name}
+              </div>
+              <div style="
+                font-size: 0.75rem;
+                color: #95a5a6;
+                font-family: 'Courier New', monospace;
+              ">
+                ID: ${type.id}
+              </div>
+            </div>
+          </div>
+
+          ${
+            isTechAdmin
+              ? `
+            <div style="display: flex; gap: 0.5rem;">
+              <button
+                onclick="openEditTypeModal(${type.id})"
+                class="action-btn edit-btn"
+                style="
+                  padding: 0.5rem 1rem;
+                  background: white;
+                  color: #2ecc71;
+                  border: 2px solid #2ecc71;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 0.875rem;
+                  font-weight: 600;
+                  transition: all 0.2s ease;
+                  display: flex;
+                  align-items: center;
+                  gap: 0.4rem;
+                "
+                onmouseover="this.style.background='#2ecc71'; this.style.color='white';"
+                onmouseout="this.style.background='white'; this.style.color='#2ecc71';"
+              >
+                <span>✏️</span>
+                <span>Modifier</span>
+              </button>
+
+              <button
+                onclick="deleteTypeFromManagement(${type.id}, '${type.name.replace(/'/g, "\\'")}')"
+                class="action-btn delete-btn"
+                style="
+                  padding: 0.5rem 1rem;
+                  background: white;
+                  color: #e74c3c;
+                  border: 2px solid #e74c3c;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 0.875rem;
+                  font-weight: 600;
+                  transition: all 0.2s ease;
+                  display: flex;
+                  align-items: center;
+                  gap: 0.4rem;
+                "
+                onmouseover="this.style.background='#e74c3c'; this.style.color='white';"
+                onmouseout="this.style.background='white'; this.style.color='#e74c3c';"
+              >
+                <span>🗑️</span>
+                <span>Supprimer</span>
+              </button>
+            </div>
+          `
+              : ""
+          }
+        </div>
+      `,
+    )
+    .join("");
+}
+
+// Ajouter un type (TECH_ADMIN uniquement)
+document
+  .getElementById("add-type-form")
+  ?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("type-name").value.trim();
+
+    if (!name) {
+      alert("⚠️ Le nom du type est requis");
+      return;
+    }
+
+    try {
+      await createType({ name });
+      alert("✅ Type ajouté avec succès !");
+      document.getElementById("type-name").value = "";
+
+      await loadTypesManagement();
+      await loadTypes();
+      await loadProduits();
+    } catch (error) {
+      console.error("Erreur:", error);
+
+      if (error.message && error.message.includes("403")) {
+        alert(
+          "❌ Vous n'avez pas les permissions nécessaires pour effectuer cette action.",
+        );
+      } else {
+        alert(`❌ ${error.message || "Erreur lors de l'ajout du type"}`);
+      }
+    }
+  });
+
+// Modifier un type (TECH_ADMIN uniquement)
+function openEditTypeModal(typeId) {
+  const type = allTypes.find((t) => t.id === typeId);
+  if (!type) return;
+
+  const newName = prompt(
+    `Modifier le type "${type.name}":\n\nNouveau nom:`,
+    type.name,
+  );
+
+  if (newName && newName.trim() !== "" && newName.trim() !== type.name) {
+    updateTypeFromManagement(typeId, newName.trim());
+  }
+}
+
+async function updateTypeFromManagement(typeId, newName) {
+  try {
+    await updateType(typeId, { name: newName });
+    alert("✅ Type modifié avec succès !");
+
+    await loadTypesManagement();
+    await loadTypes();
+    await loadProduits();
+  } catch (error) {
+    console.error("Erreur:", error);
+    alert(`❌ ${error.message || "Erreur lors de la modification du type"}`);
+  }
+}
+
+// Supprimer un type (TECH_ADMIN uniquement)
+async function deleteTypeFromManagement(typeId, typeName) {
+  if (
+    !confirm(
+      `⚠️ Êtes-vous sûr de vouloir supprimer le type "${typeName}" ?\n\nCette action est irréversible.\n\n⚠️ La suppression échouera si des produits utilisent encore ce type.`,
+    )
+  ) {
+    return;
+  }
+
+  try {
+    await deleteTypeById(typeId);
+    alert("✅ Type supprimé avec succès !");
+
+    await loadTypesManagement();
+    await loadTypes();
+    await loadProduits();
+  } catch (error) {
+    console.error("Erreur:", error);
+    if (error.message && error.message.includes("403")) {
+      alert(
+        "❌ Vous n'avez pas les permissions nécessaires pour effectuer cette action.",
+      );
+    } else {
+      alert(
+        `❌ Impossible de supprimer ce type\n\nDes produits utilisent probablement encore ce type.`,
+      );
+    }
+  }
+}
+
 // Initialiser au chargement
 window.addEventListener("DOMContentLoaded", () => {
   initCategoriesSection();
+  initTypesSection();
 });

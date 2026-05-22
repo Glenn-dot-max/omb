@@ -294,6 +294,33 @@ async function getTypes() {
   }
 }
 
+async function createType(data) {
+  try {
+    return await apiPost("/types/", data);
+  } catch (error) {
+    console.error("Erreur API createType:", error);
+    throw error;
+  }
+}
+
+async function updateType(typeId, data) {
+  try {
+    return await apiPut(`/types/${typeId}`, data);
+  } catch (error) {
+    console.error("Erreur API updateType:", error);
+    throw error;
+  }
+}
+
+async function deleteTypeById(typeId) {
+  try {
+    await apiDelete(`/types/${typeId}`);
+  } catch (error) {
+    console.error("Erreur API deleteTypeById:", error);
+    throw error;
+  }
+}
+
 // ===========================================
 // UNITÉS
 // ===========================================

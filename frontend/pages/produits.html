@@ -235,6 +235,95 @@
         </div>
       </div>
 
+      <!-- Gestion des types -->
+      <div class="form-card" id="types-section" style="display: none">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+          "
+        >
+          <h3>🏷️ Gestion des types</h3>
+          <button
+            id="toggle-types"
+            class="btn-secondary"
+            style="padding: 0.5rem 1rem; font-size: 0.9rem"
+          >
+            ▼ Afficher/Masquer
+          </button>
+        </div>
+
+        <div id="types-content" style="display: none;">
+          <div
+            id="add-type-container"
+            style="
+              display: none;
+              margin-bottom: 1.5rem;
+              padding: 1rem;
+              background: #f9f9f9;
+              border-radius: 8px;
+            "
+          >
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
+              ➕ Ajouter un type
+            </h4>
+            <form id="add-type-form" style="display: flex; gap: 0.75rem">
+              <input
+                type="text"
+                id="type-name"
+                placeholder="Nom du type"
+                required
+                maxlength="100"
+                style="
+                  flex: 1;
+                  padding: 0.75rem;
+                  border: 2px solid #e0e0e0;
+                  border-radius: 6px;
+                "
+              />
+              <button type="submit" class="btn" style="padding: 0.75rem 1.5rem">
+                ➕ Ajouter
+              </button>
+            </form>
+          </div>
+        </div>
+
+          <!-- Liste des types -->
+          <div style="margin-bottom: 1rem">
+            <h4 style="margin-bottom: 0.75rem; color: #3e2723">
+              🏷️ Liste des types
+            </h4>
+            <div
+              id="types-list"
+              style="
+                display: grid;
+                gap: 0.5rem;
+                max-height: 300px;
+                overflow-y: auto;
+                padding: 0.5rem;
+              "
+            >
+              <!-- Les types seront affichés ici dynamiquement -->
+            </div>
+          </div>
+
+          <small
+            style="
+              color: #666;
+              display: block;
+              padding: 0.75rem;
+              background: #fff3cd;
+              border-radius: 6px;
+              border-left: 4px solid #ffc107;
+            "
+          >
+            ⚠️ <strong>Attention : </strong> Un type ne peut pas être supprimé que si aucun produit ne l'utilise.
+          </small>
+        </div>
+      </div>
+
       <!-- Barre de recherche et filtres -->
       <div class="form-card">
         <h3>🔍 Rechercher et filtrer</h3>
