@@ -23,6 +23,8 @@ let currentFranchiseFilter = "";
 let currentEditingProduct = null;
 
 let currentFilteredProduits = [];
+let hasManageCategoriesPermission = false;
+let hasManageTypesPermission = false;
 
 // ===========================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -1051,7 +1053,7 @@ async function checkUserPermission(permissionKey) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        Authorization: `Bearer ${localStorage.getItem("omb_token")}`,
       },
       body: JSON.stringify({ name: "__test_permission_" + Date.now() }),
     });
@@ -1095,9 +1097,10 @@ async function initCategoriesSection() {
 
   if (!currentUser) return;
 
-  const hasPermission = await checkUserPermission("manage_categories");
+  hasManageCategoriesPermission =
+    await checkUserPermission("manage_categories");
 
-  if (hasPermission) {
+  if (hasManageCategoriesPermission) {
     categoriesSection.style.display = "block";
     loadCategoriesManagement();
   } else {
@@ -1147,6 +1150,7 @@ function displayCategoriesManagement() {
 
   const currentUser = getUser();
   const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const canManage = isTechAdmin || hasManageCategoriesPermission;
 
   list.innerHTML = allCategories
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -1169,7 +1173,7 @@ function displayCategoriesManagement() {
           </span>
         </div>
         ${
-          isTechAdmin
+          canManage
             ? `
         <div style="display: flex; gap: 0.5rem;">
           <button 
@@ -1245,7 +1249,7 @@ document
     }
   });
 
-// Modifier une catégorie (TECH_ADMIN uniquement)
+// Modifier une catégorie (TECH_ADMIN ou avec permission)
 function openEditCategoryModal(categoryId) {
   const category = allCategories.find((c) => c.id === categoryId);
   if (!category) return;
@@ -1310,9 +1314,9 @@ async function initTypesSection() {
 
   if (!currentUser) return;
 
-  const hasPermission = await checkUserPermission("manage_types");
+  hasManageTypesPermission = await checkUserPermission("manage_types");
 
-  if (hasPermission) {
+  if (hasManageTypesPermission) {
     typesSection.style.display = "block";
     loadTypesManagement();
   } else {
@@ -1362,6 +1366,7 @@ function displayTypesManagement() {
 
   const currentUser = getUser();
   const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const canManage = isTechAdmin || hasManageTypesPermission;
 
   list.innerHTML = allTypes
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -1385,7 +1390,7 @@ function displayTypesManagement() {
           </span>
         </div>
         ${
-          isTechAdmin
+          canManage
             ? `
         <div style="display: flex; gap: 0.5rem;">
           <button 
