@@ -482,11 +482,22 @@ function displayProduitsCards(produits, container) {
       // ✅ NOUVELLE LOGIQUE : Afficher les franchises en texte
       let franchiseInfo = "";
       if (isTechAdmin) {
-        if (
-          produit.is_limited &&
-          produit.franchises &&
-          produit.franchises.length > 0
-        ) {
+        if (produit.nb_franchises === 0) {
+          franchiseInfo = `
+            <div style="
+              margin-top: 0.75rem;
+              padding: 0.5rem;
+              font-size: 0.85rem;
+              color: #e74c3c;
+              background: #fceae9;
+              border-radius: 4px;
+              text-align: center;
+              border-left: 4px solid #e74c3c;
+            ">
+              ⚠️ Aucune franchise active
+            </div>
+          `;
+        } else if (produit.is_limited && produit.nb_franchises > 0) {
           const franchisesText = produit.franchises.join(", ");
           franchiseInfo = `
             <div style="
@@ -497,15 +508,8 @@ function displayProduitsCards(produits, container) {
               border-radius: 6px;
               font-size: 0.85rem;
             ">
-              <div style="
-                color: #d4862d;
-                font-weight: 600;
-                margin-bottom: 0.4rem;
-                display: flex;
-                align-items: center;
-                gap: 0.3rem;
-              ">
-                ���� Limité aux franchises :
+              <div style="color: #d4862d; font-weight: 600; margin-bottom: 0.4rem;">
+                📍 Limité aux franchises :
               </div>
               <div style="color: #5d4037; line-height: 1.4;">${franchisesText}</div>
               <div style="color: #999; font-size: 0.75rem; margin-top: 0.3rem;">
@@ -540,8 +544,15 @@ function displayProduitsCards(produits, container) {
           </div>
           ${franchiseInfo}
           <div class="product-actions">
-            <button class="edit-btn" onclick="handleEditProduit(${JSON.stringify(produit).replace(/"/g, "&quot;")})">✏️ Modifier</button>
-            <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
+            ${
+              isTechAdmin
+                ? `<button class="edit-btn"
+            onclick="handleEditProduit(${JSON.stringify(produit).replace(/"/g, "&quot;")})">✏️ Modifier</button>`
+                : `<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l'administrateur">🔒 Modifier</button>`
+            }
+            <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">
+              ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}
+            </button>
           </div>
         </div>
       `;
@@ -589,20 +600,21 @@ function displayProduitsTable(produits, container) {
               // ✅ NOUVELLE LOGIQUE : Colonne franchises
               let franchisesCell = "";
               if (isTechAdmin) {
-                if (
+                if (produit.nb_franchises === 0) {
+                  franchisesCell = `
+                    <td style="color: #e74c3c; font-weight: 600; text-align: center;">
+                      ⚠️ Aucune franchise active
+                    </td>
+                  `;
+                } else if (
                   produit.is_limited &&
                   produit.franchises &&
                   produit.franchises.length > 0
                 ) {
-                  // Produit limité : afficher les franchises
                   const franchisesText = produit.franchises.join(", ");
                   franchisesCell = `
                     <td style="font-size: 0.9rem;">
-                      <div style="
-                        color: #d4862d;
-                        font-weight: 600;
-                        margin-bottom: 0.3rem;
-                      ">
+                      <div style="color: #d4862d; font-weight: 600; margin-bottom: 0.3rem;">
                         📍 ${franchisesText}
                       </div>
                       <small style="color: #999;">
@@ -611,14 +623,9 @@ function displayProduitsTable(produits, container) {
                     </td>
                   `;
                 } else {
-                  // Produit global
                   franchisesCell = `
-                    <td style="
-                      color: #666;
-                      font-style: italic;
-                      text-align: center;
-                    ">
-                      Toutes les franchises
+                    <td style="color: #666; font-style: italic; text-align: center;">
+                      ✓ Disponible pour toutes les franchises
                     </td>
                   `;
                 }
@@ -632,8 +639,15 @@ function displayProduitsTable(produits, container) {
                   ${franchisesCell}
                   <td>
                     <div class="table-actions">
-                      <button class="edit-btn" onclick='handleEditProduit(${produitJson})'>✏️ Modifier</button>
-                      <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">🗑️ Supprimer</button>
+                      ${
+                        isTechAdmin
+                          ? `<button class="edit-btn"
+                      onclick="handleEditProduit(${produitJson})">✏️ Modifier</button>`
+                          : `<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l'administrateur">🔒 Modifier</button>`
+                      }
+                      <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">
+                        ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -644,60 +658,6 @@ function displayProduitsTable(produits, container) {
       </table>
     </div>
   `;
-}
-
-function createProductElement(produit) {
-  const div = document.createElement("div");
-  div.className = "product-item";
-
-  const nameSpan = document.createElement("span");
-  nameSpan.className = "product-name";
-  nameSpan.textContent = produit.name;
-
-  const detailsDiv = document.createElement("div");
-  detailsDiv.className = "product-details";
-
-  if (produit.categorie_id && allCategories.length > 0) {
-    const catBadge = document.createElement("span");
-    catBadge.className = "badge category";
-    const cat = allCategories.find((c) => c.id == produit.categorie_id);
-    catBadge.textContent = cat ? cat.name : "Catégorie inconnue";
-    detailsDiv.appendChild(catBadge);
-  }
-
-  if (produit.type_id && allTypes.length > 0) {
-    const typeBadge = document.createElement("span");
-    typeBadge.className = "badge type";
-    const type = allTypes.find((t) => t.id == produit.type_id);
-    typeBadge.textContent = type ? type.name : "Type inconnu";
-    detailsDiv.appendChild(typeBadge);
-  }
-
-  const actionsDiv = document.createElement("div");
-  actionsDiv.className = "product-actions";
-
-  // Bouton modifier
-  const editBtn = document.createElement("button");
-  editBtn.className = "edit-btn";
-  editBtn.textContent = "✏️ Modifier";
-  editBtn.onclick = () => handleEditProduit(produit);
-
-  // Bouton supprimer
-  const deleteBtn = document.createElement("button");
-  deleteBtn.className = "delete-btn";
-  deleteBtn.textContent = "🗑️ Supprimer";
-  deleteBtn.onclick = () => handleDeleteProduit(produit.id);
-
-  actionsDiv.appendChild(editBtn);
-  actionsDiv.appendChild(deleteBtn);
-
-  div.appendChild(nameSpan);
-  if (detailsDiv.children.length > 0) {
-    div.appendChild(detailsDiv);
-  }
-  div.appendChild(actionsDiv);
-
-  return div;
 }
 
 // ===========================================
@@ -853,19 +813,32 @@ async function handleAddProduit(event) {
 // ===========================================
 
 async function handleDeleteProduit(produitId) {
-  if (!confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
-    return;
-  }
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
 
+  // Message de confirmation adapté au rôle
+  const message = isTechAdmin
+    ? "⚠️ Êtes-vous sûr de vouloir supprimer définitivement ce produit ?\n\nCette action est irréversible pour toutes les franchises."
+    : "Êtes-vous sûr de vouloir désactiver ce produit ?\n\nIl ne sera plus visible pour votre franchise.";
+
+  if (!confirm(message)) return;
   try {
     await deleteProduit(produitId);
     allProduits = allProduits.filter((p) => p.id !== produitId);
     currentFilteredProduits = allProduits;
     displayProduits(allProduits);
-    alert("Produit supprimé avec succès !");
+    alert(
+      isTechAdmin
+        ? "✅ Produit supprimé avec succès !"
+        : "✅ Produit désactivé pour votre franchise !",
+    );
   } catch (error) {
     console.error("Erreur lors de la suppression du produit :", error);
-    alert("Erreur lors de la suppression du produit.");
+    alert(
+      isTechAdmin
+        ? "❌ Erreur lors de la suppression du produit."
+        : "❌ Erreur lors de la désactivation du produit pour votre franchise.",
+    );
   }
 }
 
@@ -1069,20 +1042,6 @@ function initCategoriesSection() {
     categoriesSection.style.display = "none";
   }
 }
-
-// Toggle accordion
-document.getElementById("toggle-categories")?.addEventListener("click", () => {
-  const content = document.getElementById("categories-content");
-  const button = document.getElementById("toggle-categories");
-
-  if (content.style.display === "none") {
-    content.style.display = "block";
-    button.textContent = "▲ Masquer";
-  } else {
-    content.style.display = "none";
-    button.textContent = "▼ Afficher";
-  }
-});
 
 // Charger les catégories pour la gestion
 async function loadCategoriesManagement() {
@@ -1352,20 +1311,6 @@ function initTypesSection() {
     loadTypesManagement();
   }
 }
-
-// Toggle accordion types
-document.getElementById("toggle-types")?.addEventListener("click", () => {
-  const content = document.getElementById("types-content");
-  const button = document.getElementById("toggle-types");
-
-  if (content.style.display === "none") {
-    content.style.display = "block";
-    button.textContent = "▲ Masquer";
-  } else {
-    content.style.display = "none";
-    button.textContent = "▼ Afficher";
-  }
-});
 
 // Charger les types pour la gestion
 async function loadTypesManagement() {
