@@ -1031,14 +1031,28 @@ function applyFilters() {
 // GESTION DES CATÉGORIES
 // ============================================
 
-// Afficher la section catégories pour tous les utilisateurs
+// Afficher la section catégories avec restrictions selon le rôle
 function initCategoriesSection() {
   const currentUser = getUser();
   const categoriesSection = document.getElementById("categories-section");
+  const addCategoryContainer = document.getElementById(
+    "add-category-container",
+  );
 
-  if (currentUser) {
+  if (currentUser && currentUser.role === "TECH_ADMIN") {
     categoriesSection.style.display = "block";
+    if (addCategoryContainer) {
+      addCategoryContainer.style.display = "block";
+    }
     loadCategoriesManagement();
+  } else if (currentUser) {
+    categoriesSection.style.display = "block";
+    if (addCategoryContainer) {
+      addCategoryContainer.style.display = "none";
+    }
+    loadCategoriesManagement();
+  } else {
+    categoriesSection.style.display = "none";
   }
 }
 
@@ -1067,7 +1081,7 @@ async function loadCategoriesManagement() {
   }
 }
 
-// Afficher les catégories avec boutons pour TOUS les utilisateurs
+// Afficher les catégories dans la section de gestion
 function displayCategoriesManagement() {
   const list = document.getElementById("categories-list");
 
@@ -1075,73 +1089,132 @@ function displayCategoriesManagement() {
 
   if (allCategories.length === 0) {
     list.innerHTML = `
-      <div style="text-align: center; padding: 2rem; color: #666;">
-        📭 Aucune catégorie
+      <div style="
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #999;
+        font-size: 1rem;
+      ">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <div>Aucune catégorie disponible</div>
       </div>
     `;
     return;
   }
 
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
   list.innerHTML = allCategories
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(
       (cat) => `
-      <div style="
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        padding: 0.75rem 1rem; 
-        background: white; 
-        border: 1px solid #e0e0e0; 
-        border-radius: 6px;
-        transition: all 0.2s;
-      " onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <span style="font-weight: 600; color: #3e2723;">${cat.name}</span>
-          <span style="font-size: 0.75rem; color: #999; background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 4px;">
-            ID: ${cat.id}
-          </span>
+        <div class="category-item" style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.25rem;
+          border-bottom: 0.75rem;
+          background: white;
+          border: 1px solid #e8e8e8;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        "
+        onmouseover="this.style.boxShadow='0 4px 12px rgba(212, 134, 45, 0.15)'; this.style.borderColor='#d4862d';"
+        onmouseout="this.style.boxShadow='0 1px 3px rgba(0, 0, 0, 0.05)'; this.style.borderColor='#e8e8e8';">
+          
+          <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              background: linear-gradient(135deg, #f4a460 0%, #d4862d 100%);
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 1.2rem;
+              box-shadow: 0 2px 4px rgba(212, 134, 45, 0.3);
+            ">
+              🏷️
+            </div>
+
+            <div style="flex: 1;">
+              <div style="
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+              ">
+                ${cat.name}
+              </div>
+              <div style="
+                font-size: 0.75rem;
+                color: #95a5a6;
+                font-family: 'Courier New', monospace;
+              ">
+                ID: ${cat.id}
+              </div>
+            </div>
+          </div>
+
+          ${
+            isTechAdmin
+              ? `
+            <div style="display: flex; gap: 0.5rem;">
+              <button
+                onclick="openEditCategoryModal(${cat.id})"
+                class="action-btn edit-btn"
+                style="
+                  padding: 0.5rem 1rem;
+                  background: white;
+                  color: #2ecc71;
+                  border: 2px solid #2ecc71;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 0.875rem;
+                  font-weight: 600;
+                  transition: all 0.2s ease;
+                  display: flex;
+                  align-items: center;
+                  gap: 0.4rem;
+                "
+                onmouseover="this.style.background='#2ecc71'; this.style.color='white';"
+                onmouseout="this.style.background='white'; this.style.color='#2ecc71';"
+              >
+                <span>✏️</span>
+                <span>Modifier</span>
+              </button>
+
+              <button
+                onclick="deleteCategoryFromManagement(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')"
+                class="action-btn delete-btn"
+                style="
+                  padding: 0.5rem 1rem;
+                  background: white;
+                  color: #e74c3c;
+                  border: 2px solid #e74c3c;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  font-size: 0.875rem;
+                  font-weight: 600;
+                  transition: all 0.2s ease;
+                  display: flex;
+                  align-items: center;
+                  gap: 0.4rem;
+                "
+                onmouseover="this.style.background='#e74c3c'; this.style.color='white';"
+                onmouseout="this.style.background='white'; this.style.color='#e74c3c';"
+              >
+                <span>🗑️</span>
+                <span>Supprimer</span>
+              </button>
+            </div>
+          `
+              : ""
+          }
         </div>
-        <div style="display: flex; gap: 0.5rem;">
-          <button 
-            onclick="openEditCategoryModal(${cat.id})"
-            style="
-              padding: 0.4rem 0.8rem;
-              background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-              color: white;
-              border: none;
-              border-radius: 5px;
-              cursor: pointer;
-              font-size: 0.85rem;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
-            onmouseover="this.style.transform='translateY(-2px)'"
-            onmouseout="this.style.transform='translateY(0)'"
-          >
-            ✏️ Modifier
-          </button>
-          <button 
-            onclick="deleteCategoryFromManagement(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')"
-            style="
-              padding: 0.4rem 0.8rem;
-              background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
-              color: white;
-              border: none;
-              border-radius: 5px;
-              cursor: pointer;
-              font-size: 0.85rem;
-              font-weight: 600;
-              transition: all 0.2s;
-            "
-            onmouseover="this.style.transform='translateY(-2px)'"
-            onmouseout="this.style.transform='translateY(0)'"
-          >
-            🗑️ Supprimer
-          </button>
-        </div>
-      </div>
-    `,
+      `,
     )
     .join("");
 }
@@ -1169,7 +1242,16 @@ document
       await loadProduits();
     } catch (error) {
       console.error("Erreur:", error);
-      alert(`❌ ${error.message || "Erreur lors de l'ajout de la catégorie"}`);
+
+      if (error.message && error.message.includes("403")) {
+        alert(
+          "❌ Vous n'avez pas les permissions nécessaires pour effectuer cette action.",
+        );
+      } else {
+        alert(
+          `❌ ${error.message || "Erreur lors de l'ajout de la catégorie"}`,
+        );
+      }
     }
   });
 
@@ -1198,7 +1280,9 @@ async function updateCategoryFromManagement(categoryId, newName) {
     await loadProduits();
   } catch (error) {
     console.error("Erreur:", error);
-    alert(`❌ ${error.message || "Erreur lors de la modification"}`);
+    alert(
+      `❌ ${error.message || "Erreur lors de la modification de la catégorie"}`,
+    );
   }
 }
 
@@ -1221,9 +1305,15 @@ async function deleteCategoryFromManagement(categoryId, categoryName) {
     await loadProduits();
   } catch (error) {
     console.error("Erreur:", error);
-    alert(
-      `❌ Impossible de supprimer cette catégorie\n\nDes produits utilisent probablement encore cette catégorie.`,
-    );
+    if (error.message && error.message.includes("403")) {
+      alert(
+        "❌ Vous n'avez pas les permissions nécessaires pour effectuer cette action.",
+      );
+    } else {
+      alert(
+        `❌ Impossible de supprimer cette catégorie\n\nDes produits utilisent probablement encore cette catégorie.`,
+      );
+    }
   }
 }
 

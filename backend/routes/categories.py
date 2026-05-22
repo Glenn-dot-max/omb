@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from auth import get_current_user
+from auth import get_current_user, is_tech_admin
 from database import get_supabase_client
 from models import CategorieCreate, CategorieUpdate
 
@@ -16,9 +16,9 @@ async def get_categories(current_user: dict = Depends(get_current_user)):
     return response.data
 
 @router.post("/")
-async def create_categorie(categorie: CategorieCreate, current_user: dict = Depends(get_current_user)):
-    """Create a new category (all authenticated users)"""
-    # ✅ Tous les utilisateurs peuvent créer
+async def create_categorie(categorie: CategorieCreate, current_user: dict = Depends(is_tech_admin)):
+    """Create a new category (TECH_ADMIN only)"""
+    # ✅ Only tech admins can create
     
     existing = supabase.table("categories")\
         .select("id")\
@@ -38,10 +38,9 @@ async def create_categorie(categorie: CategorieCreate, current_user: dict = Depe
     return response.data[0]
 
 @router.put("/{categorie_id}")
-async def update_categorie(categorie_id: int, categorie: CategorieUpdate, current_user: dict = Depends(get_current_user)):
-    """Update a category (all authenticated users)"""
-    # ✅ Tous les utilisateurs connectés peuvent modifier
-    
+async def update_categorie(categorie_id: int, categorie: CategorieUpdate, current_user: dict = Depends(is_tech_admin)):
+    """Update a category (TECH_ADMIN only)"""
+
     existing = supabase.table("categories")\
         .select("id")\
         .eq("id", categorie_id)\
@@ -70,9 +69,9 @@ async def update_categorie(categorie_id: int, categorie: CategorieUpdate, curren
     return response.data[0]
 
 @router.delete("/{categorie_id}")
-async def delete_categorie(categorie_id: int, current_user: dict = Depends(get_current_user)):
-    """Delete a category (all authenticated users)"""
-    # ✅ Tous les utilisateurs connectés peuvent supprimer
+async def delete_categorie(categorie_id: int, current_user: dict = Depends(is_tech_admin)):
+    """Delete a category (TECH_ADMIN only)"""
+    # ✅ Only tech admins can delete
     
     existing = supabase.table("categories")\
         .select("id")\
