@@ -433,7 +433,7 @@ async function createCategory(data) {
 
 async function updateCategory(categoryId, data) {
   try {
-    return await apiPatch(`/categories/${categoryId}`, data);
+    return await apiPut(`/categories/${categoryId}`, data);
   } catch (error) {
     console.error("Erreur API updateCategory:", error);
     throw error;

@@ -193,6 +193,21 @@ async function apiPatch(endpoint, data) {
   return response.json();
 }
 
+async function apiPut(endpoint, data) {
+  const response = await fetchWithAuth(`${API_URL}${endpoint}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Erreur API");
+  }
+
+  return response.json();
+}
+
 async function apiDelete(endpoint) {
   console.log("🗑️ DELETE REQUEST:", endpoint);
 
