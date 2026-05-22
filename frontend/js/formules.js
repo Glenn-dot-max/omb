@@ -428,10 +428,24 @@ function displayFormulesCards(formules, container) {
       const typeBadgeClass =
         formule.type_formule === "Brunch" ? "type" : "category";
 
-      // ✅ NOUVELLE LOGIQUE : Afficher les franchises en texte
       let franchiseInfo = "";
       if (isTechAdmin) {
-        if (
+        if (formule.nb_franchises === 0) {
+          franchiseInfo = `
+            <div style="
+              margin-top: 0.75rem;
+              padding: 0.5rem;
+              font-size: 0.85rem;
+              color: #e74c3c;
+              background: #fceae9;
+              border-radius: 4px;
+              text-align: center;
+              border-left: 4px solid #e74c3c;
+            ">
+              ⚠️ Non assignée à une franchise
+            </div>
+          `;
+        } else if (
           formule.is_limited &&
           formule.franchises &&
           formule.franchises.length > 0
@@ -451,7 +465,6 @@ function displayFormulesCards(formules, container) {
                 font-weight: 600;
                 margin-bottom: 0.4rem;
                 display: flex;
-                align-items: center;
                 gap: 0.3rem;
               ">
                 📍 Limité aux franchises :
@@ -489,8 +502,13 @@ function displayFormulesCards(formules, container) {
           </div>
           ${franchiseInfo}
           <div class="product-actions">
-            <button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>
-            <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
+          ${
+            isTechAdmin
+              ? `<button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>`
+              : '<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l\'administrateur">🔒 Modifier</button>'
+          }
+            <button class="delete-btn" onclick="HandleDeleteFormule('${formule.id}')">
+                ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}</button>
           </div>
         </div>
       `;
@@ -535,15 +553,23 @@ function displayFormulesTable(formules, container) {
                 "&quot;",
               );
 
-              // ✅ NOUVELLE LOGIQUE : Colonne franchises
               let franchisesCell = "";
               if (isTechAdmin) {
-                if (
+                if (formule.nb_franchises === 0) {
+                  franchisesCell = `
+                    <td style="
+                      color: #e74c3c;
+                      font-weight: 600;
+                      text-align: center;
+                    ">
+                      ⚠️ Non assignée à une franchise
+                    </td>
+                  `;
+                } else if (
                   formule.is_limited &&
                   formule.franchises &&
                   formule.franchises.length > 0
                 ) {
-                  // Formule limitée : afficher les franchises
                   const franchisesText = formule.franchises.join(", ");
                   franchisesCell = `
                     <td style="font-size: 0.9rem;">
@@ -560,14 +586,13 @@ function displayFormulesTable(formules, container) {
                     </td>
                   `;
                 } else {
-                  // Formule globale
                   franchisesCell = `
                     <td style="
                       color: #666;
                       font-style: italic;
                       text-align: center;
                     ">
-                      Toutes les franchises
+                      ✓ Disponible pour toutes les franchises
                     </td>
                   `;
                 }
@@ -581,8 +606,13 @@ function displayFormulesTable(formules, container) {
                   ${franchisesCell}
                   <td>
                     <div class="table-actions">
-                      <button class="edit-btn" onclick='handleEditFormule(${formuleJson})'>✏️ Modifier</button>
-                      <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">🗑️ Supprimer</button>
+                    ${
+                      isTechAdmin
+                        ? `<button class="edit-btn" onclick="handleEditFormule(${formuleJson})">✏️ Modifier</button>`
+                        : '<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l\'administrateur">🔒 Modifier</button>'
+                    }
+                      <button class="delete-btn" onclick="HandleDeleteFormule('${formule.id}')">
+                          ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}
                     </div>
                   </td>
                 </tr>
@@ -733,19 +763,41 @@ async function handleAddFormule(event) {
 // GESTION DE LA SUPPRESSION D'UNE FORMULE
 // ===========================================
 
-async function handleDeleteFormule(formuleId) {
-  if (!confirm("Êtes-vous sûr de vouloir supprimer cette formule ?")) {
+async function deleteFormule(formuleId) {
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
+  const message = isTechAdmin
+    ? "⚠️ Êtes-vous sûr de vouloir supprimer définitivement cette formule ?\n\nCette action est irréversible pour toutes les franchises."
+    : "⚠️ Êtes-vous sûr de vouloir supprimer cette formule ?\n\nElle ne sera plus visible pour votre franchise.";
+
+  if (!confirm(message)) {
     return;
   }
 
   try {
     await deleteFormule(formuleId);
     allFormules = allFormules.filter((f) => f.id !== formuleId);
-    displayFormules(allFormules);
-    alert("Formule supprimée avec succès !");
+    currentFilteredFormules = currentFilteredFormules.filter(
+      (f) => f.id !== formuleId,
+    );
+    displayFormules(
+      currentFilteredFormules.length > 0
+        ? currentFilteredFormules
+        : allFormules,
+    );
+    alert(
+      isTechAdmin
+        ? "✅ Formule supprimée avec succès !"
+        : "✅ Formule supprimée pour votre franchise !",
+    );
   } catch (error) {
     console.error("Erreur lors de la suppression de la formule :", error);
-    alert("Erreur lors de la suppression de la formule.");
+    alert(
+      isTechAdmin
+        ? "❌ Erreur lors de la suppression de la formule."
+        : "❌ Erreur lors de la suppression de la formule pour votre franchise.",
+    );
   }
 }
 
@@ -932,7 +984,24 @@ async function handleSaveFormuleDetails() {
     alert("Formule modifiée avec succès !");
   } catch (error) {
     console.error("Erreur modification formule:", error);
-    alert("Erreur lors de la modification.");
+
+    if (error.message && error.message.includes("403")) {
+      alert(
+        "❌ Vous n'avez pas les permissions nécessaires pour modifier cette formule. \n\n" +
+          "Cette formule est partagée avec d'autres franchises.\n" +
+          "Seul l'administrateur peut le modifier.",
+      );
+    } else if (error.message && error.message.includes("404")) {
+      alert(
+        "❌ Formule introuvable. Il se peut qu'elle ait été supprimée ou que vous n'ayez plus accès à cette formule.",
+      );
+      closeDetailsModal();
+      await loadFormules();
+    } else {
+      alert(
+        `❌ ${error.message} || "Erreur lors de la modification de la formule."`,
+      );
+    }
   }
 }
 

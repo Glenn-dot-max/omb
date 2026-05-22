@@ -88,19 +88,7 @@ async function deleteFormule(formuleId) {
 
 async function updateFormule(formuleId, formule) {
   try {
-    const response = await fetchWithAuth(`${API_URL}/formules/${formuleId}`, {
-      // ✅ Sans slash
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formule),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Erreur mise à jour formule");
-    }
-
-    return await response.json();
+    return await apiPatch(`/formules/${formuleId}`, formule);
   } catch (error) {
     console.error("Erreur API updateFormule:", error);
     throw error;
