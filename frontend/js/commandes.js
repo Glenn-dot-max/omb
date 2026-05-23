@@ -24,10 +24,10 @@ let currentFranchiseFilter = "";
 // ===============================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  const currentuser = getUser();
   loadInitialData();
   setupEventListeners();
 
-  const currentuser = getUser();
   if (currentuser && currentuser.role === "TECH_ADMIN") {
     const adminLink = document.getElementById("admin-link");
     if (adminLink) {

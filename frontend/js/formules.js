@@ -1,6 +1,21 @@
 // js/formules.js
 // Logique de la page formules : affichage, ajout, suppression, recherche
 
+const __ombNativeAlertFormules = window.alert.bind(window);
+window.alert = function (message) {
+  if (typeof showToast === "function") {
+    const msg = String(message ?? "");
+    const isError = /❌|erreur|impossible|refus|introuvable/i.test(msg);
+    const isSuccess =
+      /✅|succès|créé|ajouté|modifié|supprimé|mis à jour|réactiv|restaur/i.test(
+        msg,
+      );
+    showToast(msg, isError ? "error" : isSuccess ? "success" : "info", 3500);
+    return;
+  }
+  __ombNativeAlertFormules(String(message ?? ""));
+};
+
 // ===========================================
 // VARIABLES GLOBALES
 // ===========================================
@@ -26,6 +41,12 @@ let currentManagingFranchisesFormule = null;
 let tempProduitsToCreate = [];
 
 let allUnite = [];
+
+function isCatalogAdminRole(user = getUser()) {
+  return (
+    !!user && (user.role === "TECH_ADMIN" || user.role === "CATALOG_ADMIN")
+  );
+}
 
 // ===========================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -78,7 +99,7 @@ async function loadFranchises() {
     const filterFranchise = document.getElementById("filter-franchise");
     const franchiseSelector = document.getElementById("franchise-selector");
 
-    if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+    if (!isCatalogAdminRole(currentUser)) {
       // Masquer le filtre de franchise pour les non-admins
       if (filterFranchise) {
         filterFranchise.style.display = "none";
@@ -340,23 +361,22 @@ async function loadFormules() {
     if (
       currentFranchiseFilter &&
       currentUser &&
-      currentUser.role === "TECH_ADMIN"
+      isCatalogAdminRole(currentUser)
     ) {
       console.log(
         `🔍 Chargement des formules pour la franchise ID ${currentFranchiseFilter}`,
       );
-      formules = await apiGet(
-        `/admin/franchises/${currentFranchiseFilter}/formules`,
+
+      const [franchiseFormules, catalogFormules] = await Promise.all([
+        apiGet(`/admin/franchises/${currentFranchiseFilter}/formules`),
+        getFormules(),
+      ]);
+
+      const activeIds = new Set(
+        (franchiseFormules || []).filter((f) => f.active).map((f) => f.id),
       );
 
-      formules = formules.filter((f) => f.active);
-
-      formules = formules.map((f) => ({
-        id: f.id,
-        name: f.nom,
-        type_formule: f.type_formule,
-        nombre_couverts: f.nombre_couverts,
-      }));
+      formules = (catalogFormules || []).filter((f) => activeIds.has(f.id));
 
       console.log(
         `✅ ${formules.length} formules chargées pour la franchise ID ${currentFranchiseFilter}`,
@@ -441,7 +461,7 @@ function getDisplayFormuleName(name) {
 
 function displayFormulesCards(formules, container) {
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   container.className = "products-list";
   container.innerHTML = formules
@@ -530,10 +550,9 @@ function displayFormulesCards(formules, container) {
       }
 
       const displayName = getDisplayFormuleName(formule.name);
-      const manageFranchisesButton =
-        isTechAdmin && (formule.nb_franchises || 0) > 0
-          ? `<button class="edit-btn" onclick="handleOpenManageFranchises(${JSON.stringify(formule).replace(/"/g, "&quot;")})">🏢 Franchises</button>`
-          : "";
+      const manageFranchisesButton = isTechAdmin
+        ? `<button class="edit-btn" onclick="handleOpenManageFranchises(${JSON.stringify(formule).replace(/"/g, "&quot;")})">🏢 Franchises</button>`
+        : "";
 
       return `
         <div class="product-item">
@@ -568,7 +587,7 @@ function displayFormulesTable(formules, container) {
   container.className = "products-table";
 
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   const getSortClass = (column) => {
     if (sortColumn !== column) return "sortable";
@@ -613,10 +632,9 @@ function displayFormulesTable(formules, container) {
                 /"/g,
                 "&quot;",
               );
-              const manageFranchisesButton =
-                isTechAdmin && (formule.nb_franchises || 0) > 0
-                  ? `<button class="edit-btn" onclick="handleOpenManageFranchises(${formuleJson})">🏢 Franchises</button>`
-                  : "";
+              const manageFranchisesButton = isTechAdmin
+                ? `<button class="edit-btn" onclick="handleOpenManageFranchises(${formuleJson})">🏢 Franchises</button>`
+                : "";
 
               let franchisesCell = "";
               if (isTechAdmin) {
@@ -868,7 +886,7 @@ async function handleAddFormule(event) {
 
 async function handleDeleteFormule(formuleId) {
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   const message = isTechAdmin
     ? "⚠️ Êtes-vous sûr de vouloir supprimer définitivement cette formule ?\n\nCette action est irréversible pour toutes les franchises."
@@ -913,7 +931,7 @@ async function handleEditFormule(formule) {
   currentEditingFormule = formule;
 
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   // Pré-remplir les informations générales
   document.getElementById("detail-formule-name").value = formule.name;
@@ -1158,7 +1176,7 @@ async function handleSaveFormuleDetails() {
 
   // ⚠️ Avertissement pour les non-admins si formule partagée
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   if (!isTechAdmin && currentEditingFormule.nb_franchises > 1) {
     const proceed = confirm(
@@ -1247,7 +1265,7 @@ function handleFilterChange() {
 
 function handleOpenManageFranchises(formule) {
   const currentUser = getUser();
-  if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+  if (!isCatalogAdminRole(currentUser)) {
     return;
   }
 
@@ -1418,8 +1436,8 @@ async function handleSaveManageFranchises() {
 
 async function handleRestoreSharedDeletedFormule() {
   const currentUser = getUser();
-  if (!currentUser || currentUser.role !== "TECH_ADMIN") {
-    alert("Cette action est réservée au TECH_ADMIN.");
+  if (!isCatalogAdminRole(currentUser)) {
+    alert("Cette action est réservée aux admins catalogue.");
     return;
   }
 
@@ -1490,7 +1508,7 @@ function updateRestoreSharedButtonVisibility() {
 function handleFranchiseChange() {
   const currentuser = getUser();
 
-  if (!currentuser || currentuser.role !== "TECH_ADMIN") {
+  if (!isCatalogAdminRole(currentuser)) {
     console.warn("⚠️ Accès refusé : filtre franchise réservé aux TECH_ADMIN");
     return;
   }
@@ -1703,7 +1721,7 @@ async function handleCreateFormuleWithProduits() {
   const currentUser = getUser();
   let franchiseIds = null;
 
-  if (currentUser && currentUser.role === "TECH_ADMIN") {
+  if (isCatalogAdminRole(currentUser)) {
     const checkedBoxes = document.querySelectorAll(
       ".franchise-checkbox:checked",
     );
@@ -1726,7 +1744,7 @@ async function handleCreateFormuleWithProduits() {
       type_formule: type,
     };
 
-    if (currentUser && currentUser.role === "TECH_ADMIN") {
+    if (isCatalogAdminRole(currentUser)) {
       formuleData.franchise_ids = franchiseIds;
     }
 

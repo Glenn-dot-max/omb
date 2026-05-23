@@ -2,6 +2,29 @@
 // VÉRIFICATION AUTHENTIFICATION
 // ==============================================
 
+const __ombNativeAlertAdmin = window.alert.bind(window);
+window.alert = function (message) {
+  const msg = String(message ?? "");
+
+  // Conserver l'alert natif pour permettre la copie facile du mot de passe
+  if (/Nouveau mot de passe/i.test(msg)) {
+    __ombNativeAlertAdmin(msg);
+    return;
+  }
+
+  if (typeof showToast === "function") {
+    const isError = /❌|erreur|impossible|refus|introuvable/i.test(msg);
+    const isSuccess =
+      /✅|succès|créé|ajouté|modifié|supprimé|mis à jour|réactiv|promu|rétrograd/i.test(
+        msg,
+      );
+    showToast(msg, isError ? "error" : isSuccess ? "success" : "info", 3500);
+    return;
+  }
+
+  __ombNativeAlertAdmin(msg);
+};
+
 // Vérifier que l'utilisateur est connecté et TECH_ADMIN
 if (!requireAuth()) {
   // Redirige vers login si non connecté
@@ -105,6 +128,11 @@ function setupForms() {
     e.preventDefault();
     await saveUser();
   });
+
+  const userRole = document.getElementById("user-role");
+  if (userRole) {
+    userRole.addEventListener("change", updateUserRoleUI);
+  }
 }
 
 // ==============================================
@@ -243,15 +271,16 @@ function displayUsers(franchiseFilter = "") {
   }
 
   tbody.innerHTML = filteredUsers
-    .map(
-      (u) => `
+    .map((u) => {
+      const normalizedRole = String(u.role || "USER").toUpperCase();
+      return `
     <tr>
       <td>${u.email}</td>
       <td>${u.full_name || "-"}</td>
       <td>${u.franchises?.nom || "-"}</td>
       <td>
-        <span class="badge ${u.role === "TECH_ADMIN" ? "badge-admin" : "badge-user"}">
-          ${u.role === "TECH_ADMIN" ? "🔧 Admin" : "👤 User"}
+        <span class="badge ${getRoleBadgeClass(normalizedRole)}">
+          ${getRoleLabel(normalizedRole)}
         </span>
       </td>
       <td>
@@ -263,6 +292,16 @@ function displayUsers(franchiseFilter = "") {
         <button class="btn-icon" onclick="editUser('${u.id}')" title="Modifier">
           ✏️
         </button>
+        ${
+          normalizedRole !== "TECH_ADMIN" && normalizedRole !== "CATALOG_ADMIN"
+            ? `<button class="btn-icon" onclick="promoteToCatalogAdmin('${u.id}')" title="Promouvoir en Catalog Admin">🗂️</button>`
+            : ""
+        }
+        ${
+          normalizedRole === "CATALOG_ADMIN"
+            ? `<button class="btn-icon" onclick="demoteToUser('${u.id}')" title="Rétrograder en User">👤</button>`
+            : ""
+        }
         <button class="btn-icon" onclick="resetPassword('${u.id}')" title="Réinitialiser MDP">
           🔄
         </button>
@@ -273,9 +312,23 @@ function displayUsers(franchiseFilter = "") {
         </button>
       </td>
     </tr>
-  `,
-    )
+  `;
+    })
     .join("");
+}
+
+function getRoleLabel(role) {
+  const normalizedRole = String(role || "USER").toUpperCase();
+  if (normalizedRole === "TECH_ADMIN") return "🔧 Tech Admin";
+  if (normalizedRole === "CATALOG_ADMIN") return "🗂️ Catalog Admin";
+  return "👤 User";
+}
+
+function getRoleBadgeClass(role) {
+  const normalizedRole = String(role || "USER").toUpperCase();
+  if (normalizedRole === "TECH_ADMIN") return "badge-admin";
+  if (normalizedRole === "CATALOG_ADMIN") return "badge-catalog-admin";
+  return "badge-user";
 }
 
 // ==============================================
@@ -402,7 +455,8 @@ function openUserModal(userId = null) {
     document.getElementById("user-id").value = user.id;
     document.getElementById("user-email").value = user.email;
     document.getElementById("user-fullname").value = user.full_name || "";
-    document.getElementById("user-franchise").value = user.franchise_id;
+    document.getElementById("user-role").value = user.role || "USER";
+    document.getElementById("user-franchise").value = user.franchise_id || "";
 
     // Cacher le champ mot de passe en mode édition
     passwordGroup.style.display = "none";
@@ -415,7 +469,10 @@ function openUserModal(userId = null) {
 
     // Générer un mot de passe par défaut
     generatePassword();
+    document.getElementById("user-role").value = "USER";
   }
+
+  updateUserRoleUI();
 
   modal.classList.add("active");
 }
@@ -426,10 +483,19 @@ function closeUserModal() {
 }
 
 async function saveUser() {
+  const role = document.getElementById("user-role").value;
+  const franchiseId = document.getElementById("user-franchise").value;
+
+  if (role === "USER" && !franchiseId) {
+    alert("Veuillez sélectionner une franchise pour un utilisateur USER.");
+    return;
+  }
+
   const data = {
     email: document.getElementById("user-email").value.trim(),
     full_name: document.getElementById("user-fullname").value.trim(),
-    franchise_id: document.getElementById("user-franchise").value,
+    role,
+    franchise_id: role === "USER" ? franchiseId : franchiseId || null,
   };
 
   // Ajouter le mot de passe seulement en mode création
@@ -458,6 +524,83 @@ async function saveUser() {
     await loadUsers();
   } catch (error) {
     console.error("❌ Erreur sauvegarde utilisateur:", error);
+    alert("Erreur : " + error.message);
+  }
+}
+
+function updateUserRoleUI() {
+  const role = document.getElementById("user-role")?.value || "USER";
+  const franchiseSelect = document.getElementById("user-franchise");
+  const franchiseLabel = document.getElementById("user-franchise-label");
+  const franchiseHint = document.getElementById("user-franchise-hint");
+
+  if (!franchiseSelect || !franchiseLabel || !franchiseHint) return;
+
+  if (role === "USER") {
+    franchiseSelect.required = true;
+    franchiseLabel.textContent = "Franchise *";
+    franchiseHint.textContent = "Obligatoire pour le rôle User.";
+  } else {
+    franchiseSelect.required = false;
+    franchiseLabel.textContent = "Franchise (optionnel)";
+    franchiseHint.textContent =
+      "Optionnel pour Catalog Admin / Tech Admin (peut être global).";
+  }
+}
+
+async function promoteToCatalogAdmin(userId) {
+  const user = users.find((u) => u.id === userId);
+  if (!user) return;
+
+  const confirmed = confirm(
+    `Promouvoir ${user.email} en Catalog Admin ?\n\nIl pourra gérer Produits/Formules/Catégories/Types mais pas Commandes/Planning/Admin.`,
+  );
+  if (!confirmed) return;
+
+  try {
+    await fetchWithAuth(`${API_URL}/admin/users/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "CATALOG_ADMIN" }),
+    });
+
+    alert("✅ Utilisateur promu Catalog Admin.");
+    await loadUsers();
+  } catch (error) {
+    console.error("❌ Erreur promotion Catalog Admin:", error);
+    alert("Erreur : " + error.message);
+  }
+}
+
+async function demoteToUser(userId) {
+  const user = users.find((u) => u.id === userId);
+  if (!user) return;
+
+  const confirmed = confirm(
+    `Rétrograder ${user.email} en User ?\n\nUne franchise devra être définie pour ses accès opérationnels.`,
+  );
+  if (!confirmed) return;
+
+  try {
+    const fallbackFranchiseId =
+      user.franchise_id || franchises.find((f) => f.active)?.id;
+    if (!fallbackFranchiseId) {
+      alert(
+        "Impossible: aucune franchise active disponible pour attribuer le rôle User.",
+      );
+      return;
+    }
+
+    await fetchWithAuth(`${API_URL}/admin/users/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "USER", franchise_id: fallbackFranchiseId }),
+    });
+
+    alert("✅ Utilisateur rétrogradé en User.");
+    await loadUsers();
+  } catch (error) {
+    console.error("❌ Erreur rétrogradation User:", error);
     alert("Erreur : " + error.message);
   }
 }

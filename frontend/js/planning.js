@@ -11,6 +11,7 @@ let currentFranchiseFilter = "";
 // =======================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  const currentuser = getUser();
   console.log("Planning module loaded");
 
   // initialiser les dates par défaut (aujourd'hui et dans 7 jours)
@@ -21,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Attacher les évènements
   attachEventListeners();
 
-  const currentuser = getUser();
   if (currentuser && currentuser.role === "TECH_ADMIN") {
     const adminLink = document.getElementById("admin-link");
     if (adminLink) {

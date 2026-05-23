@@ -42,6 +42,30 @@ function getUser() {
   }
 }
 
+function isTechAdmin(user = getUser()) {
+  return !!user && user.role === "TECH_ADMIN";
+}
+
+function isCatalogAdmin(user = getUser()) {
+  return !!user && user.role === "CATALOG_ADMIN";
+}
+
+function hasCatalogAdminAccess(user = getUser()) {
+  return (
+    !!user && (user.role === "TECH_ADMIN" || user.role === "CATALOG_ADMIN")
+  );
+}
+
+function applyRoleBasedNavigation() {
+  const user = getUser();
+  if (!user) return;
+
+  const adminLink = document.getElementById("admin-link");
+  if (adminLink && !isTechAdmin(user)) {
+    adminLink.style.display = "none";
+  }
+}
+
 // ==============================================
 // VÉRIFICATION TOKEN
 // ==============================================
@@ -247,6 +271,8 @@ async function apiDelete(endpoint) {
 function displayUserInfo() {
   const user = getUser();
   if (!user) return;
+
+  applyRoleBasedNavigation();
 
   // Vérifier si déjà créé
   let burgerBtn = document.getElementById("burger-btn");

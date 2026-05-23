@@ -1,6 +1,19 @@
 // js/produits.js
 // Logique de la page produits : affichage, ajout, suppression, recherche
 
+const __ombNativeAlertProduits = window.alert.bind(window);
+window.alert = function (message) {
+  if (typeof showToast === "function") {
+    const msg = String(message ?? "");
+    const isError = /❌|erreur|impossible|refus|introuvable/i.test(msg);
+    const isSuccess =
+      /✅|succès|créé|ajouté|modifié|supprimé|mis à jour|réactiv/i.test(msg);
+    showToast(msg, isError ? "error" : isSuccess ? "success" : "info", 3500);
+    return;
+  }
+  __ombNativeAlertProduits(String(message ?? ""));
+};
+
 // ===========================================
 // VARIABLES GLOBALES
 // ===========================================
@@ -23,6 +36,12 @@ let currentFranchiseFilter = "";
 let currentEditingProduct = null;
 
 let currentFilteredProduits = [];
+
+function isCatalogAdminRole(user = getUser()) {
+  return (
+    !!user && (user.role === "TECH_ADMIN" || user.role === "CATALOG_ADMIN")
+  );
+}
 
 // ===========================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -93,7 +112,7 @@ async function loadFranchises() {
     const filterFranchise = document.getElementById("filter-franchise");
     const franchiseSelector = document.getElementById("franchise-selector");
 
-    if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+    if (!isCatalogAdminRole(currentUser)) {
       // Masquer le filtre de franchise pour les non-admins
       if (filterFranchise) {
         filterFranchise.style.display = "none";
@@ -373,7 +392,7 @@ async function loadProduits() {
     if (
       currentFranchiseFilter &&
       currentUser &&
-      currentUser.role === "TECH_ADMIN"
+      isCatalogAdminRole(currentUser)
     ) {
       console.log(
         `🔍 Chargement des produits pour la franchise ID ${currentFranchiseFilter}`,
@@ -485,7 +504,7 @@ function displayProduits(produits) {
 
 function displayProduitsCards(produits, container) {
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   container.className = "products-list";
   container.innerHTML = produits
@@ -600,7 +619,7 @@ function displayProduitsTable(produits, container) {
   container.className = "products-table";
 
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   const getSortClass = (column) => {
     if (sortColumn !== column) return "sortable";
@@ -864,7 +883,7 @@ async function handleAddProduit(event) {
   const currentUser = getUser();
   let franchiseIds = null;
 
-  if (currentUser && currentUser.role === "TECH_ADMIN") {
+  if (isCatalogAdminRole(currentUser)) {
     const checkedBoxes = document.querySelectorAll(
       ".franchise-checkbox:checked",
     );
@@ -883,7 +902,7 @@ async function handleAddProduit(event) {
       type_id: typeId ? parseInt(typeId) : null,
     };
 
-    if (currentUser && currentUser.role === "TECH_ADMIN") {
+    if (isCatalogAdminRole(currentUser)) {
       produitData.franchise_ids = franchiseIds;
     }
 
@@ -921,7 +940,7 @@ async function handleAddProduit(event) {
 
 async function handleDeleteProduit(produitId) {
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   // Message de confirmation adapté au rôle
   const message = isTechAdmin
@@ -1042,7 +1061,7 @@ function handleFilterChange() {
 function handleFranchiseChange() {
   const currentUser = getUser();
 
-  if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+  if (!isCatalogAdminRole(currentUser)) {
     return;
   }
 
@@ -1114,7 +1133,7 @@ function initCategoriesSection() {
   const btnCategories = document.getElementById("toggle-categories");
   const btnTypes = document.getElementById("toggle-types");
 
-  if (currentUser && currentUser.role === "TECH_ADMIN") {
+  if (isCatalogAdminRole(currentUser)) {
     categoriesSection.style.display = "block";
 
     // Boutons mode gestion
@@ -1172,7 +1191,7 @@ function displayCategoriesManagement() {
   }
 
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   list.innerHTML = allCategories
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -1395,7 +1414,7 @@ function initTypesSection() {
   const currentUser = getUser();
   const addTypeContainer = document.getElementById("add-type-container");
 
-  if (currentUser && currentUser.role === "TECH_ADMIN") {
+  if (isCatalogAdminRole(currentUser)) {
     if (addTypeContainer) {
       addTypeContainer.style.display = "block";
     }
@@ -1440,7 +1459,7 @@ function displayTypesManagement() {
   }
 
   const currentUser = getUser();
-  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+  const isTechAdmin = isCatalogAdminRole(currentUser);
 
   list.innerHTML = allTypes
     .sort((a, b) => a.name.localeCompare(b.name))

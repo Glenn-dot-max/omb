@@ -197,6 +197,11 @@
   color: #0c5460;
 }
 
+.badge-catalog-admin {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
 .badge-user {
   background-color: #e2e3e5;
   color: #383d41;
@@ -463,4 +468,3 @@ form {
   background-color: #d4a574;
   color: white;
 }
-
