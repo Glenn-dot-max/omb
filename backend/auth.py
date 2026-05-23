@@ -23,6 +23,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 security = HTTPBearer()
 
+ROLE_TECH_ADMIN = "TECH_ADMIN"
+ROLE_CATALOG_ADMIN = "CATALOG_ADMIN"
+ROLE_USER = "USER"
+
+CATALOG_ADMIN_ROLES = {ROLE_TECH_ADMIN, ROLE_CATALOG_ADMIN}
+
 # ===============================================
 # FONCTIONS DE HASHAGE
 # ===============================================
@@ -85,7 +91,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    if role != "TECH_ADMIN" and franchise_id is None:
+    if role not in CATALOG_ADMIN_ROLES and franchise_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide: franchise_id manquant",
@@ -101,10 +107,20 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 def is_tech_admin(current_user: dict = Depends(get_current_user)):
     """Vérifie que l'utilisateur est TECH_ADMIN"""
-    if current_user.get("role") != "TECH_ADMIN":
+    if current_user.get("role") != ROLE_TECH_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accès refusé: nécessite le rôle TECH_ADMIN"
+        )
+    return current_user
+
+
+def is_catalog_admin(current_user: dict = Depends(get_current_user)):
+    """Vérifie que l'utilisateur est TECH_ADMIN ou CATALOG_ADMIN"""
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès refusé: nécessite le rôle TECH_ADMIN ou CATALOG_ADMIN",
         )
     return current_user
 

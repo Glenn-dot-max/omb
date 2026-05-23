@@ -607,6 +607,46 @@ body {
   border-bottom-right-radius: 12px;
 }
 
+.formules-loading {
+  margin: 1rem 0 1.25rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1px solid #f0e6d8;
+  border-radius: 10px;
+}
+
+.formules-loading-text {
+  font-size: 0.95rem;
+  color: #6b4f3f;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.formules-loading-track {
+  width: 100%;
+  height: 8px;
+  background: #f3ece3;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.formules-loading-bar {
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, #f4a460 0%, #d4862d 100%);
+  border-radius: 999px;
+  animation: formules-loading-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes formules-loading-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
 .formule-actions-container {
   display: flex;
   gap: 20px;
@@ -869,6 +909,55 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Confirmation dialog personnalisée */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.confirm-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.confirm-message {
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+  color: #333;
+  font-size: 15px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
 }
 
 /* Badge urgent pour dates */

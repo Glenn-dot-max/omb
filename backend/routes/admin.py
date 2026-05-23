@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_supabase_client
-from auth import is_tech_admin
+from auth import is_tech_admin, is_catalog_admin
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 import bcrypt
@@ -31,13 +31,15 @@ class FranchiseUpdate(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str
-    franchise_id: str
+    franchise_id: Optional[str] = None
     password: str
+    role: str = "USER"
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     franchise_id: Optional[str] = None
+    role: Optional[str] = None
     active: Optional[bool] = None
 
 class PasswordReset(BaseModel):
@@ -47,14 +49,14 @@ class PasswordReset(BaseModel):
 # FRANCHISE - CRUD
 # ======================================
 @router.get("/franchises")
-async def get_franchises(current_user: dict = Depends(is_tech_admin)):
-    """Liste toutes les franchises (TECH ADMIN UNIQUEMENT)"""
+async def get_franchises(current_user: dict = Depends(is_catalog_admin)):
+    """Liste toutes les franchises (TECH_ADMIN/CATALOG_ADMIN)"""
     response = supabase.table("franchises").select("*").order("nom").execute()
     return response.data
 
 @router.get("/franchises/{franchise_id}")
-async def get_franchise(franchise_id: str, current_user: dict = Depends(is_tech_admin)):
-    """Récupère une franchise par son ID (TECH ADMIN UNIQUEMENT)"""
+async def get_franchise(franchise_id: str, current_user: dict = Depends(is_catalog_admin)):
+    """Récupère une franchise par son ID (TECH_ADMIN/CATALOG_ADMIN)"""
     response = supabase.table("franchises").select("*").eq("id", franchise_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Franchise introuvable")
@@ -130,12 +132,20 @@ async def create_user(user: UserCreate, current_user: dict = Depends(is_tech_adm
     # Hash le mot de passe
     hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
+    allowed_roles = {"USER", "CATALOG_ADMIN", "TECH_ADMIN"}
+    role = (user.role or "USER").upper()
+    if role not in allowed_roles:
+        raise HTTPException(status_code=400, detail="Rôle invalide")
+
+    if role == "USER" and not user.franchise_id:
+        raise HTTPException(status_code=400, detail="franchise_id requis pour le rôle USER")
+
     user_data = {
         "email": user.email,
         "full_name": user.full_name,
         "franchise_id": user.franchise_id,
         "password_hash": hashed_password,
-        "role": "USER",
+        "role": role,
         "active": True,
         "must_change_password": True,
         "created_at": datetime.utcnow().isoformat()
@@ -157,6 +167,11 @@ async def update_user(
 ):
     """Met à jour un utilisateur"""
     update_data = {k: v for k, v in user.model_dump().items() if v is not None}
+
+    if "role" in update_data:
+        update_data["role"] = str(update_data["role"]).upper()
+        if update_data["role"] not in {"USER", "CATALOG_ADMIN", "TECH_ADMIN"}:
+            raise HTTPException(status_code=400, detail="Rôle invalide")
 
     if not update_data:
         raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
@@ -208,7 +223,7 @@ async def delete_user(user_id: str, current_user: dict = Depends(is_tech_admin))
 @router.get("/franchises/{franchise_id}/produits")
 async def get_franchise_produits(
     franchise_id: str,
-    current_user: dict = Depends(is_tech_admin)
+    current_user: dict = Depends(is_catalog_admin)
 ):
     """
     Récupère tous les produits actifs d'une franchise avec leurs catégories et types
@@ -290,7 +305,7 @@ async def get_franchise_produits(
 @router.get("/franchises/{franchise_id}/formules")
 async def get_franchise_formules(
     franchise_id: str,
-    current_user: dict = Depends(is_tech_admin)
+    current_user: dict = Depends(is_catalog_admin)
 ):
     """
     Récupère toutes les formules actives d'une franchise

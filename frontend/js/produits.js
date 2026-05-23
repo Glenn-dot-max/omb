@@ -43,10 +43,26 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadInitialData() {
-  await loadCategories();
-  await loadTypes();
-  await loadFranchises();
+  await Promise.allSettled([loadCategories(), loadTypes(), loadFranchises()]);
   await loadProduits();
+}
+
+function showProduitsLoading() {
+  const loading = document.getElementById("produits-loading");
+  if (loading) loading.style.display = "block";
+}
+
+function hideProduitsLoading() {
+  const loading = document.getElementById("produits-loading");
+  if (loading) loading.style.display = "none";
+}
+
+function getDisplayProduitName(name) {
+  if (!name) return "";
+  return name.replace(
+    /\s*\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)\s*$/i,
+    "",
+  );
 }
 
 async function loadCategories() {
@@ -85,7 +101,6 @@ async function loadFranchises() {
       if (franchiseSelector) {
         franchiseSelector.style.display = "none";
       }
-      console.log("✅ Filtre franchise masqué (utilisateur non TECH_ADMIN)");
       return;
     }
 
@@ -103,10 +118,6 @@ async function loadFranchises() {
     populateFranchiseCheckboxes();
 
     setupFranchiseAccordion();
-
-    console.log(
-      `✅ Filtre franchise activé pour TECH_ADMIN (${allFranchises.length} franchises chargées)`,
-    );
   } catch (error) {
     console.error("Erreur lors du chargement des franchises :", error);
     const filterFranchise = document.getElementById("filter-franchise");
@@ -354,6 +365,7 @@ function handleSort(column) {
 // ===========================================
 
 async function loadProduits() {
+  showProduitsLoading();
   try {
     const currentUser = getUser();
     let produits;
@@ -415,6 +427,8 @@ async function loadProduits() {
   } catch (error) {
     console.error("Erreur chargement produits:", error);
     alert("Erreur lors du chargement des produits.");
+  } finally {
+    hideProduitsLoading();
   }
 }
 
@@ -476,10 +490,25 @@ function displayProduitsCards(produits, container) {
   container.className = "products-list";
   container.innerHTML = produits
     .map((produit) => {
+      const displayName = getDisplayProduitName(produit.name);
       const categoryName = produit.category_name || "Non catégorisé";
       const typeName = produit.type_name || "Sans type";
+      const isFranchiseOwned =
+        !isTechAdmin && (produit.nb_franchises || 0) === 1;
+      const ownershipBadge = isFranchiseOwned
+        ? `<div style="
+            margin-top: 0.5rem;
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #1e7e34;
+            background: #e9f7ef;
+            border: 1px solid #b7e4c7;
+            border-radius: 999px;
+          ">✅ Produit propre à votre franchise</div>`
+        : "";
 
-      // ✅ NOUVELLE LOGIQUE : Afficher les franchises en texte
       let franchiseInfo = "";
       if (isTechAdmin) {
         if (produit.nb_franchises === 0) {
@@ -535,21 +564,24 @@ function displayProduitsCards(produits, container) {
         }
       }
 
+      const manageFranchisesButton =
+        isTechAdmin && (produit.nb_franchises || 0) > 0
+          ? `<button class="edit-btn" onclick="handleOpenManageProduitFranchises(${JSON.stringify(produit).replace(/"/g, "&quot;")})">🏢 Franchises</button>`
+          : "";
+
       return `
         <div class="product-item">
-          <div class="product-name">${produit.name}</div>
+          <div class="product-name">${displayName}</div>
           <div class="product-details">
             <span class="badge category">${categoryName}</span>
             <span class="badge type">${typeName}</span>
           </div>
+          ${ownershipBadge}
           ${franchiseInfo}
           <div class="product-actions">
-            ${
-              isTechAdmin
-                ? `<button class="edit-btn"
-            onclick="handleEditProduit(${JSON.stringify(produit).replace(/"/g, "&quot;")})">✏️ Modifier</button>`
-                : `<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l'administrateur">🔒 Modifier</button>`
-            }
+            <button class="edit-btn"
+              onclick="handleEditProduit(${JSON.stringify(produit).replace(/"/g, "&quot;")})">✏️ Modifier</button>
+            ${manageFranchisesButton}
             <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">
               ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}
             </button>
@@ -592,12 +624,32 @@ function displayProduitsTable(produits, container) {
             .map((produit) => {
               const categoryName = produit.category_name || "Non catégorisé";
               const typeName = produit.type_name || "Sans type";
+              const displayName = getDisplayProduitName(produit.name);
+              const isFranchiseOwned =
+                !isTechAdmin && (produit.nb_franchises || 0) === 1;
+              const ownershipBadge = isFranchiseOwned
+                ? `<span style="
+                    margin-left: 0.5rem;
+                    display: inline-block;
+                    padding: 0.2rem 0.5rem;
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    color: #1e7e34;
+                    background: #e9f7ef;
+                    border: 1px solid #b7e4c7;
+                    border-radius: 999px;
+                    vertical-align: middle;
+                  ">Propre</span>`
+                : "";
               const produitJson = JSON.stringify(produit).replace(
                 /"/g,
                 "&quot;",
               );
+              const manageFranchisesButton =
+                isTechAdmin && (produit.nb_franchises || 0) > 0
+                  ? `<button class="edit-btn" onclick="handleOpenManageProduitFranchises(${produitJson})">🏢 Franchises</button>`
+                  : "";
 
-              // ✅ NOUVELLE LOGIQUE : Colonne franchises
               let franchisesCell = "";
               if (isTechAdmin) {
                 if (produit.nb_franchises === 0) {
@@ -633,18 +685,14 @@ function displayProduitsTable(produits, container) {
 
               return `
                 <tr>
-                  <td class="product-name">${produit.name}</td>
+                  <td class="product-name">${displayName}${ownershipBadge}</td>
                   <td><span class="badge category">${categoryName}</span></td>
                   <td><span class="badge type">${typeName}</span></td>
                   ${franchisesCell}
                   <td>
                     <div class="table-actions">
-                      ${
-                        isTechAdmin
-                          ? `<button class="edit-btn"
-                      onclick="handleEditProduit(${produitJson})">✏️ Modifier</button>`
-                          : `<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l'administrateur">🔒 Modifier</button>`
-                      }
+                      <button class="edit-btn" onclick="handleEditProduit(${produitJson})">✏️ Modifier</button>
+                      ${manageFranchisesButton}
                       <button class="delete-btn" onclick="handleDeleteProduit('${produit.id}')">
                         ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}
                       </button>
@@ -692,6 +740,56 @@ function setupEventListeners() {
   const cancelEdit = document.getElementById("cancel-edit");
   cancelEdit.addEventListener("click", closeEditModal);
 
+  const cancelManageFranchises = document.getElementById(
+    "cancel-manage-produit-franchises",
+  );
+  if (cancelManageFranchises) {
+    cancelManageFranchises.addEventListener(
+      "click",
+      closeManageProduitFranchisesModal,
+    );
+  }
+
+  const saveManageFranchises = document.getElementById(
+    "save-manage-produit-franchises",
+  );
+  if (saveManageFranchises) {
+    saveManageFranchises.addEventListener(
+      "click",
+      handleSaveManageProduitFranchises,
+    );
+  }
+
+  const selectAllManageBtn = document.getElementById(
+    "select-all-manage-produit-franchises",
+  );
+  if (selectAllManageBtn) {
+    selectAllManageBtn.addEventListener("click", () => {
+      const checkboxes = document.querySelectorAll(
+        ".manage-produit-franchise-checkbox",
+      );
+      checkboxes.forEach((cb) => {
+        cb.checked = true;
+      });
+      updateManageProduitFranchisesSelectionUI();
+    });
+  }
+
+  const clearAllManageBtn = document.getElementById(
+    "clear-all-manage-produit-franchises",
+  );
+  if (clearAllManageBtn) {
+    clearAllManageBtn.addEventListener("click", () => {
+      const checkboxes = document.querySelectorAll(
+        ".manage-produit-franchise-checkbox",
+      );
+      checkboxes.forEach((cb) => {
+        cb.checked = false;
+      });
+      updateManageProduitFranchisesSelectionUI();
+    });
+  }
+
   const editForm = document.getElementById("edit-product-form");
   editForm.addEventListener("submit", handleUpdateProduit);
 
@@ -702,6 +800,17 @@ function setupEventListeners() {
       closeEditModal();
     }
   });
+
+  const manageModal = document.getElementById(
+    "manage-produit-franchises-modal",
+  );
+  if (manageModal) {
+    manageModal.addEventListener("click", (event) => {
+      if (event.target === manageModal) {
+        closeManageProduitFranchisesModal();
+      }
+    });
+  }
 }
 
 // ===========================================
@@ -762,9 +871,7 @@ async function handleAddProduit(event) {
 
     if (checkedBoxes.length > 0) {
       franchiseIds = Array.from(checkedBoxes).map((cb) => cb.value);
-      console.log(`✅ Franchises sélectionnées : ${franchiseIds.length}`);
     } else {
-      console.log("⚠️ Aucune franchise sélectionnée, le produit sera global");
       franchiseIds = [];
     }
   }
@@ -780,7 +887,7 @@ async function handleAddProduit(event) {
       produitData.franchise_ids = franchiseIds;
     }
 
-    const nouveauProduit = await createProduit(produitData);
+    await createProduit(produitData);
 
     // ✅ RECHARGER tous les produits pour avoir les métadonnées
     await loadProduits();
@@ -859,9 +966,12 @@ function handleEditProduit(produit) {
   currentEditingProduct = produit;
 
   // Pré-remplir les champs de la modale
-  document.getElementById("edit-product-name").value = produit.name;
-  document.getElementById("edit-product-category").value = produit.categorie_id
-    ? produit.categorie_id.toString()
+  document.getElementById("edit-product-name").value = getDisplayProduitName(
+    produit.name,
+  );
+  const categoryId = produit.category_id || produit.categorie_id;
+  document.getElementById("edit-product-category").value = categoryId
+    ? categoryId.toString()
     : "";
   document.getElementById("edit-product-type").value = produit.type_id
     ? produit.type_id.toString()
@@ -896,22 +1006,13 @@ async function handleUpdateProduit(event) {
   }
 
   try {
-    const produitModifie = await updateProduit(currentEditingProduct.id, {
+    await updateProduit(currentEditingProduct.id, {
       name: name,
       categorie_id: categoryId ? parseInt(categoryId) : null,
       type_id: typeId ? parseInt(typeId) : null,
     });
 
-    // Mettre à jour dans le tableau local
-    const index = allProduits.findIndex(
-      (p) => p.id === currentEditingProduct.id,
-    );
-    if (index !== -1) {
-      allProduits[index] = produitModifie;
-    }
-
-    // Réafficher les produits
-    displayProduits(allProduits);
+    await loadProduits();
 
     // Fermer la modale
     closeEditModal();
@@ -941,19 +1042,11 @@ function handleFilterChange() {
 function handleFranchiseChange() {
   const currentUser = getUser();
 
-  // 🔒 DOUBLE VÉRIFICATION : Bloquer si pas TECH_ADMIN
   if (!currentUser || currentUser.role !== "TECH_ADMIN") {
-    console.warn("⚠️ Accès refusé : filtre franchise réservé aux TECH_ADMIN");
     return;
   }
 
   currentFranchiseFilter = document.getElementById("filter-franchise").value;
-
-  if (currentFranchiseFilter) {
-    console.log(`🔍 Filtrage par franchise : ${currentFranchiseFilter}`);
-  } else {
-    console.log("🔍 Retour à tous les produits");
-  }
 
   // Recharger les produits avec le nouveau filtre
   loadProduits();
@@ -968,7 +1061,10 @@ function handleResetFilters() {
   document.getElementById("search-input").value = "";
   document.getElementById("filter-category").value = "";
   document.getElementById("filter-type").value = "";
-  document.getElementById("filter-franchise").value = "";
+  const franchiseFilter = document.getElementById("filter-franchise");
+  if (franchiseFilter) {
+    franchiseFilter.value = "";
+  }
 
   currentFilteredProduits = allProduits;
   displayProduits(allProduits);
@@ -1559,3 +1655,187 @@ window.addEventListener("DOMContentLoaded", () => {
   initCategoriesSection();
   initTypesSection();
 });
+
+// ===========================================
+// GESTION DES FRANCHISES (TECH_ADMIN)
+// ===========================================
+
+let currentManagingProduitFranchises = null;
+
+function updateManageProduitFranchisesSelectionUI() {
+  const checkboxes = document.querySelectorAll(
+    ".manage-produit-franchise-checkbox",
+  );
+  const selectedCount = Array.from(checkboxes).filter(
+    (cb) => cb.checked,
+  ).length;
+  const totalCount = checkboxes.length;
+
+  const countEl = document.getElementById("manage-produit-franchises-count");
+  if (countEl) {
+    countEl.textContent = `${selectedCount}/${totalCount} sélectionnée${selectedCount > 1 ? "s" : ""}`;
+  }
+
+  const saveBtn = document.getElementById("save-manage-produit-franchises");
+  if (saveBtn && currentManagingProduitFranchises) {
+    const selectedSet = new Set(
+      Array.from(checkboxes)
+        .filter((cb) => cb.checked)
+        .map((cb) => String(cb.value)),
+    );
+    const previousSet = new Set(
+      (currentManagingProduitFranchises.franchise_ids || []).map((id) =>
+        String(id),
+      ),
+    );
+
+    let hasChanges = selectedSet.size !== previousSet.size;
+    if (!hasChanges) {
+      for (const id of selectedSet) {
+        if (!previousSet.has(id)) {
+          hasChanges = true;
+          break;
+        }
+      }
+    }
+
+    saveBtn.disabled = !hasChanges;
+    saveBtn.style.opacity = hasChanges ? "1" : "0.6";
+    saveBtn.style.cursor = hasChanges ? "pointer" : "not-allowed";
+  }
+}
+
+function handleOpenManageProduitFranchises(produit) {
+  currentManagingProduitFranchises = produit;
+
+  const title = document.getElementById("manage-produit-franchises-title");
+  if (title) {
+    title.textContent = `🏢 Gérer les franchises`;
+  }
+
+  const subtitle = document.getElementById(
+    "manage-produit-franchises-subtitle",
+  );
+  if (subtitle) {
+    subtitle.textContent = `Produit : ${getDisplayProduitName(produit.name)}`;
+  }
+
+  renderManageProduitFranchiseCheckboxes(produit);
+  updateManageProduitFranchisesSelectionUI();
+  document.getElementById("manage-produit-franchises-modal").style.display =
+    "block";
+}
+
+function renderManageProduitFranchiseCheckboxes(produit) {
+  const container = document.getElementById(
+    "manage-produit-franchise-checkboxes",
+  );
+  if (!container) return;
+
+  const activeIds = new Set(
+    (produit.franchise_ids || []).map((id) => String(id)),
+  );
+
+  container.innerHTML = allFranchises
+    .map((franchise) => {
+      const isChecked = activeIds.has(String(franchise.id));
+      return `
+        <label style="
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.7rem 0.75rem;
+          border: 1px solid #eee;
+          border-radius: 8px;
+          margin-bottom: 0.5rem;
+          cursor: pointer;
+          transition: border-color 0.2s ease, background 0.2s ease;
+        ">
+          <input
+            type="checkbox"
+            class="manage-produit-franchise-checkbox"
+            value="${franchise.id}"
+            ${isChecked ? "checked" : ""}
+          />
+          <span style="font-weight: 600; color: #2c3e50">${franchise.nom}</span>
+        </label>
+      `;
+    })
+    .join("");
+
+  const checkboxes = container.querySelectorAll(
+    ".manage-produit-franchise-checkbox",
+  );
+  checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener(
+      "change",
+      updateManageProduitFranchisesSelectionUI,
+    );
+  });
+}
+
+function closeManageProduitFranchisesModal() {
+  document.getElementById("manage-produit-franchises-modal").style.display =
+    "none";
+
+  const subtitle = document.getElementById(
+    "manage-produit-franchises-subtitle",
+  );
+  if (subtitle) {
+    subtitle.textContent = "";
+  }
+
+  currentManagingProduitFranchises = null;
+}
+
+async function handleSaveManageProduitFranchises() {
+  if (!currentManagingProduitFranchises) return;
+
+  const checkboxes = document.querySelectorAll(
+    ".manage-produit-franchise-checkbox",
+  );
+
+  const selectedIds = Array.from(checkboxes)
+    .filter((cb) => cb.checked)
+    .map((cb) => cb.value);
+
+  const previousIds = new Set(
+    (currentManagingProduitFranchises.franchise_ids || []).map((id) =>
+      String(id),
+    ),
+  );
+  const selectedSet = new Set(selectedIds.map((id) => String(id)));
+
+  const toActivate = selectedIds.filter((id) => !previousIds.has(String(id)));
+  const toDeactivate = Array.from(previousIds).filter(
+    (id) => !selectedSet.has(String(id)),
+  );
+
+  try {
+    if (toActivate.length > 0) {
+      await toggleProduitFranchise(
+        currentManagingProduitFranchises.id,
+        toActivate,
+        true,
+      );
+    }
+
+    if (toDeactivate.length > 0) {
+      await toggleProduitFranchise(
+        currentManagingProduitFranchises.id,
+        toDeactivate,
+        false,
+      );
+    }
+
+    closeManageProduitFranchisesModal();
+    await loadProduits();
+    alert("✅ Franchises du produit mises à jour.");
+  } catch (error) {
+    console.error(
+      "Erreur lors de la mise à jour des franchises produit:",
+      error,
+    );
+    alert("❌ Erreur lors de la mise à jour des franchises.");
+  }
+}

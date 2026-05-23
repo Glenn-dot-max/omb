@@ -92,8 +92,27 @@ async def create_formule_produit(formule_produit: FormuleProduitCreate, current_
         data["formule_id"] = str(data["formule_id"])
     if "produit_id" in data:
         data["produit_id"] = str(data["produit_id"])
+
+    # Éviter les doublons formule+produit
+    existing_link = supabase.table("formule_produits")\
+        .select("id")\
+        .eq("formule_id", data["formule_id"])\
+        .eq("produit_id", data["produit_id"])\
+        .execute()
     
-    response = supabase.table("formule_produits").insert(data).execute()
+    if existing_link.data:
+        raise HTTPException(
+            status_code=409,
+            detail="Ce produit est déjà présent dans la formule"
+        )
+
+    try:
+        response = supabase.table("formule_produits").insert(data).execute()
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Erreur lors de l'ajout du produit à la formule: {str(e)}"
+        )
     
     if not response.data:
         raise HTTPException(status_code=400, detail="Failed to create Formule-Produit")

@@ -95,6 +95,50 @@ async function updateFormule(formuleId, formule) {
   }
 }
 
+async function toggleFormuleFranchises(formuleId, franchiseIds, active) {
+  try {
+    return await apiPatch(`/formules/${formuleId}/franchises`, {
+      franchise_ids: franchiseIds,
+      active: active,
+    });
+  } catch (error) {
+    console.error("Erreur API toggleFormuleFranchises:", error);
+    throw error;
+  }
+}
+
+async function restoreOriginalFormule(formuleId) {
+  try {
+    return await apiPost(`/formules/${formuleId}/restore-original`, {});
+  } catch (error) {
+    console.error("Erreur API restoreOriginalFormule:", error);
+    throw error;
+  }
+}
+
+async function getRestorableSharedFormules(franchiseId) {
+  try {
+    return await apiGet(
+      `/formules/restorable-shared?franchise_id=${encodeURIComponent(franchiseId)}`,
+    );
+  } catch (error) {
+    console.error("Erreur API getRestorableSharedFormules:", error);
+    return [];
+  }
+}
+
+async function restoreSharedFormule(formuleId, franchiseId) {
+  try {
+    return await apiPost(
+      `/formules/${formuleId}/restore-shared?franchise_id=${encodeURIComponent(franchiseId)}`,
+      {},
+    );
+  } catch (error) {
+    console.error("Erreur API restoreSharedFormule:", error);
+    throw error;
+  }
+}
+
 // ===========================================
 // COMMANDES
 // ===========================================

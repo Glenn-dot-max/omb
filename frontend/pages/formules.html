@@ -235,6 +235,14 @@
           </div>
         </div>
       </div>
+
+      <div id="formules-loading" class="formules-loading" style="display: none">
+        <div class="formules-loading-text">Chargement des formules...</div>
+        <div class="formules-loading-track">
+          <div class="formules-loading-bar"></div>
+        </div>
+      </div>
+
       <!-- Liste des formules-->
       <div id="formules-list" class="products-list">
         <!-- Les formules seront affichées ici dynamiquement -->
@@ -328,8 +336,24 @@
           <button type="button" class="btn-secondary" id="cancel-details">
             Annuler
           </button>
+          <button
+            type="button"
+            class="btn-secondary"
+            id="restore-original-formule"
+            style="display: none"
+          >
+            Restaurer la version partagée
+          </button>
           <button type="button" class="btn" id="save-formule-details">
             Enregistrer les modifications
+          </button>
+          <button
+            type="button"
+            class="btn"
+            id="save-formule-details-franchise"
+            style="display: none"
+          >
+            Mettre à jour ma formule franchise
           </button>
         </div>
       </div>
@@ -525,6 +549,77 @@
           </button>
           <button type="button" class="btn" id="save-create-formule">
             Créer la formule
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modale gestion franchises formule -->
+    <div id="manage-franchises-modal" class="modal">
+      <div class="modal-content modal-large">
+        <div
+          class="modal-header"
+          style="
+            background: linear-gradient(135deg, #3d2517 0%, #5a3620 100%);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 1.5rem 2rem;
+          "
+        >
+          <h3 style="color: white; margin: 0; font-size: 1.35rem">
+            🏢 Gérer les franchises de la formule
+          </h3>
+          <span
+            class="close-modal"
+            style="
+              color: rgba(255, 255, 255, 0.8);
+              font-size: 2rem;
+              cursor: pointer;
+            "
+            >&times;</span
+          >
+        </div>
+
+        <div class="modal-body">
+          <p
+            id="manage-franchises-formule-name"
+            style="
+              margin-bottom: 1.25rem;
+              font-weight: 700;
+              font-size: 1rem;
+              color: #3d2517;
+              padding: 0.75rem 1rem;
+              background: #fff8f0;
+              border-left: 4px solid #d4862d;
+              border-radius: 6px;
+            "
+          ></p>
+          <div
+            id="manage-franchises-checkboxes"
+            style="display: flex; flex-direction: column; gap: 0.75rem"
+          ></div>
+          <p
+            style="
+              margin-top: 1.25rem;
+              font-size: 0.82rem;
+              color: #999;
+              font-style: italic;
+            "
+          >
+            ⚠️ Décocher une franchise désactivera la formule pour celle-ci.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn-secondary"
+            id="cancel-manage-franchises"
+          >
+            Annuler
+          </button>
+          <button type="button" class="btn" id="save-manage-franchises">
+            Enregistrer
           </button>
         </div>
       </div>

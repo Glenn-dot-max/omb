@@ -22,6 +22,7 @@ let currentFranchiseFilter = "";
 let currentFilteredFormules = [];
 
 let currentEditingFormule = null;
+let currentManagingFranchisesFormule = null;
 let tempProduitsToCreate = [];
 
 let allUnite = [];
@@ -45,9 +46,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadInitialData() {
-  await loadFormules();
-  await loadFranchises();
-  await loadUnite();
+  await Promise.allSettled([loadFormules(), loadFranchises(), loadUnite()]);
+}
+
+function showFormulesLoading() {
+  const loading = document.getElementById("formules-loading");
+  if (loading) loading.style.display = "block";
+}
+
+function hideFormulesLoading() {
+  const loading = document.getElementById("formules-loading");
+  if (loading) loading.style.display = "none";
 }
 
 // ============================================
@@ -320,10 +329,11 @@ function handleSort(column) {
 // CHARGEMENT DES FORMULES
 // ===========================================
 async function loadFormules() {
+  showFormulesLoading();
   try {
     const currentUser = getUser();
     const formulesList = document.getElementById("formules-list");
-    formulesList.innerHTML = "<p>Chargement des formules...</p>";
+    formulesList.innerHTML = "";
 
     let formules;
 
@@ -364,6 +374,8 @@ async function loadFormules() {
     const formulesList = document.getElementById("formules-list");
     formulesList.innerHTML =
       '<p style="color: red;">Erreur lors du chargement des formules.</p>';
+  } finally {
+    hideFormulesLoading();
   }
 }
 
@@ -414,6 +426,15 @@ function displayFormules(formules) {
   }
 }
 
+function getDisplayFormuleName(name) {
+  if (!name) return "";
+  // Masquer le suffixe technique ajouté côté backend: "Nom (uuid-franchise)"
+  return name.replace(
+    /\s*\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)\s*$/i,
+    "",
+  );
+}
+
 // ===========================================
 // AFFICHAGE VUE CARTES
 // ===========================================
@@ -427,6 +448,21 @@ function displayFormulesCards(formules, container) {
     .map((formule) => {
       const typeBadgeClass =
         formule.type_formule === "Brunch" ? "type" : "category";
+      const isFranchiseOwned =
+        !isTechAdmin && (formule.nb_franchises || 0) === 1;
+      const ownershipBadge = isFranchiseOwned
+        ? `<div style="
+            margin-top: 0.5rem;
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #1e7e34;
+            background: #e9f7ef;
+            border: 1px solid #b7e4c7;
+            border-radius: 999px;
+          ">✅ Formule propre à votre franchise</div>`
+        : "";
 
       let franchiseInfo = "";
       if (isTechAdmin) {
@@ -493,21 +529,29 @@ function displayFormulesCards(formules, container) {
         }
       }
 
+      const displayName = getDisplayFormuleName(formule.name);
+      const manageFranchisesButton =
+        isTechAdmin && (formule.nb_franchises || 0) > 0
+          ? `<button class="edit-btn" onclick="handleOpenManageFranchises(${JSON.stringify(formule).replace(/"/g, "&quot;")})">🏢 Franchises</button>`
+          : "";
+
       return `
         <div class="product-item">
-          <div class="product-name">${formule.name}</div>
+          <div class="product-name">${displayName}</div>
           <div class="product-details">
             <span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span>
             <span class="badge category">${formule.nombre_couverts} couverts</span>
           </div>
+          ${ownershipBadge}
           ${franchiseInfo}
           <div class="product-actions">
           ${
             isTechAdmin
               ? `<button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>`
-              : '<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l\'administrateur">🔒 Modifier</button>'
+              : `<button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>`
           }
-            <button class="delete-btn" onclick="HandleDeleteFormule('${formule.id}')">
+            ${manageFranchisesButton}
+            <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">
                 ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}</button>
           </div>
         </div>
@@ -548,10 +592,31 @@ function displayFormulesTable(formules, container) {
             .map((formule) => {
               const typeBadgeClass =
                 formule.type_formule === "Brunch" ? "type" : "category";
+              const isFranchiseOwned =
+                !isTechAdmin && (formule.nb_franchises || 0) === 1;
+              const ownershipBadge = isFranchiseOwned
+                ? `<span style="
+                    margin-left: 0.5rem;
+                    display: inline-block;
+                    padding: 0.2rem 0.5rem;
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    color: #1e7e34;
+                    background: #e9f7ef;
+                    border: 1px solid #b7e4c7;
+                    border-radius: 999px;
+                    vertical-align: middle;
+                  ">Propre</span>`
+                : "";
+              const displayName = getDisplayFormuleName(formule.name);
               const formuleJson = JSON.stringify(formule).replace(
                 /"/g,
                 "&quot;",
               );
+              const manageFranchisesButton =
+                isTechAdmin && (formule.nb_franchises || 0) > 0
+                  ? `<button class="edit-btn" onclick="handleOpenManageFranchises(${formuleJson})">🏢 Franchises</button>`
+                  : "";
 
               let franchisesCell = "";
               if (isTechAdmin) {
@@ -600,7 +665,7 @@ function displayFormulesTable(formules, container) {
 
               return `
                 <tr>
-                  <td class="product-name">${formule.name}</td>
+                  <td class="product-name">${displayName}${ownershipBadge}</td>
                   <td><span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span></td>
                   <td>${formule.nombre_couverts}</td>
                   ${franchisesCell}
@@ -609,10 +674,12 @@ function displayFormulesTable(formules, container) {
                     ${
                       isTechAdmin
                         ? `<button class="edit-btn" onclick="handleEditFormule(${formuleJson})">✏️ Modifier</button>`
-                        : '<button class="edit-btn" style="opacity: 0.4; cursor: not-allowed;" disabled title="Modification réservée à l\'administrateur">🔒 Modifier</button>'
+                        : `<button class="edit-btn" onclick="handleEditFormule(${formuleJson})">✏️ Modifier</button>`
                     }
-                      <button class="delete-btn" onclick="HandleDeleteFormule('${formule.id}')">
+                      ${manageFranchisesButton}
+                      <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">
                           ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -653,10 +720,15 @@ function setupEventListeners() {
   const closeButtons = document.querySelectorAll(".close-modal");
   closeButtons.forEach((btn, index) => {
     btn.addEventListener("click", () => {
-      if (index === 0) {
+      const modal = btn.closest(".modal");
+      if (!modal) return;
+
+      if (modal.id === "details-modal") {
         closeDetailsModal();
-      } else if (index === 1) {
+      } else if (modal.id === "create-modal") {
         closeCreateFormuleModal();
+      } else if (modal.id === "manage-franchises-modal") {
+        closeManageFranchisesModal();
       }
     });
   });
@@ -669,6 +741,20 @@ function setupEventListeners() {
   const saveDetails = document.getElementById("save-formule-details");
   if (saveDetails) {
     saveDetails.addEventListener("click", handleSaveFormuleDetails);
+  }
+
+  const saveDetailsFranchise = document.getElementById(
+    "save-formule-details-franchise",
+  );
+  if (saveDetailsFranchise) {
+    saveDetailsFranchise.addEventListener("click", handleSaveFormuleDetails);
+  }
+
+  const restoreOriginalBtn = document.getElementById(
+    "restore-original-formule",
+  );
+  if (restoreOriginalBtn) {
+    restoreOriginalBtn.addEventListener("click", handleRestoreOriginalFormule);
   }
 
   // Fermer le modale de détails en cliquant en dehors
@@ -690,6 +776,23 @@ function setupEventListeners() {
   const openCreateModal = document.getElementById("open-create-modal");
   if (openCreateModal) {
     openCreateModal.addEventListener("click", handleOpenCreateModal);
+  }
+
+  const cancelManageFranchises = document.getElementById(
+    "cancel-manage-franchises",
+  );
+  if (cancelManageFranchises) {
+    cancelManageFranchises.addEventListener(
+      "click",
+      closeManageFranchisesModal,
+    );
+  }
+
+  const saveManageFranchises = document.getElementById(
+    "save-manage-franchises",
+  );
+  if (saveManageFranchises) {
+    saveManageFranchises.addEventListener("click", handleSaveManageFranchises);
   }
 
   const cancelCreate = document.getElementById("cancel-create");
@@ -763,7 +866,7 @@ async function handleAddFormule(event) {
 // GESTION DE LA SUPPRESSION D'UNE FORMULE
 // ===========================================
 
-async function deleteFormule(formuleId) {
+async function handleDeleteFormule(formuleId) {
   const currentUser = getUser();
   const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
 
@@ -777,6 +880,7 @@ async function deleteFormule(formuleId) {
 
   try {
     await deleteFormule(formuleId);
+
     allFormules = allFormules.filter((f) => f.id !== formuleId);
     currentFilteredFormules = currentFilteredFormules.filter(
       (f) => f.id !== formuleId,
@@ -808,11 +912,43 @@ async function deleteFormule(formuleId) {
 async function handleEditFormule(formule) {
   currentEditingFormule = formule;
 
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
   // Pré-remplir les informations générales
   document.getElementById("detail-formule-name").value = formule.name;
   document.getElementById("detail-formule-couverts").value =
     formule.nombre_couverts;
   document.getElementById("detail-formule-type").value = formule.type_formule;
+
+  // Toujours afficher le bouton de sauvegarde pour non-admin et admin
+  const saveBtn = document.getElementById("save-formule-details");
+  const saveFranchiseBtn = document.getElementById(
+    "save-formule-details-franchise",
+  );
+  const restoreOriginalBtn = document.getElementById(
+    "restore-original-formule",
+  );
+  const isSharedForNonAdmin = !isTechAdmin && (formule.nb_franchises || 0) > 1;
+  const isOwnedByFranchise = !isTechAdmin && (formule.nb_franchises || 0) === 1;
+
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.style.display = isSharedForNonAdmin ? "none" : "inline-block";
+    saveBtn.textContent = "Enregistrer les modifications";
+  }
+
+  if (saveFranchiseBtn) {
+    saveFranchiseBtn.disabled = false;
+    saveFranchiseBtn.style.display = isSharedForNonAdmin
+      ? "inline-block"
+      : "none";
+  }
+
+  if (restoreOriginalBtn) {
+    restoreOriginalBtn.disabled = false;
+    restoreOriginalBtn.style.display = "none";
+  }
 
   // Charger les produits de la formule
   await loadFormuleProduits(formule.id);
@@ -822,11 +958,45 @@ async function handleEditFormule(formule) {
 
   // Afficher la modale
   document.getElementById("details-modal").style.display = "block";
+
+  // ⚠️ Afficher l'avertissement si formule partagée et utilisateur non-admin
+  let warningDiv = document.getElementById("warning-shared-formule");
+  if (!warningDiv) {
+    // Créer le div d'avertissement s'il n'existe pas
+    warningDiv = document.createElement("div");
+    warningDiv.id = "warning-shared-formule";
+    warningDiv.style.cssText =
+      "display: none; margin: 0.5rem 1rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;";
+    warningDiv.innerHTML = `
+      <div style="font-weight: 600; color: #856404; margin-bottom: 0.25rem;">⚠️ Formule partagée</div>
+      <div style="font-size: 0.9rem; color: #856404;">Une copie exclusive sera créée pour votre franchise lors de la sauvegarde.</div>
+    `;
+    const modalBody = document.querySelector("#details-modal .modal-header");
+    modalBody.insertAdjacentElement("afterend", warningDiv);
+  }
+
+  // Afficher le warning si non-admin et formule partagée
+  if (isSharedForNonAdmin) {
+    warningDiv.style.display = "block";
+  } else {
+    warningDiv.style.display = "none";
+  }
 }
 
 function closeDetailsModal() {
   document.getElementById("details-modal").style.display = "none";
   currentEditingFormule = null;
+
+  const saveBtn = document.getElementById("save-formule-details");
+  const saveFranchiseBtn = document.getElementById(
+    "save-formule-details-franchise",
+  );
+  const restoreOriginalBtn = document.getElementById(
+    "restore-original-formule",
+  );
+  if (saveBtn) saveBtn.style.display = "inline-block";
+  if (saveFranchiseBtn) saveFranchiseBtn.style.display = "none";
+  if (restoreOriginalBtn) restoreOriginalBtn.style.display = "none";
 
   // Vider les champs
   document.getElementById("detail-formule-name").value = "";
@@ -834,6 +1004,32 @@ function closeDetailsModal() {
   document.getElementById("detail-formule-type").value = "Brunch";
   document.getElementById("produits-list").innerHTML =
     '<p class="empty-state">Aucun produit dans cette formule.</p>';
+}
+
+async function handleRestoreOriginalFormule() {
+  if (!currentEditingFormule) return;
+
+  const confirmRestore = confirm(
+    "⚠️ Restaurer la version partagée ?\n\n" +
+      "Votre formule actuelle sera désactivée pour votre franchise et la version partagée sera réactivée.",
+  );
+
+  if (!confirmRestore) {
+    return;
+  }
+
+  try {
+    await restoreOriginalFormule(currentEditingFormule.id);
+    closeDetailsModal();
+    await loadFormules();
+    alert("✅ Version partagée restaurée avec succès !");
+  } catch (error) {
+    console.error("Erreur restauration formule partagée:", error);
+    alert(
+      error.message ||
+        "❌ Impossible de restaurer la version partagée pour cette formule.",
+    );
+  }
 }
 
 async function loadFormuleProduits(formuleId) {
@@ -960,6 +1156,21 @@ async function handleSaveFormuleDetails() {
     return;
   }
 
+  // ⚠️ Avertissement pour les non-admins si formule partagée
+  const currentUser = getUser();
+  const isTechAdmin = currentUser && currentUser.role === "TECH_ADMIN";
+
+  if (!isTechAdmin && currentEditingFormule.nb_franchises > 1) {
+    const proceed = confirm(
+      "⚠️ ATTENTION : Cette formule est partagée avec d'autres franchises.\n\n" +
+        "Une copie exclusive sera créée pour votre franchise avec les mêmes produits.\n\n" +
+        "Voulez-vous continuer ?",
+    );
+    if (!proceed) {
+      return;
+    }
+  }
+
   try {
     const formuleModifiee = await updateFormule(currentEditingFormule.id, {
       name: name,
@@ -967,29 +1178,44 @@ async function handleSaveFormuleDetails() {
       type_formule: type,
     });
 
-    // Mettre à jour dans le tableau local
-    const index = allFormules.findIndex(
-      (f) => f.id === currentEditingFormule.id,
-    );
-    if (index !== -1) {
-      allFormules[index] = formuleModifiee;
+    // ✅ Vérifier si une copie a été créée (réponse du backend avec is_new_copy)
+    if (formuleModifiee.is_new_copy) {
+      // Retirer l'ancienne formule de la liste
+      allFormules = allFormules.filter(
+        (f) => f.id !== currentEditingFormule.id,
+      );
+
+      // Ajouter la nouvelle formule à la liste
+      allFormules.push(formuleModifiee);
+
+      displayFormules(allFormules);
+      closeDetailsModal();
+
+      alert(
+        "✅ Une copie exclusive de la formule a été créée pour votre franchise !\n\n" +
+          "Vos produits ont été copiés automatiquement.\n\n" +
+          "La formule partagée reste inchangée pour les autres franchises.",
+      );
+    } else {
+      // Modification simple (formule exclusive)
+      const index = allFormules.findIndex(
+        (f) => f.id === currentEditingFormule.id,
+      );
+      if (index !== -1) {
+        allFormules[index] = formuleModifiee;
+      }
+
+      displayFormules(allFormules);
+      closeDetailsModal();
+      alert("✅ Formule modifiée avec succès !");
     }
-
-    // Réafficher les formules
-    displayFormules(allFormules);
-
-    // Fermer la modale
-    closeDetailsModal();
-
-    alert("Formule modifiée avec succès !");
   } catch (error) {
     console.error("Erreur modification formule:", error);
 
     if (error.message && error.message.includes("403")) {
       alert(
         "❌ Vous n'avez pas les permissions nécessaires pour modifier cette formule. \n\n" +
-          "Cette formule est partagée avec d'autres franchises.\n" +
-          "Seul l'administrateur peut le modifier.",
+          "Contactez l'administrateur.",
       );
     } else if (error.message && error.message.includes("404")) {
       alert(
@@ -1019,6 +1245,248 @@ function handleFilterChange() {
   applyFilters();
 }
 
+function handleOpenManageFranchises(formule) {
+  const currentUser = getUser();
+  if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+    return;
+  }
+
+  currentManagingFranchisesFormule = formule;
+
+  const title = document.getElementById("manage-franchises-formule-name");
+  if (title) {
+    title.textContent = `Formule : ${getDisplayFormuleName(formule.name)}`;
+  }
+
+  renderManageFranchiseCheckboxes(formule.franchise_ids || []);
+  document.getElementById("manage-franchises-modal").style.display = "block";
+}
+
+function renderManageFranchiseCheckboxes(activeFranchiseIds) {
+  const container = document.getElementById("manage-franchises-checkboxes");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (allFranchises.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem 2rem;color:#999;font-size:1rem;grid-column:1/-1">
+        <div style="font-size:3rem;margin-bottom:1rem;">🏢</div>
+        <div>Aucune franchise disponible</div>
+      </div>
+    `;
+    return;
+  }
+
+  allFranchises
+    .slice()
+    .sort((a, b) => (a.nom || "").localeCompare(b.nom || ""))
+    .forEach((franchise) => {
+      const isActive = activeFranchiseIds.includes(franchise.id);
+      const item = document.createElement("div");
+      item.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background: white;
+        border: 1px solid ${isActive ? "#d4862d" : "#e8e8e8"};
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        box-shadow: ${isActive ? "0 4px 12px rgba(212,134,45,0.15)" : "0 1px 3px rgba(0,0,0,0.05)"};
+        cursor: pointer;
+      `;
+
+      item.onmouseover = () => {
+        item.style.boxShadow = "0 4px 12px rgba(212,134,45,0.18)";
+        item.style.borderColor = "#d4862d";
+      };
+      item.onmouseout = () => {
+        const cb = item.querySelector(".manage-franchise-checkbox");
+        const checked = cb && cb.checked;
+        item.style.boxShadow = checked
+          ? "0 4px 12px rgba(212,134,45,0.15)"
+          : "0 1px 3px rgba(0,0,0,0.05)";
+        item.style.borderColor = checked ? "#d4862d" : "#e8e8e8";
+      };
+      item.onclick = (e) => {
+        if (e.target.tagName === "INPUT") return;
+        const cb = item.querySelector(".manage-franchise-checkbox");
+        if (cb) cb.click();
+      };
+
+      item.innerHTML = `
+        <div style="display:flex;align-items:center;gap:1rem;flex:1">
+          <div style="
+            width:40px;height:40px;
+            background:linear-gradient(135deg,#f4a460 0%,#d4862d 100%);
+            border-radius:8px;
+            display:flex;align-items:center;justify-content:center;
+            font-size:1.2rem;
+            box-shadow:0 2px 4px rgba(212,134,45,0.3);
+            flex-shrink:0;
+          ">🏢</div>
+          <div style="flex:1">
+            <div style="font-weight:600;color:#2c3e50;font-size:1rem;margin-bottom:0.15rem;">
+              ${franchise.nom || "Franchise"}
+            </div>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:0.6rem;cursor:pointer;user-select:none;">
+          <input
+            type="checkbox"
+            class="manage-franchise-checkbox"
+            value="${franchise.id}"
+            ${isActive ? "checked" : ""}
+            style="
+              width:20px;height:20px;
+              accent-color:#d4862d;
+              cursor:pointer;
+            "
+          />
+          <span style="font-size:0.85rem;font-weight:600;color:${isActive ? "#d4862d" : "#95a5a6"};"
+            class="franchise-status-label">
+            ${isActive ? "Activée" : "Désactivée"}
+          </span>
+        </label>
+      `;
+
+      // Mettre à jour l'apparence quand la case change
+      const cb = item.querySelector(".manage-franchise-checkbox");
+      cb.addEventListener("change", () => {
+        const checked = cb.checked;
+        item.style.borderColor = checked ? "#d4862d" : "#e8e8e8";
+        item.style.boxShadow = checked
+          ? "0 4px 12px rgba(212,134,45,0.15)"
+          : "0 1px 3px rgba(0,0,0,0.05)";
+        const label = item.querySelector(".franchise-status-label");
+        if (label) {
+          label.textContent = checked ? "Activée" : "Désactivée";
+          label.style.color = checked ? "#d4862d" : "#95a5a6";
+        }
+      });
+
+      container.appendChild(item);
+    });
+}
+
+function closeManageFranchisesModal() {
+  const modal = document.getElementById("manage-franchises-modal");
+  if (modal) modal.style.display = "none";
+  currentManagingFranchisesFormule = null;
+
+  const container = document.getElementById("manage-franchises-checkboxes");
+  if (container) container.innerHTML = "";
+}
+
+async function handleSaveManageFranchises() {
+  if (!currentManagingFranchisesFormule) return;
+
+  const selectedIds = Array.from(
+    document.querySelectorAll(".manage-franchise-checkbox:checked"),
+  ).map((checkbox) => checkbox.value);
+
+  const currentIds = currentManagingFranchisesFormule.franchise_ids || [];
+  const toActivate = selectedIds.filter((id) => !currentIds.includes(id));
+  const toDeactivate = currentIds.filter((id) => !selectedIds.includes(id));
+
+  try {
+    if (toActivate.length > 0) {
+      await toggleFormuleFranchises(
+        currentManagingFranchisesFormule.id,
+        toActivate,
+        true,
+      );
+    }
+
+    if (toDeactivate.length > 0) {
+      await toggleFormuleFranchises(
+        currentManagingFranchisesFormule.id,
+        toDeactivate,
+        false,
+      );
+    }
+
+    closeManageFranchisesModal();
+    await loadFormules();
+    alert("✅ Franchises mises à jour avec succès !");
+  } catch (error) {
+    console.error("Erreur mise à jour franchises formule:", error);
+    alert(error.message || "❌ Erreur lors de la mise à jour des franchises.");
+  }
+}
+
+async function handleRestoreSharedDeletedFormule() {
+  const currentUser = getUser();
+  if (!currentUser || currentUser.role !== "TECH_ADMIN") {
+    alert("Cette action est réservée au TECH_ADMIN.");
+    return;
+  }
+
+  if (!currentFranchiseFilter) {
+    alert("Sélectionnez d'abord une franchise avec le filtre de franchise.");
+    return;
+  }
+
+  try {
+    const restorable = await getRestorableSharedFormules(
+      currentFranchiseFilter,
+    );
+
+    if (!restorable || restorable.length === 0) {
+      alert("Aucune formule partagée à restaurer.");
+      return;
+    }
+
+    const optionsText = restorable
+      .map(
+        (f, index) =>
+          `${index + 1}. ${getDisplayFormuleName(f.name)} (${f.type_formule || "Non-Brunch"}, ${f.nombre_couverts || 0} couverts)`,
+      )
+      .join("\n");
+
+    const input = prompt(
+      "Choisissez le numéro de la formule partagée à restaurer :\n\n" +
+        optionsText,
+    );
+
+    if (!input) {
+      return;
+    }
+
+    const selectedIndex = parseInt(input, 10) - 1;
+    if (
+      Number.isNaN(selectedIndex) ||
+      selectedIndex < 0 ||
+      selectedIndex >= restorable.length
+    ) {
+      alert("Sélection invalide.");
+      return;
+    }
+
+    const selected = restorable[selectedIndex];
+    const selectedName = getDisplayFormuleName(selected.name);
+
+    const confirmed = confirm(
+      `Restaurer la formule partagée \"${selectedName}\" ?`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    await restoreSharedFormule(selected.id, currentFranchiseFilter);
+    await loadFormules();
+    alert(`✅ La formule \"${selectedName}\" a été restaurée.`);
+  } catch (error) {
+    console.error("Erreur restauration formule partagée:", error);
+    alert(error.message || "❌ Erreur lors de la restauration.");
+  }
+}
+
+function updateRestoreSharedButtonVisibility() {
+  // Bouton supprimé du header - no-op
+}
+
 function handleFranchiseChange() {
   const currentuser = getUser();
 
@@ -1035,6 +1503,7 @@ function handleFranchiseChange() {
     console.log("🔍 Retour à toutes les formules");
   }
 
+  updateRestoreSharedButtonVisibility();
   loadFormules();
 }
 
@@ -1052,6 +1521,8 @@ function handleResetFilters() {
 
   currentFilteredFormules = allFormules;
   displayFormules(allFormules);
+
+  updateRestoreSharedButtonVisibility();
 }
 
 function applyFilters() {

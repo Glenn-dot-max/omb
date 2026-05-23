@@ -1,12 +1,24 @@
 from fastapi import APIRouter, HTTPException, Depends
-from auth import get_current_user
+from auth import get_current_user, CATALOG_ADMIN_ROLES
 from database import get_supabase_client 
 from models import ProduitCreate, ProduitUpdate, ToggleFranchisesRequest
 from fastapi.encoders import jsonable_encoder
 from typing import List
+import re
 
 router = APIRouter(prefix="/produits", tags=["produits"])
 supabase = get_supabase_client()
+
+
+def normalize_produit_name(name: str) -> str:
+    if not name:
+        return ""
+    return re.sub(
+        r"\s*\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)\s*$",
+        "",
+        name,
+        flags=re.IGNORECASE,
+    ).strip()
 
 @router.get("/")
 async def get_produits(current_user: dict = Depends(get_current_user)):
@@ -16,7 +28,7 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
     - Franchise: uniquement les produits actifs pour leur franchise
     """
 
-    if current_user.get("role") == "TECH_ADMIN":
+    if current_user.get("role") in CATALOG_ADMIN_ROLES:
         # 1️⃣ Récupérer tous les produits
         response = supabase.table("produits")\
             .select("*")\
@@ -80,7 +92,8 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
                 "nb_franchises": nb_franchises_actives,
                 "total_franchises": total_franchises,
                 "is_limited": 0 < nb_franchises_actives < total_franchises,
-                "franchises": sorted(franchises_liees)
+                "franchises": sorted(franchises_liees),
+                "franchise_ids": franchise_ids,
             }
 
             enriched_produits.append(enriched_produit)
@@ -101,13 +114,34 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
     
     produit_ids = [fp["produit_id"] for fp in franchise_produits.data]
 
-    produits = supabase.table("produits")\
+    produits_resp = supabase.table("produits")\
         .select("*")\
         .in_("id", produit_ids)\
         .order("name")\
         .execute()
-    
-    return produits.data
+
+    produits = produits_resp.data
+
+    all_franchises = supabase.table("franchises").select("id").execute()
+    total_franchises = len(all_franchises.data)
+
+    all_liens = supabase.table("franchise_produits")\
+        .select("produit_id")\
+        .in_("produit_id", produit_ids)\
+        .eq("active", True)\
+        .execute()
+
+    from collections import Counter
+    nb_par_produit = Counter(str(lien["produit_id"]) for lien in all_liens.data)
+
+    for produit in produits:
+        produit_id_str = str(produit["id"])
+        produit["nb_franchises"] = nb_par_produit.get(produit_id_str, 0)
+        produit["total_franchises"] = total_franchises
+        produit["is_limited"] = 0 < produit["nb_franchises"] < total_franchises
+        produit["franchises"] = []
+
+    return produits
 
 @router.get("/{produit_id}")
 async def get_produit(produit_id: str, current_user: dict = Depends(get_current_user)):
@@ -135,29 +169,26 @@ async def create_produit(produit: ProduitCreate, current_user: dict = Depends(ge
     - Crée le produit uniquement pour SA franchise (ignore franchise_ids)
     """
 
-    # Vérifier si le produit existe déjà
-    existing = supabase.table("produits")\
-        .select("*")\
-        .eq("name", produit.name)\
-        .execute()
-    
-    if existing.data:
-        raise HTTPException(status_code=409, detail="Un produit avec ce nom existe déjà")
-    
     produit_data = produit.model_dump(exclude={"franchise_ids"})
     produit_data["is_global"] = True
 
     print(f"🆕 Creating Produit: {produit_data}")
 
-    # Créer le produit
-    response = supabase.table("produits").insert(produit_data).execute()
+    if current_user.get("role") in CATALOG_ADMIN_ROLES:
+        # TECH_ADMIN : nom globalement unique
+        existing = supabase.table("produits")\
+            .select("id")\
+            .eq("name", produit.name)\
+            .execute()
 
-    if not response.data:
-        raise HTTPException(status_code=400, detail="Failed to create Produit")
-    
-    nouveau_produit = response.data[0]
+        if existing.data:
+            raise HTTPException(status_code=409, detail="Un produit avec ce nom existe déjà")
 
-    if current_user.get("role") == "TECH_ADMIN":
+        response = supabase.table("produits").insert(produit_data).execute()
+        if not response.data:
+            raise HTTPException(status_code=400, detail="Failed to create Produit")
+
+        nouveau_produit = response.data[0]
         franchise_ids = produit.franchise_ids
 
         if not franchise_ids:
@@ -168,8 +199,77 @@ async def create_produit(produit: ProduitCreate, current_user: dict = Depends(ge
             print(f"✅ TECH_ADMIN : Ajout aux franchises spécifiées ({len(franchise_ids)})")
     
     else:
-        franchise_ids = [current_user["franchise_id"]]
-        print(f"✅ FRANCHISE : Ajout uniquement à la franchise de l'utilisateur ({current_user['franchise_id']})")
+        # FRANCHISE : autoriser recréation d'un nom désactivé pour sa franchise
+        franchise_id = current_user["franchise_id"]
+
+        same_name_produits = supabase.table("produits")\
+            .select("id, name")\
+            .eq("name", produit.name)\
+            .execute()
+
+        reusable_produit_id = None
+        has_active_with_same_name = False
+
+        if same_name_produits.data:
+            same_name_ids = [p["id"] for p in same_name_produits.data]
+            same_name_links = supabase.table("franchise_produits")\
+                .select("produit_id, active")\
+                .in_("produit_id", same_name_ids)\
+                .eq("franchise_id", franchise_id)\
+                .execute()
+
+            for link in same_name_links.data:
+                if link.get("active") is True:
+                    has_active_with_same_name = True
+                    break
+                if link.get("active") is False and reusable_produit_id is None:
+                    reusable_produit_id = link["produit_id"]
+
+        if has_active_with_same_name:
+            raise HTTPException(
+                status_code=409,
+                detail="Un produit actif avec ce nom existe déjà pour votre franchise"
+            )
+
+        if reusable_produit_id:
+            updated = supabase.table("produits")\
+                .update({
+                    "name": produit_data["name"],
+                    "categorie_id": produit_data.get("categorie_id"),
+                    "type_id": produit_data.get("type_id"),
+                })\
+                .eq("id", reusable_produit_id)\
+                .execute()
+
+            supabase.table("franchise_produits")\
+                .update({"active": True})\
+                .eq("produit_id", reusable_produit_id)\
+                .eq("franchise_id", franchise_id)\
+                .execute()
+
+            print(f"✅ FRANCHISE : Produit réactivé et mis à jour ({reusable_produit_id})")
+
+            return jsonable_encoder(updated.data[0] if updated.data else {
+                "id": reusable_produit_id,
+                **produit_data,
+            })
+
+        # Sinon on crée un nouveau produit ; si collision globale, fallback suffixé franchise
+        try:
+            response = supabase.table("produits").insert(produit_data).execute()
+        except Exception:
+            safe_name = f"{normalize_produit_name(produit_data['name'])} ({franchise_id})"
+            response = supabase.table("produits").insert({
+                **produit_data,
+                "name": safe_name,
+            }).execute()
+
+        if not response.data:
+            raise HTTPException(status_code=400, detail="Failed to create Produit")
+
+        nouveau_produit = response.data[0]
+        franchise_ids = [franchise_id]
+        print(f"✅ FRANCHISE : Ajout uniquement à la franchise de l'utilisateur ({franchise_id})")
 
     liens_crees = 0
     for franchise_id in franchise_ids:
@@ -207,7 +307,7 @@ async def delete_produit(produit_id: str, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=404, detail="Produit not found")
     
     # 🔓 TECH_ADMIN : suppression complète
-    if current_user.get("role") == "TECH_ADMIN":
+    if current_user.get("role") in CATALOG_ADMIN_ROLES:
         print(f"✅ TECH_ADMIN : Suppression complète du produit {produit_id}")
         
         try:
@@ -250,7 +350,38 @@ async def delete_produit(produit_id: str, current_user: dict = Depends(get_curre
             raise HTTPException(status_code=404, detail="Produit not found pour cette franchise")
         
         try:
-            # Désactiver le produit pour cette franchise
+            # Vérifier si c'est un produit propre à cette franchise
+            all_links = supabase.table("franchise_produits")\
+                .select("franchise_id")\
+                .eq("produit_id", produit_id)\
+                .execute()
+
+            is_franchise_owned = (
+                len(all_links.data) == 1
+                and all_links.data[0].get("franchise_id") == franchise_id
+            )
+
+            if is_franchise_owned:
+                supabase.table("franchise_produits")\
+                    .delete()\
+                    .eq("produit_id", produit_id)\
+                    .execute()
+
+                supabase.table("produits")\
+                    .delete()\
+                    .eq("id", produit_id)\
+                    .execute()
+
+                print(f"✅ FRANCHISE : Copie produit supprimée définitivement {produit_id}")
+
+                return {
+                    "success": True,
+                    "message": "Votre copie de produit a été supprimée définitivement",
+                    "deleted_id": produit_id,
+                    "hard_deleted": True,
+                }
+
+            # Sinon simple désactivation pour la franchise
             supabase.table("franchise_produits")\
                 .update({"active": False})\
                 .eq("produit_id", produit_id)\
@@ -262,7 +393,8 @@ async def delete_produit(produit_id: str, current_user: dict = Depends(get_curre
             return {
                 "success": True,
                 "message": "Produit désactivé pour votre franchise (toujours visible pour les autres)",
-                "deleted_id": produit_id
+                "deleted_id": produit_id,
+                "hard_deleted": False,
             }
         
         except Exception as e:
@@ -282,8 +414,8 @@ async def toggle_produit_franchises(produit_id: str, request: ToggleFranchisesRe
     }
     """
 
-    if current_user.get("role") != "TECH_ADMIN":
-        raise HTTPException(status_code=403, detail="Only TECH_ADMIN can toggle franchises")
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
+        raise HTTPException(status_code=403, detail="Only TECH_ADMIN/CATALOG_ADMIN can toggle franchises")
 
     # Vérifier que le produit existe
     existing = supabase.table("produits")\
@@ -347,7 +479,7 @@ async def update_produit(produit_id: str, produit: ProduitUpdate, current_user: 
     """
     Update an existing produit
     - TECH_ADMIN: peut modifier n'importe quel produit
-    - FRANCHISE: désactive le produit uniquement pour sa franchise (active = FALSE)
+    - FRANCHISE: peut modifier. Si produit partagé, crée une copie exclusive
     """
 
     print(f"✏️ UPDATE REQUEST - Produit ID: {produit_id}")
@@ -361,36 +493,91 @@ async def update_produit(produit_id: str, produit: ProduitUpdate, current_user: 
     if not existing.data:
         raise HTTPException(status_code=404, detail="Produit not found")
     
-    if current_user.get("role") == "TECH_ADMIN":
+    if current_user.get("role") in CATALOG_ADMIN_ROLES:
         print(f"✅ TECH_ADMIN : Modification globale autorisée")
 
-    else:
-        franchise_id = current_user["franchise_id"]
-
-        liens = supabase.table("franchise_produits")\
-            .select("franchise_id")\
-            .eq("produit_id", produit_id)\
+        response = supabase.table("produits")\
+            .update(produit.model_dump(exclude_unset=True))\
+            .eq("id", produit_id)\
             .execute()
         
-        if not liens.data:
+        if not response.data:
             raise HTTPException(status_code=404, detail="Produit not found")
         
-        if len(liens.data) > 1:
-            raise HTTPException(status_code=403, detail="Ce produit est partagé avec d'autres franchises. Seul TECH_ADMIN peut le modifier.")
-        
-        if liens.data[0]["franchise_id"] != franchise_id:
-            raise HTTPException(status_code=403, detail="Vous n'avez pas la permission de modifier ce produit partagé.")
-        
-        print(f"✅ FRANCHISE : Modification autorisée pour la franchise {franchise_id}")
+        print(f"✅ Produit modifié : {produit_id}")
+        return response.data[0]
 
+    franchise_id = current_user["franchise_id"]
+
+    liens = supabase.table("franchise_produits")\
+        .select("franchise_id")\
+        .eq("produit_id", produit_id)\
+        .eq("active", True)\
+        .execute()
+    
+    if not liens.data:
+        raise HTTPException(status_code=404, detail="Produit not found")
+
+    has_access = any(str(lien["franchise_id"]) == str(franchise_id) for lien in liens.data)
+    if not has_access:
+        raise HTTPException(status_code=403, detail="Vous n'avez pas accès à ce produit.")
+
+    # Produit partagé => créer une copie exclusive
+    if len(liens.data) > 1:
+        print("⚠️ FRANCHISE : Produit partagé - Création d'une copie exclusive")
+
+        existing_product = existing.data[0]
+        payload = produit.model_dump(exclude_unset=True)
+        base_name = payload.get("name") or existing_product["name"]
+        new_produit_data = {
+            "name": base_name,
+            "categorie_id": payload.get("categorie_id", existing_product.get("categorie_id")),
+            "type_id": payload.get("type_id", existing_product.get("type_id")),
+            "is_global": True,
+        }
+
+        try:
+            new_produit_response = supabase.table("produits").insert(new_produit_data).execute()
+        except Exception:
+            fallback_name = f"{normalize_produit_name(base_name)} ({franchise_id})"
+            new_produit_data["name"] = fallback_name
+            new_produit_response = supabase.table("produits").insert(new_produit_data).execute()
+
+        if not new_produit_response.data:
+            raise HTTPException(status_code=500, detail="Erreur lors de la création de la copie")
+
+        new_produit_id = new_produit_response.data[0]["id"]
+
+        # Désactiver l'ancien produit pour cette franchise
+        supabase.table("franchise_produits")\
+            .update({"active": False})\
+            .eq("produit_id", produit_id)\
+            .eq("franchise_id", franchise_id)\
+            .execute()
+
+        # Activer la copie pour cette franchise
+        supabase.table("franchise_produits").insert({
+            "franchise_id": franchise_id,
+            "produit_id": new_produit_id,
+            "active": True
+        }).execute()
+
+        print(f"✅ FRANCHISE : Copie exclusive créée et activée ({new_produit_id})")
+
+        return {
+            **new_produit_response.data[0],
+            "is_new_copy": True,
+            "message": "Une copie exclusive a été créée pour votre franchise"
+        }
+
+    # Produit exclusif à la franchise => update direct
     response = supabase.table("produits")\
         .update(produit.model_dump(exclude_unset=True))\
         .eq("id", produit_id)\
         .execute()
-    
+
     if not response.data:
         raise HTTPException(status_code=404, detail="Produit not found")
-    
-    print(f"✅ Produit modifié : {produit_id}")
 
+    print(f"✅ FRANCHISE : Produit exclusif modifié {produit_id}")
     return response.data[0]

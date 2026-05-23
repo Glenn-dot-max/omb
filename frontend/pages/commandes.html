@@ -348,17 +348,17 @@
                   <label for="edit-nom-client">Nom du client *</label>
                   <input type="text" id="edit-nom-client" required />
                 </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="edit-delivery-date">Date de livraison *</label>
-                <input type="date" id="edit-delivery-date" required />
               </div>
 
-              <div class="form-group">
-                <label for="edit-delivery-hour">Heure de livraison *</label>
-                <input type="time" id="edit-delivery-hour" required />
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-delivery-date">Date de livraison *</label>
+                  <input type="date" id="edit-delivery-date" required />
+                </div>
+                <div class="form-group">
+                  <label for="edit-delivery-hour">Heure de livraison *</label>
+                  <input type="time" id="edit-delivery-hour" required />
+                </div>
               </div>
 
               <div class="form-row">
@@ -370,62 +370,61 @@
                     min="1"
                     required
                   />
+                </div>
+                <div class="form-group form-group-checkbox">
+                  <label>
+                    <input type="checkbox" id="edit-avec-service" />
+                    <span>✅ Avec service</span>
+                  </label>
+                </div>
               </div>
 
-              <div class="form-group form-group-checkbox">
-                <label>
-                  <input type="checkbox" id="edit-avec-service" />
-                  <span>✅ Avec service</span>
-                </label>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-notes">Notes / Commentaires</label>
+                  <textarea
+                    id="edit-notes"
+                    rows="3"
+                    placeholder="Ex: Allergies, préférences, instructions spéciales..."
+                  ></textarea>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="edit-notes">Notes / Commentaires</label>
-              <textarea
-                id="edit-notes"
-                rows="3"
-                placeholder="Ex: Allergies, préférences, instructions spéciales..."
-              ></textarea>
-            </div>
-          </div>
-        </div>
 
         <!-- SECTION 2 : FORMULES -->
-        <div class="form-section">
-          <h4>🍽️ Formules <span class="badge" id="edit-formules-count">0</span></h4>
-          <div id="edit-formules-list"></div>
+            <div class="form-section">
+              <h4>🍽️ Formules <span class="badge" id="edit-formules-count">0</span></h4>
+              <div id="edit-formules-list"></div>
 
-          <div class="add-item-form">
-            <select id="edit-formule-select" class="form-select-small"></select>
-              <input
-                type="number" 
-                id="edit-formule-couverts" 
-                min="1" 
-                value="1" 
-                placeholder="💡 Suggéré" 
-                class="form-input-small"
-                title="Suggestion basée sur le nombre de couverts de la commande (modifiable)"
-                style="border: 2px dashed #f5c05c;" 
-              />
-              <button type="button" id="edit-add-formule-btn" class="btn btn-secondary">➕ Ajouter</button>
+              <div class="add-item-form">
+                <select id="edit-formule-select" class="form-select-small"></select>
+                <input
+                  type="number"
+                  id="edit-formule-couverts"
+                  min="1"
+                  value="1"
+                  placeholder="💡 Suggéré"
+                  class="form-input-small"
+                  title="Suggestion basée sur le nombre de couverts de la commande (modifiable)"
+                  style="border: 2px dashed #f5c05c;"
+                />
+                <button type="button" id="edit-add-formule-btn" class="btn btn-secondary">➕ Ajouter</button>
+              </div>
+            </div>
+
+            <!-- SECTION 3 : PRODUITS INDIVIDUELS -->
+            <div class="form-section">
+              <h4>📦 Produits individuels <span class="badge" id="edit-produits-count">0</span></h4>
+              <div id="edit-produits-list"></div>
+
+              <div class="add-item-form">
+                <select id="edit-produit-select" class="form-select-small"></select>
+                <input type="number" id="edit-produit-quantite" min="1" step="0.5" value="1" placeholder="Quantité" class="form-input-small" />
+                <select id="edit-produit-unite" class="form-select-small"></select>
+                <button type="button" id="edit-add-produit-btn" class="btn btn-secondary">➕ Ajouter</button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <!-- SECTION 3 : PRODUITS INDIVIDUELS -->
-        <div class="form-section">
-          <h4>📦 Produits individuels <span class="badge" id="edit-produits-count">0</span></h4>
-          <div id="edit-produits-list"></div>
-
-          <div class="add-item-form">
-            <select id="edit-produit-select" class="form-select-small"></select>
-            <input type="number" id="edit-produit-quantite" min="1" step="0.5" value="1" placeholder="Quantité" class="form-input-small" />
-            <select id="edit-produit-unite" class="form-select-small"></select>
-            <button type="button" id="edit-add-produit-btn" class="btn btn-secondary">➕ Ajouter</button>
-          </div>
-        </div>
-      </div>
 
       <!-- Pied de la modale -->
       <div class="modal-footer">

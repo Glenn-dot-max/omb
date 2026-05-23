@@ -37,12 +37,42 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadInitialData() {
-  await loadFranchises();
-  await loadCommandes();
-  await loadDataForModal();
+  await Promise.allSettled([loadFranchises(), loadCommandes()]);
+}
 
-  // afficher la date de Paris dans la console
-  console.log(`📅 Date actuelle à Paris: ${window.parisDate}`);
+// ===============================================
+// BOÎTE DE CONFIRMATION PERSONNALISÉE
+// ===============================================
+
+function showConfirm(
+  message,
+  confirmLabel = "Confirmer",
+  cancelLabel = "Annuler",
+) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    overlay.innerHTML = `
+      <div class="confirm-dialog">
+        <p class="confirm-message">${message.replace(/\n/g, "<br>")}</p>
+        <div class="confirm-actions">
+          <button class="btn btn-secondary confirm-cancel-btn">${cancelLabel}</button>
+          <button class="btn btn-danger confirm-ok-btn">${confirmLabel}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".confirm-ok-btn").addEventListener("click", () => {
+      document.body.removeChild(overlay);
+      resolve(true);
+    });
+    overlay
+      .querySelector(".confirm-cancel-btn")
+      .addEventListener("click", () => {
+        document.body.removeChild(overlay);
+        resolve(false);
+      });
+  });
 }
 
 function displayParisTimeInfo() {
@@ -56,9 +86,6 @@ function displayParisTimeInfo() {
 
       if (localDate !== parisDateFormatted) {
         infoDiv.title = `⏰ Votre heure locale: ${localDate}\nHeure de Paris: ${parisDateFormatted}`;
-        console.log(` ℹ️ Décalage horaire détecté:`);
-        console.log(`   - Date locale: ${localDate}`);
-        console.log(`   - Date de Paris: ${parisDateFormatted}`);
       }
     }
   }
@@ -69,40 +96,23 @@ function displayParisTimeInfo() {
 // ===============================================
 
 async function loadFranchises() {
-  console.log("🔍 loadFranchises() appelée !"); // ← AJOUT
-
   try {
     const currentUser = getUser();
-    console.log("👤 currentUser dans loadFranchises:", currentUser); // ← AJOUT
-    console.log("👤 Rôle:", currentUser?.role); // ← AJOUT
-
     const filterFranchise = document.getElementById("filter-franchise");
-    console.log("📦 Élément filtre:", filterFranchise); // ← AJOUT
 
     if (!currentUser || currentUser.role !== "TECH_ADMIN") {
       if (filterFranchise) {
         filterFranchise.style.display = "none";
       }
-      console.log("🔒 Utilisateur non TECH_ADMIN, filtre de franchise masqué.");
       return;
     }
 
-    console.log("✅ Utilisateur TECH_ADMIN détecté, affichage du filtre..."); // ← AJOUT
-
     if (filterFranchise) {
       filterFranchise.style.display = "block";
-      console.log("✅ Filtre display = block"); // ← AJOUT
-    } else {
-      console.warn("⚠️ Élément filter-franchise introuvable !"); // ← AJOUT
     }
 
     allFranchises = await apiGet("/admin/franchises");
-
     populateFranchiseSelect();
-
-    console.log(
-      `✅ Filtre franchise activé pour TECH_ADMIN (${allFranchises.length} franchises chargées)`,
-    );
   } catch (error) {
     console.error("Erreur lors du chargement des franchises :", error);
     const filterFranchise = document.getElementById("filter-franchise");
@@ -139,9 +149,7 @@ async function loadCommandes() {
       try {
         const result = await autoArchiveCommandes();
         if (result.count > 0) {
-          console.log(
-            `📦 ${result.count} commande(s) automatiquement archivées.`,
-          );
+          // auto-archived silently
         }
       } catch (error) {
         console.error("Erreur lors de l'archivage automatique :", error);
@@ -156,10 +164,6 @@ async function loadCommandes() {
       currentUser &&
       currentUser.role === "TECH_ADMIN"
     ) {
-      console.log(
-        `🔍 Chargement des commandes pour la franchise ID ${currentFranchiseFilter}`,
-      );
-
       if (currentTab === "active") {
         response = await apiGet(
           `/admin/franchises/${currentFranchiseFilter}/commandes?archived=false`,
@@ -794,18 +798,10 @@ async function handleFranchiseChange() {
   const currentUser = getUser();
 
   if (!currentUser || currentUser.role !== "TECH_ADMIN") {
-    console.warn("⚠️ Accès refusé : filtre franchise réservé aux TECH_ADMIN.");
     return;
   }
 
   currentFranchiseFilter = document.getElementById("filter-franchise").value;
-
-  if (currentFranchiseFilter) {
-    console.log(`🔍 Filtrage par franchise : ${currentFranchiseFilter}`);
-  } else {
-    console.log("🔍 Retour à toutes les commandes");
-  }
-
   await loadCommandes();
 }
 
@@ -876,14 +872,14 @@ function applyFilters() {
 // ===============================================
 
 async function handleOpenCreateModal() {
-  console.log("Ouvertire de la modale de création");
-
   // 1. Réinitialiser les listes temporaires
   tempFormules = [];
   tempProduits = [];
 
-  // 2. Charger les données (formules, produits, unités)
-  await loadDataForModal();
+  // 2. Charger les données si pas encore fait
+  if (allFormules.length === 0 || allProduits.length === 0) {
+    await loadDataForModal();
+  }
 
   // 3. Réinitialiser les champs du formulaire
   document.getElementById("create-nom-client").value = "";
@@ -903,16 +899,13 @@ async function handleOpenCreateModal() {
   document.getElementById("create-modal").style.display = "block";
 }
 
-function closeCreateCommandeModal() {
+async function closeCreateCommandeModal() {
   if (hasUnsavedData()) {
-    const confirmMsg =
-      "⚠️ Êtes-vous sûr de vouloir arrêter la création de cette commande ?\n\n";
-    ("❌ Les informations saisies ne seront pas récupérables.\n\n");
-    ("Cliquez sur OK pour quitter sans sauvegarder.");
-
-    if (!confirm(confirmMsg)) {
-      return;
-    }
+    const confirmed = await showConfirm(
+      "⚠️ Êtes-vous sûr de vouloir arrêter la création de cette commande ?\n\n❌ Les informations saisies ne seront pas récupérables.",
+      "Quitter sans sauvegarder",
+    );
+    if (!confirmed) return;
   }
 
   // Cacher la modale
@@ -993,7 +986,6 @@ async function displayDetailsFormules(formules) {
 
     // Récupérer les exclusions
     const exclusions = await getCommandeFormuleExclusions(formule.id);
-    console.log(`🚫 Exclusions pour la formule ${formuleName}:`, exclusions);
 
     // Récupérer les produits de la formule
     const formuleProduits = await getFormuleProduits(formule.formule_id);
@@ -1001,9 +993,6 @@ async function displayDetailsFormules(formules) {
     // Filtrer les produits exclus
     const produitsActifs = formuleProduits.filter(
       (fp) => !exclusions.includes(fp.produit_id),
-    );
-    console.log(
-      `✅ Produits actifs (${produitsActifs.length}/${formuleProduits.length})`,
     );
 
     let produitsHTML = "";
@@ -1078,8 +1067,6 @@ function closeDetailModal() {
 }
 
 async function handleEditCommande(commande) {
-  console.log("✏️ Modification la commande :", commande);
-
   try {
     // 1. Store the command being edited
     currentEditingCommande = commande;
@@ -1200,7 +1187,6 @@ function populateEditUniteSelect() {
   // Sélectionner "unité" par défaut
   if (select.querySelector('option[value="unité"]')) {
     select.value = "unité";
-    console.log('✅ "unité" sélectionnée par défaut dans produit-unité');
   }
 }
 
@@ -1264,13 +1250,10 @@ function displayEditFormules() {
 // ===============================================
 
 async function toggleEditComposition(index) {
-  console.log("🔍 Toggle composition pour la formule index:", index);
-
   const compositionDiv = document.getElementById(`edit-composition-${index}`);
   const icon = document.getElementById(`edit-toggle-icon-${index}`);
 
   if (!compositionDiv || !icon) {
-    console.error("❌ Élément manquant !");
     showToast("Erreur d'affichage. Veuillez réessayer.", "error");
     return;
   }
@@ -1387,7 +1370,7 @@ function handleEditProduitCheckChange(index) {
 }
 
 // Confirmer les exclusions en édition
-function confirmEditExclusions(index) {
+async function confirmEditExclusions(index) {
   const container = document.getElementById(`edit-produits-container-${index}`);
   const checkboxes = container.querySelectorAll('input[type="checkbox"]');
   const formule = editFormules[index];
@@ -1412,9 +1395,10 @@ function confirmEditExclusions(index) {
 
   // Confirmer avec l'utilisateur
   const listeProduits = produitsAExclure.map((p) => `- ${p.name}`).join("\n");
-  const confirmMsg = `Êtes-vous sûr de vouloir exclure les produits suivants de la formule "${formule.formule_name}" ?\n\n${listeProduits}`;
+  const confirmMsg = `Exclure les produits suivants de la formule "${formule.formule_name}" ?\n\n${listeProduits}`;
 
-  if (confirm(confirmMsg)) {
+  const confirmed = await showConfirm(confirmMsg, "Exclure");
+  if (confirmed) {
     formule.produits_exclus = produitsAExclure.map((p) => p.id);
     showToast(
       `${produitsAExclure.length} produit(s) exclus de la formule.`,
@@ -1422,7 +1406,7 @@ function confirmEditExclusions(index) {
     );
     displayEditFormules();
   } else {
-    showToast("Exclusion annulée. Aucun changement n'a été effectué.", "info");
+    showToast("Exclusion annulée.", "info");
   }
 }
 
@@ -1599,8 +1583,6 @@ function handleAddEditProduit() {
 }
 
 async function handleSaveEditCommande() {
-  console.log("💾 Sauvegarde de la commande...");
-
   try {
     // ===============================================
     // STEP 1 : Get form values
@@ -1672,9 +1654,7 @@ async function handleSaveEditCommande() {
       notes: notes || null,
     };
 
-    console.log("📝 Mise à jour commande:", commandeData);
     await updateCommande(currentEditingCommande.id, commandeData);
-    console.log("✅ Commande mise à jour.");
 
     // ===============================================
     // STEP 4 : UPDATE EXISTING FORMULES EXCLUSIONS
@@ -1683,22 +1663,12 @@ async function handleSaveEditCommande() {
     const existingFormules = editFormules.filter((f) => f.id);
 
     if (existingFormules.length > 0) {
-      console.log(
-        `🔄 Mise à jour exclusions pour ${existingFormules.length} formule(s) existante(s)...`,
-      );
-
       for (const formule of existingFormules) {
-        console.log(
-          `  📝 Formule ${formule.formule_name}: exclusions =`,
-          formule.produits_exclus,
-        );
         await updateCommandeFormuleExclusions(
           formule.id,
           formule.produits_exclus || [],
         );
       }
-
-      console.log("✅ Exclusions mises à jour pour les formules existantes.");
     }
 
     // ===============================================
@@ -1708,11 +1678,6 @@ async function handleSaveEditCommande() {
     const newFormules = editFormules.filter((f) => !f.id);
 
     if (newFormules.length > 0) {
-      console.log(
-        `➕ Ajout de ${newFormules.length} nouvelle(s) formule(s):`,
-        newFormules,
-      );
-
       for (const formule of newFormules) {
         const formuleData = {
           commande_id: currentEditingCommande.id,
@@ -1720,22 +1685,13 @@ async function handleSaveEditCommande() {
           quantite_finale: formule.couverts,
           produits_exclus: formule.produits_exclus || [],
         };
-        console.log(" ➕ Ajout formule:", formuleData);
-        console.log("    - Produits exclus:", formuleData.produits_exclus);
         await createCommandeFormule(formuleData);
       }
-
-      console.log("✅ Nouvelles formules ajoutées.");
     }
 
     const newProduits = editProduits.filter((p) => !p.id);
 
     if (newProduits.length > 0) {
-      console.log(
-        `➕ Ajout de ${newProduits.length} nouveau(x) produit(s):`,
-        newProduits,
-      );
-
       for (const produit of newProduits) {
         const produitData = {
           commande_id: currentEditingCommande.id,
@@ -1745,14 +1701,11 @@ async function handleSaveEditCommande() {
         };
         await createCommandeProduit(produitData);
       }
-
-      console.log("✅ Nouveaux produits ajoutés.");
     }
 
     // ===============================================
     // STEP 6 : Finalize
     // ===============================================
-    console.log("🔄 Rafraîchissement des données...");
     await loadCommandes();
 
     closeEditModal();
@@ -1775,9 +1728,11 @@ function closeEditModal() {
 }
 
 async function handleDeleteCommande(commandeId) {
-  if (!confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
-    return;
-  }
+  const confirmed = await showConfirm(
+    "Êtes-vous sûr de vouloir supprimer cette commande ?\n\n⚠️ Cette action est irréversible.",
+    "Supprimer",
+  );
+  if (!confirmed) return;
 
   try {
     await deleteCommande(commandeId);
@@ -1857,7 +1812,6 @@ function populateUniteSelect() {
   // Sélectionner "unité" par défaut
   if (select.querySelector('option[value="unité"]')) {
     select.value = "unité";
-    console.log('✅ "unité" sélectionnée par défaut dans produit-unité');
   }
 }
 
@@ -1935,22 +1889,10 @@ function displayTempFormules() {
 // ===============================================
 
 async function toggleComposition(index) {
-  console.log("🔍 toggleComposition appelée avec index:", index);
-
   const compositionDiv = document.getElementById(`composition-${index}`);
   const icon = document.getElementById(`toggle-icon-${index}`);
 
-  console.log("📦 compositionDiv:", compositionDiv);
-  console.log("👁️ icon:", icon);
-
-  // Vérifier que les éléments existent
   if (!compositionDiv || !icon) {
-    console.error(
-      "❌ Élément manquant ! compositionDiv:",
-      compositionDiv,
-      "icon:",
-      icon,
-    );
     showToast("Erreur d'affichage. Veuillez réessayer.", "error");
     return;
   }
@@ -2066,7 +2008,7 @@ function handleProduitCheckChange(index) {
 }
 
 // Confirmer les exclusions
-function confirmExclusions(index) {
+async function confirmExclusions(index) {
   const formule = tempFormules[index];
   const container = document.getElementById(`produits-container-${index}`);
   const checkboxes = container.querySelectorAll('input[type="checkbox"]');
@@ -2295,9 +2237,13 @@ async function handleCreateCommande() {
             `Voulez-vous continuer la création SANS ces exclusions ?\n\n` +
             `(Cliquez "Annuler" pour revenir en arrière et confirmer les exclusions)`;
 
-          if (!confirm(alertMessage)) {
+          const proceed = await showConfirm(
+            alertMessage,
+            "Continuer sans exclure",
+          );
+          if (!proceed) {
             showToast(
-              "⚠️ Création annulée. Veuillez cliquer sur le bouton 🚫 pour confirmer les exclusions.",
+              "⚠️ Création annulée. Cliquez sur 🚫 pour confirmer vos exclusions.",
               "warning",
             );
             return;
@@ -2392,23 +2338,14 @@ async function handleCreateCommande() {
       validated: !enAttente, // Pour compatibilité avec l'API
     };
 
-    console.log("📤 Création de la commande:", commandeData);
-    console.log(
-      `✅ Statut validation: ${!enAttente ? "Validée directement" : "En attente"}`,
-    );
-
     // Appel API pour créer la commande
     const nouvelleCommande = await createCommande(commandeData);
-
-    console.log("✅ Commande créée:", nouvelleCommande);
 
     // ==========================================
     // 4. AJOUTER LES FORMULES
     // ==========================================
 
     if (tempFormules.length > 0) {
-      console.log(`📦 Ajout de ${tempFormules.length} formule(s)...`);
-
       for (const formule of tempFormules) {
         const formuleData = {
           commande_id: nouvelleCommande.id,
@@ -2417,13 +2354,8 @@ async function handleCreateCommande() {
           quantite_finale: formule.couverts,
           produits_exclus: formule.produits_exclus || [],
         };
-
-        console.log("  ➕ Ajout formule:", formuleData);
-        console.log("  🚫 Produits exclus:", formuleData.produits_exclus);
         await createCommandeFormule(formuleData);
       }
-
-      console.log("✅ Formules ajoutées");
     }
 
     // ==========================================
@@ -2431,8 +2363,6 @@ async function handleCreateCommande() {
     // ==========================================
 
     if (tempProduits.length > 0) {
-      console.log(`📦 Ajout de ${tempProduits.length} produit(s)...`);
-
       for (const produit of tempProduits) {
         const produitData = {
           commande_id: nouvelleCommande.id,
@@ -2440,19 +2370,14 @@ async function handleCreateCommande() {
           quantite: produit.quantite,
           unite: produit.unite,
         };
-
-        console.log("  ➕ Ajout produit:", produitData);
         await createCommandeProduit(produitData);
       }
-
-      console.log("✅ Produits ajoutés");
     }
 
     // ==========================================
     // 6. RAFRAÎCHIR LA LISTE
     // ==========================================
 
-    console.log("🔄 Rafraîchissement de la liste...");
     await loadCommandes();
 
     // ==========================================
@@ -2558,9 +2483,11 @@ function handleTabArchived() {
 }
 
 async function handleArchiveCommande(commandeId) {
-  if (!confirm("Voulez-vous archiver cette commande?")) {
-    return;
-  }
+  const confirmed = await showConfirm(
+    "Voulez-vous archiver cette commande ?",
+    "Archiver",
+  );
+  if (!confirmed) return;
 
   try {
     await archiveCommande(commandeId);

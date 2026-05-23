@@ -13,6 +13,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/commandes", tags=["commandes"])
 supabase = get_supabase_client()
 
+
+def deny_catalog_admin_on_commandes(current_user: dict):
+    if current_user.get("role") == "CATALOG_ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès refusé: le rôle CATALOG_ADMIN n'a pas accès aux commandes",
+        )
+
 def serialize_commande(commande):
     """Serialize commande data, converting UUIDs and dates to strings"""
     if isinstance(commande, dict):
@@ -30,6 +38,7 @@ def serialize_commande(commande):
 @router.get("/")
 async def get_commandes(current_user: dict = Depends(get_current_user)):
     """Get all commandes (TECH_ADMIN: all, USER: their franchise)"""
+    deny_catalog_admin_on_commandes(current_user)
     try:
         query = supabase.table("carnet_commande").select("*")
 
@@ -65,6 +74,7 @@ async def get_commandes(current_user: dict = Depends(get_current_user)):
 @router.get("/archived")
 async def get_archived_commandes(current_user: dict = Depends(get_current_user)):
     """Get all archived commandes (TECH_ADMIN: all, USER: their franchise)"""
+    deny_catalog_admin_on_commandes(current_user)
     
     try:
         # ✅ CORRECTION : Ne pas filtrer par franchise pour TECH_ADMIN
@@ -97,6 +107,7 @@ async def get_archived_commandes(current_user: dict = Depends(get_current_user))
 @router.get("/{commande_id}")
 async def get_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Get a single Non-archived commande by ID"""
+    deny_catalog_admin_on_commandes(current_user)
 
     query = supabase.table("carnet_commande").select("*").eq("id", commande_id).eq("archived", False)
 
@@ -117,6 +128,7 @@ async def get_commande(commande_id: str, current_user: dict = Depends(get_curren
 @router.post("/")
 async def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
     """Create a new commande"""
+    deny_catalog_admin_on_commandes(current_user)
     from zoneinfo import ZoneInfo
 
     commande_data = commande.model_dump()
@@ -161,6 +173,7 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
 @router.post("/auto-archive")
 async def auto_archive_old_commandes(current_user: dict = Depends(get_current_user)):
     """Archive automatiquement les commandes dont la date de livraison est passée"""
+    deny_catalog_admin_on_commandes(current_user)
     
     try:
         paris_tz = ZoneInfo("Europe/Paris")
@@ -229,6 +242,7 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
 @router.patch("/{commande_id}/archive")
 async def archive_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Archive une commande manuellement"""
+    deny_catalog_admin_on_commandes(current_user)
 
     query = supabase.table("carnet_commande").update({
         "archived": True,
@@ -249,6 +263,7 @@ async def archive_commande(commande_id: str, current_user: dict = Depends(get_cu
 @router.put("/{commande_id}")
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
     """Update an existing commande"""
+    deny_catalog_admin_on_commandes(current_user)
     from zoneinfo import ZoneInfo
 
     update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
@@ -301,6 +316,7 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
 @router.delete("/{commande_id}")
 async def delete_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a commande"""
+    deny_catalog_admin_on_commandes(current_user)
 
     query = supabase.table("carnet_commande").delete().eq("id", commande_id)
 
@@ -321,6 +337,7 @@ async def validate_commande(commande_id: str, current_user: dict = Depends(get_c
     """
     Valider une commande (passe validated à True)
     """
+    deny_catalog_admin_on_commandes(current_user)
     try:
         query = supabase.table("carnet_commande").update({"validated": True}).eq("id", commande_id)
 

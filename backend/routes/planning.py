@@ -23,6 +23,12 @@ async def get_planning_production(
     """
     
     try:
+        if current_user.get("role") == "CATALOG_ADMIN":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Accès refusé: le rôle CATALOG_ADMIN n'a pas accès au planning",
+            )
+
         print(f"\n{'='*60}")
         print(f"🚀 Génération du planning: {date_debut} → {date_fin}")
         print(f"   Type formule: {type_formule}")

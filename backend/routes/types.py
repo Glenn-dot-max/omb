@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from auth import get_current_user, is_tech_admin
+from auth import get_current_user, is_catalog_admin
 from database import get_supabase_client
 from pydantic import BaseModel
 
@@ -23,8 +23,8 @@ async def get_types(current_user: dict = Depends(get_current_user)):
     return response.data
 
 @router.post("/")
-async def create_type(type_data: TypeCreate, current_user: dict = Depends(is_tech_admin)):
-    """Create a new type (TECH_ADMIN only)"""
+async def create_type(type_data: TypeCreate, current_user: dict = Depends(is_catalog_admin)):
+    """Create a new type (TECH_ADMIN/CATALOG_ADMIN only)"""
 
     existing = supabase.table("types")\
         .select("id")\
@@ -44,8 +44,8 @@ async def create_type(type_data: TypeCreate, current_user: dict = Depends(is_tec
     return response.data[0]
 
 @router.put("/{type_id}")
-async def update_type(type_id: int, type_data: TypeUpdate, current_user: dict = Depends(is_tech_admin)):
-    """Update a type (TECH_ADMIN only)"""
+async def update_type(type_id: int, type_data: TypeUpdate, current_user: dict = Depends(is_catalog_admin)):
+    """Update a type (TECH_ADMIN/CATALOG_ADMIN only)"""
 
     existing = supabase.table("types")\
         .select("id")\
@@ -75,8 +75,8 @@ async def update_type(type_id: int, type_data: TypeUpdate, current_user: dict = 
     return response.data[0]
 
 @router.delete("/{type_id}")
-async def delete_type(type_id: int, current_user: dict = Depends(is_tech_admin)):
-    """Delete a type (TECH_ADMIN only)"""
+async def delete_type(type_id: int, current_user: dict = Depends(is_catalog_admin)):
+    """Delete a type (TECH_ADMIN/CATALOG_ADMIN only)"""
 
     existing = supabase.table("types")\
         .select("id")\
