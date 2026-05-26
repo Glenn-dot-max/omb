@@ -796,6 +796,23 @@ async function handleFranchiseChange() {
   loadCommandes();
 }
 
+function handleResetFilters() {
+  currentSearchTerm = "";
+  currentDateFilter = "";
+  currentFranchiseFilter = "";
+
+  const searchInput = document.getElementById("search-input");
+  if (searchInput) searchInput.value = "";
+
+  const filterDate = document.getElementById("filter-date");
+  if (filterDate) filterDate.value = "";
+
+  const filterFranchise = document.getElementById("filter-franchise");
+  if (filterFranchise) filterFranchise.value = "";
+
+  loadCommandes();
+}
+
 // ===============================================
 // ACTIONS SUR LES COMMANDES
 // ===============================================
