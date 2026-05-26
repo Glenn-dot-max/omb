@@ -578,15 +578,6 @@ function createCommandeElement(commande, isUrgent = false) {
     actionsDiv.appendChild(detailsBtn);
     actionsDiv.appendChild(editBtn);
 
-    // AJOUTER UN BOUTON ARCHIVER SI ON EST DANS L'ONGLET ACTIVE
-    if (currentTab === "active") {
-      const archiveBtn = document.createElement("button");
-      archiveBtn.className = "archive-btn";
-      archiveBtn.textContent = "🗄️ Archiver";
-      archiveBtn.onclick = () => handleArchiveCommande(commande.id);
-      actionsDiv.appendChild(archiveBtn);
-    }
-
     actionsDiv.appendChild(deleteBtn);
   }
 
@@ -802,69 +793,7 @@ async function handleFranchiseChange() {
   }
 
   currentFranchiseFilter = document.getElementById("filter-franchise").value;
-  await loadCommandes();
-}
-
-function handleResetFilters() {
-  currentSearchTerm = "";
-  currentDateFilter = "";
-  currentFranchiseFilter = "";
-
-  document.getElementById("search-input").value = "";
-  document.getElementById("filter-date").value = "";
-
-  const filterFranchise = document.getElementById("filter-franchise");
-  if (filterFranchise) {
-    filterFranchise.value = "";
-  }
-
   loadCommandes();
-}
-
-function applyFilters() {
-  let filteredCommandes = allCommandes;
-
-  // Filtre de recherche
-  if (currentSearchTerm) {
-    filteredCommandes = filteredCommandes.filter((commande) =>
-      commande.nom_client.toLowerCase().includes(currentSearchTerm),
-    );
-  }
-
-  // Filtre de date
-  if (currentDateFilter) {
-    let today;
-    if (window.parisDate) {
-      const [pYear, pMonth, pDay] = window.parisDate.split("-").map(Number);
-      today = new Date(pYear, pMonth - 1, pDay);
-      today.setHours(0, 0, 0, 0);
-    } else {
-      today = new Date();
-      today.setHours(0, 0, 0, 0);
-    }
-
-    filteredCommandes = filteredCommandes.filter((commande) => {
-      const commandeDate = new Date(commande.delivery_date);
-      commandeDate.setHours(0, 0, 0, 0);
-
-      switch (currentDateFilter) {
-        case "today":
-          return commandeDate.getTime() === today.getTime();
-        case "tomorrow":
-          const tomorrow = new Date(today);
-          tomorrow.setDate(tomorrow.getDate() + 1);
-          return commandeDate.getTime() === tomorrow.getTime();
-        case "week":
-          const weekFromNow = new Date(today);
-          weekFromNow.setDate(weekFromNow.getDate() + 7);
-          return commandeDate >= today && commandeDate <= weekFromNow;
-        default:
-          return true;
-      }
-    });
-  }
-
-  displayCommandes(filteredCommandes);
 }
 
 // ===============================================
@@ -2491,21 +2420,4 @@ function handleTabArchived() {
 
   // Recharger les commandes archivées
   loadCommandes();
-}
-
-async function handleArchiveCommande(commandeId) {
-  const confirmed = await showConfirm(
-    "Voulez-vous archiver cette commande ?",
-    "Archiver",
-  );
-  if (!confirmed) return;
-
-  try {
-    await archiveCommande(commandeId);
-    showToast("Commande archivée avec succès.", "success");
-    await loadCommandes();
-  } catch (error) {
-    console.error("Erreur lors de l'archivage de la commande :", error);
-    showToast("Erreur lors de l'archivage de la commande.", "error");
-  }
 }
