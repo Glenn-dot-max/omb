@@ -55,16 +55,22 @@ async def create_commande_formule(commande_formule: CommandeFormuleCreate, curre
     if not commande_check.data:
         raise HTTPException(status_code=404, detail="Commande not found")
     
+    
     # Vérifier la formule
-    formule_query = supabase.table("formules").select("id").eq("id", str(commande_formule.formule_id))
-    
-    if current_user.get("role") != "TECH_ADMIN":
-        formule_query = formule_query.eq("franchise_id", current_user["franchise_id"])
-    
-    formule_check = formule_query.execute()
+    if current_user.get("role") == "TECH_ADMIN":
+        # Tech admin peut utiliser n'importe quelle formule
+        formule_check = supabase.table("formules").select("id").eq("id", str(commande_formule.formule_id)).execute()
+    else:
+        # User ne peut utiliser que les formules activées pour sa franchise
+        formule_check = supabase.table("franchise_formules")\
+            .select("id")\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("formule_id", str(commande_formule.formule_id))\
+            .eq("active", True)\
+            .execute()
     
     if not formule_check.data:
-        raise HTTPException(status_code=404, detail="Formule not found")
+        raise HTTPException(status_code=404, detail="Formule not found or not accessible for this franchise")
     
     produits_exclus = commande_formule.produits_exclus
     formule_data = serialize_date(commande_formule.model_dump(exclude={'produits_exclus'}))

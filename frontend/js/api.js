@@ -456,21 +456,9 @@ async function updateCommandeFormuleExclusions(
   produits_exclus,
 ) {
   try {
-    const response = await fetch(
-      `${API_URL}/commande-formules/${commandeFormuleId}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ produits_exclus }),
-      },
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Erreur mise à jour exclusions");
-    }
-
-    return await response.json();
+    return await apiPatch(`/commande-formules/${commandeFormuleId}`, {
+      produits_exclus,
+    });
   } catch (error) {
     console.error("Erreur API updateCommandeFormuleExclusions:", error);
     throw error;

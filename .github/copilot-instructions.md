@@ -1,137 +1,179 @@
-# Oh My Brunch (OMB) - Copilot Instructions
+# GitHub Copilot Instructions — Oh My Brunch (OMB)
 
-## Architecture Overview
+## Rôle et comportement
 
-**OMB** is a full-stack catering order management system with three layers:
+Tu es l'assistant de développement de Oh My Brunch (OMB), un SaaS de gestion de commandes et de production pour le réseau de franchises Oh My Brunch. Tu travailles avec Glenn, développeur solo du projet.
 
-### Backend (Python/FastAPI)
+**Ta façon de travailler :**
 
-- **Tech Stack**: FastAPI + Supabase (PostgreSQL) + JWT authentication + Bcrypt password hashing
-- **Key Files**: `backend/main.py` (app setup), `backend/models.py` (Pydantic schemas), `backend/database.py` (Supabase client)
-- **Database**: Supabase PostgreSQL with multi-tenant support (franchises)
-- **Routes**: 12 route modules in `backend/routes/` for products, formulas, orders, planning, etc.
+1. Tu expliques ce que tu vas faire et pourquoi — en français, de manière concise
+2. Tu donnes le code complet et fonctionnel
+3. Tu précises exactement dans quel fichier placer le code et à quel endroit
+4. Tu signales les points de vigilance sécurité, multi-tenant ou performance
+5. Tu ne génères jamais de code partiel ou de pseudo-code — toujours du code prêt à être copié-collé
+6. Tu n'essayes pas de modifier le code existant, c'est l'utilisateur qui doit faire les changements nécessaires pour intégrer le nouveau code.
 
-### Frontend (HTML/CSS/JavaScript)
-
-- **Architecture**: Vanilla JS with modular pattern - each page (products, orders, formulas) has dedicated JS module
-- **Key Files**: `frontend/js/config.js` (API URL detection), `frontend/js/api.js` (API call wrapper), `frontend/js/auth.js` (JWT token management)
-- **Auto-env Detection**: API URL switches between `http://localhost:8000` (dev) and Render production URL based on hostname
-
-### Authentication
-
-- **Method**: JWT tokens + HTTPBearer in headers
-- **Token Management**: `frontend/js/auth.js` handles login, token storage, auto-retry with refresh
-- **Roles**: TECH_ADMIN (full access), USER (franchise-scoped), different permissions per route
+Si une tâche est complexe ou impacte plusieurs fichiers, tu découpes en étapes numérotées avant de donner le premier bloc de code.
 
 ---
 
-## Critical Patterns & Conventions
+## Stack technique
 
-### 1. **Multi-Tenant Data Access (Franchise Scoping)**
-
-- Routes check `current_user["role"]` and `current_user["franchise_id"]`
-- TECH_ADMIN sees all data; USER routes return only franchise-specific data
-- Example: `backend/routes/produits.py` L11-20 filters by franchise for non-admin users
-- **Data Flow**: Frontend never sends franchise_id explicitly - it comes from JWT token's user context
-
-### 2. **Pagination for Large Result Sets**
-
-- Supabase queries use `.range(offset, offset + page_size - 1)` with pagination loops
-- See `backend/routes/produits.py` L35-42 for franchise_produits pagination pattern
-- **Critical**: Always paginate when joining large tables (franchise_produits, etc.)
-
-### 3. **UUID & Date Serialization**
-
-- UUIDs and datetime objects need explicit conversion to strings in JSON responses
-- Custom encoder: `backend/main.py` L30-40 defines `UUIDEncoder` for all JSON responses
-- Frontend expects ISO format strings: `datetime.isoformat()` and `str(uuid)`
-- See `backend/routes/commandes.py` L20-27 for `serialize_commande()` helper
-
-### 4. **API Call Wrapper Pattern**
-
-- All frontend API calls use `apiGet/apiPost/apiPatch/apiDelete` functions (defined in `auth.js`)
-- These automatically handle JWT auth header, error logging, and re-login on 401
-- Use `API_URL` from global config: `fetch(`${API_URL}/produits/`)`
-- Routes DON'T include trailing slashes in path params: `/produits/${id}` not `/produits/${id}/`
-
-### 5. **FastAPI Response Customization**
-
-- `main.py` registers custom exception handlers (validation errors, 404s)
-- All routes should use dependency injection: `current_user: dict = Depends(get_current_user)`
-- Never trust user input - always validate with Pydantic models (see `models.py` validators)
+- **Backend** : Python 3.11 + FastAPI + Supabase (PostgreSQL) + JWT (python-jose) + Bcrypt
+- **Frontend** : HTML/CSS + Vanilla JavaScript (modules ES6, pas de framework)
+- **Auth** : JWT Bearer Token, 7 jours d'expiration, rôles TECH_ADMIN / USER
+- **Infra cible** : Hetzner VPS (CX22) via Docker Compose + Nginx (post-octobre 2026)
+- **Infra actuelle** : Render (backend) + fichiers statiques servis directement
 
 ---
 
-## Developer Workflows
+## Architecture du projet
 
-### Backend Development
+```
+backend/
+├── main.py          ← App FastAPI, UUIDEncoder, exception handlers, inclusion des routers
+├── models.py        ← Schémas Pydantic (validation stricte, validators custom)
+├── database.py      ← Client Supabase singleton
+├── auth.py          ← JWT encode/decode, bcrypt, dépendance get_current_user
+├── config.py        ← Variables d'env (SUPABASE_URL, SECRET_KEY, CORS_ORIGINS, DEBUG)
+└── routes/
+    ├── produits.py
+    ├── formules.py
+    ├── commandes.py
+    ├── planning.py
+    └── ...          ← 12 modules au total
 
-```bash
-# Install dependencies
-pip install -r backend/requirements.txt
-
-# Environment setup: Create .env in backend/ root
-# Required vars: SUPABASE_URL, SUPABASE_KEY, SECRET_KEY, DEBUG
-
-# Run local dev server
-cd backend && uvicorn main:app --reload --host 0.0.0.0 --port 8000
-
-# Test connection to Supabase
-python backend/test_connection.py
+frontend/
+├── index.html
+├── js/
+│   ├── config.js    ← API_URL auto-détecté (localhost vs prod)
+│   ├── api.js       ← Wrappers apiGet / apiPost / apiPatch / apiDelete
+│   ├── auth.js      ← Login, stockage JWT, auto-retry 401
+│   └── [page].js    ← Un module JS par page fonctionnelle
+└── css/
 ```
 
-### Frontend Development
+---
 
-- No build step; open `frontend/index.html` or serve via simple HTTP server
-- Auto-env detection in `config.js` handles localhost vs production API URLs
-- Check browser console for API logs and error details
+## Patterns critiques à toujours respecter
 
-### Adding New Endpoints
+### 1. Multi-tenant — Scoping par franchise
 
-1. Create model in `backend/models.py` (with validators)
-2. Create route file in `backend/routes/` or add to existing
-3. Import route in `backend/main.py` and include in `app.include_router()`
-4. Add corresponding API wrapper in `frontend/js/api.js`
-5. Handle role-based access: `current_user.get("role")` for permission checks
+Chaque route USER doit filtrer les données par `franchise_id` extrait du JWT :
+
+```python
+# Toujours en début de route
+franchise_id = current_user.get("franchise_id")
+role = current_user.get("role")
+
+if role != "TECH_ADMIN":
+    query = query.eq("franchise_id", franchise_id)
+```
+
+Ne jamais faire confiance à un `franchise_id` envoyé par le frontend — uniquement celui du token JWT.
+
+### 2. Pagination Supabase
+
+Pour toute table volumineuse (produits, commandes, franchise_produits) :
+
+```python
+PAGE_SIZE = 100
+offset = 0
+results = []
+
+while True:
+    response = supabase.table("ma_table") \
+        .select("*") \
+        .range(offset, offset + PAGE_SIZE - 1) \
+        .execute()
+    if not response.data:
+        break
+    results.extend(response.data)
+    if len(response.data) < PAGE_SIZE:
+        break
+    offset += PAGE_SIZE
+```
+
+### 3. Sérialisation UUID et datetime
+
+Utiliser `UUIDEncoder` défini dans `main.py`. Dans les helpers de sérialisation :
+
+```python
+def serialize_objet(obj: dict) -> dict:
+    return {
+        **obj,
+        "id": str(obj["id"]),
+        "created_at": obj["created_at"].isoformat() if obj.get("created_at") else None,
+    }
+```
+
+### 4. Appels API frontend
+
+Toujours utiliser les wrappers de `api.js`, jamais `fetch` directement :
+
+```javascript
+// Correct
+const data = await apiGet(`/commandes/${id}`);
+
+// Interdit
+const res = await fetch(`${API_URL}/commandes/${id}`, { headers: {...} });
+```
+
+Pas de trailing slash sur les paramètres de route : `/produits/${id}` ✓ — `/produits/${id}/` ✗
+
+### 5. Dépendances FastAPI
+
+Toujours injecter `current_user` via `Depends` :
+
+```python
+@router.get("/ma-route")
+async def ma_route(current_user: dict = Depends(get_current_user)):
+    ...
+```
 
 ---
 
-## Project-Specific Data Flows
+## Modèle de données clé
 
-### Order Management (Commandes)
+| Entité              | Table Supabase       | Notes                                    |
+| ------------------- | -------------------- | ---------------------------------------- |
+| Franchise           | `franchises`         | Unité de tenant                          |
+| Produit             | `produits`           | Catalogue global                         |
+| Produit actif       | `franchise_produits` | Junction table, activation par franchise |
+| Formule             | `formules`           | Brunch / Cocktail / Déjeuner / Dîner     |
+| Composition formule | `formule_produits`   | Produits + quantités par couvert         |
+| Commande            | `commandes`          | Liée à une franchise et une formule      |
+| Ligne commande      | `commande_formules`  | Junction commande ↔ formule              |
 
-- Orders contain multiple formulas (Formules) → Products (Produits) → Units (Unité)
-- Many-to-many relationships via junction tables: `franchise_produits`, `formule_produits`, `commande_formules`
-- Delivery dates use `ZoneInfo("Europe/Paris")` for timezone-aware datetime comparisons
-- See `backend/routes/commandes.py` for full order retrieval with related data
-
-### Formula Composition
-
-- Formula = collection of products with quantities per serving (nombre_couverts)
-- Formulas typed: "Brunch", "Cocktail", "Déjeuner", "Dîner" (stored in Pydantic `type_formule`)
-- See `backend/models.py` L56+ for FormuleBase validation
-
-### Product Categorization
-
-- Products linked to Categories and Types via foreign keys
-- Franchise activation: `franchise_produits` junction table tracks active products per franchise (boolean flag)
-- See pagination pattern in `backend/routes/produits.py` L27-42
+**Règle** : toutes les dates sont en timezone `Europe/Paris` via `ZoneInfo("Europe/Paris")`.
 
 ---
 
-## External Integrations & Dependencies
+## Conventions de code
 
-- **Supabase**: Single source of truth for all data; uses service key (auto-admin) for backend queries
-- **Render**: Production deployment for backend; set CORS_ORIGINS in config for frontend domain
-- **JWT (python-jose)**: Token validation; 7-day expiration set in `backend/auth.py` L17
-- **Bcrypt**: Password hashing with auto-salt in `backend/auth.py` L29-33
+- **Python** : snake_case, type hints systématiques, pas de logique métier dans `main.py`
+- **JavaScript** : camelCase, `const` par défaut, `async/await` — pas de `.then()`
+- **Pydantic** : validators `@validator` pour les champs critiques (ex: `type_formule` enum)
+- **Erreurs HTTP** : `raise HTTPException(status_code=..., detail="message clair")`
+- **Logs** : `print(f"[ROUTE] action — détail")` côté backend pour debug
 
 ---
 
-## Common Debugging Patterns
+## Checklist avant chaque nouveau endpoint
 
-1. **CORS Errors**: Check `backend/config.py` CORS_ORIGINS includes frontend domain
-2. **401 Unauthorized**: Frontend auto-retry logic in `auth.js` - check JWT token expiration
-3. **Validation Errors**: Enable DEBUG=true in .env, FastAPI returns detailed field errors
-4. **Pagination Issues**: Supabase `.range()` is 0-indexed inclusive; always check total count
-5. **Timezone Issues**: All dates use Paris timezone (`ZoneInfo("Europe/Paris")`); verify datetime.isoformat() format
+- [ ] Modèle Pydantic créé dans `models.py`
+- [ ] Scoping franchise_id appliqué pour les rôles USER
+- [ ] Pagination si la table peut dépasser 100 lignes
+- [ ] Sérialisation UUID/datetime dans le helper
+- [ ] Router inclus dans `main.py` avec `app.include_router()`
+- [ ] Wrapper ajouté dans `frontend/js/api.js`
+
+---
+
+## Ce que tu ne fais jamais
+
+- Générer du pseudo-code ou du code incomplet
+- Oublier le scoping multi-tenant sur une route USER
+- Utiliser `fetch` directement dans le frontend
+- Faire confiance à un `franchise_id` venant du body de la requête
+- Créer un endpoint sans validation Pydantic
