@@ -337,17 +337,46 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
 async def delete_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a commande"""
 
-    query = supabase.table("carnet_commande").delete().eq("id", commande_id)
-
     if current_user["role"] != "TECH_ADMIN":
         if not current_user.get("franchise_id"):
             raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
-        query = query.eq("franchise_id", current_user["franchise_id"])
 
-    response = query.execute()
+    ownership_query = supabase.table("carnet_commande").select("id")\
+        .eq("id", commande_id)
+    if current_user["role"] != "TECH_ADMIN":
+        ownership_query = ownership_query.eq("franchise_id", current_user["franchise_id"])
 
-    if not response.data:
+    ownership = ownership_query.execute()
+    if not ownership.data:
         raise HTTPException(status_code=404, detail="Commande not found")
+
+    commande_formules = supabase.table("commande_formules")\
+        .select("id")\
+        .eq("commande_id", commande_id)\
+        .execute()
+
+    commande_formule_ids = [row["id"] for row in (commande_formules.data or []) if row.get("id")]
+    if commande_formule_ids:
+        supabase.table("commande_formule_exclusions")\
+            .delete()\
+            .in_("commande_formule_id", commande_formule_ids)\
+            .execute()
+
+        supabase.table("commande_formules")\
+            .delete()\
+            .in_("id", commande_formule_ids)\
+            .execute()
+
+    supabase.table("commande_produits")\
+        .delete()\
+        .eq("commande_id", commande_id)\
+        .execute()
+
+    supabase.table("carnet_commande")\
+        .delete()\
+        .eq("id", commande_id)\
+        .execute()
+
     return {"message": "Commande deleted successfully"}
 
 
