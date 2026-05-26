@@ -155,6 +155,34 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
     commande_data = serialize_commande(commande_data)
     commande_data["franchise_id"] = current_user["franchise_id"]
 
+    # ==========================================
+    # VÉRIFICATION DE DOUBLON
+    # ==========================================
+    # Vérifier s'il existe déjà une commande avec :
+    # - même nom_client
+    # - même delivery_date
+    # - même delivery_hour
+    # - même franchise
+    # - non archivée
+    # ==========================================
+    
+    existing = supabase.table("carnet_commande")\
+        .select("id")\
+        .eq("franchise_id", current_user["franchise_id"])\
+        .eq("nom_client", commande_data["nom_client"])\
+        .eq("delivery_date", commande_data["delivery_date"])\
+        .eq("delivery_hour", commande_data.get("delivery_hour", "10:00"))\
+        .eq("archived", False)\
+        .execute()
+    
+    if existing.data and len(existing.data) > 0:
+        delivery_date_display = commande_data["delivery_date"]
+        delivery_hour_display = commande_data.get("delivery_hour", "10:00")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"❌ Une commande avec le nom \"{commande_data['nom_client']}\" existe déjà pour le {delivery_date_display} à {delivery_hour_display}."
+        )
+
     response = supabase.table("carnet_commande").insert(commande_data).execute()
     return serialize_commande(response.data[0])
 

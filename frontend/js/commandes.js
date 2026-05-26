@@ -2414,10 +2414,23 @@ async function handleCreateCommande() {
     let errorMessage = "Erreur lors de la création de la commande.";
 
     if (error.response) {
-      const responseData = await error.response.json();
-      if (responseData.detail) {
-        errorMessage = responseData.detail;
+      // Récupérer le message d'erreur du backend
+      try {
+        const responseData = await error.response.json();
+        if (responseData.detail) {
+          errorMessage = responseData.detail;
+        }
+      } catch (e) {
+        // Fallback si la réponse n'est pas du JSON
       }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    // Détecter si c'est une erreur de doublon (409 Conflict)
+    if (error.response && error.response.status === 409) {
+      showToast(errorMessage, "error");
+      return;
     }
 
     // Détecter si c'est une erreur de date dans le passé
@@ -2443,10 +2456,8 @@ async function handleCreateCommande() {
       }
       return;
     }
-    showToast(
-      "Erreur lors de la création de la commande. Vérifiez la console pour plus de détails.",
-      "error",
-    );
+
+    showToast(errorMessage, "error");
   }
 }
 
