@@ -128,6 +128,19 @@ async def get_planning_production(
         
         print(f"      ✅ {len(commande_formules_response.data)} relations | {len(formule_ids)} formules uniques")
         
+        # 2.1.b Récupérer les produits exclus par commande_formule
+        commande_formule_ids = [cf["id"] for cf in commande_formules_response.data]
+        exclusions_by_commande_formule = defaultdict(set)
+        if commande_formule_ids:
+            print("   🔗 Récupération commande_formule_exclusions...")
+            exclusions_response = supabase.table("commande_formule_exclusions")\
+                .select("commande_formule_id, produit_id")\
+                .in_("commande_formule_id", commande_formule_ids)\
+                .execute()
+            for exclusion in exclusions_response.data:
+                exclusions_by_commande_formule[exclusion["commande_formule_id"]].add(str(exclusion["produit_id"]))
+            print(f"      ✅ {len(exclusions_response.data)} exclusion(s) chargée(s)")
+
         # 2.2 Récupérer les infos des formules
         formules_info_map = {}
         if formule_ids:
@@ -353,12 +366,18 @@ async def get_planning_production(
             for cf in formules_commande:
                 formule_id = cf["formule_id"]
                 quantite_finale = cf["quantite_finale"]
-                
+                produits_exclus = exclusions_by_commande_formule.get(cf["id"], set())
+
                 # Récupérer les produits de cette formule
                 formule_produits = formule_produits_map.get(formule_id, [])
-                
+
                 for fp in formule_produits:
-                    produit_id = fp["produit_id"]
+                    produits_id = fp["produit_id"]
+
+                    # Ignorer les produits exclus pour cette commande-formule
+                    if str(produits_id) in produits_exclus:
+                        continue
+
                     quantite_par_personne = fp["quantite"]
                     unite = fp["unite"]
                     quantite_totale = quantite_par_personne * quantite_finale
