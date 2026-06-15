@@ -466,8 +466,7 @@ function displayFormulesCards(formules, container) {
   container.className = "products-list";
   container.innerHTML = formules
     .map((formule) => {
-      const typeBadgeClass =
-        "category";
+      const typeBadgeClass = "category";
       const isFranchiseOwned =
         !isTechAdmin && (formule.nb_franchises || 0) === 1;
       const ownershipBadge = isFranchiseOwned
@@ -558,7 +557,6 @@ function displayFormulesCards(formules, container) {
         <div class="product-item">
           <div class="product-name">${displayName}</div>
           <div class="product-details">
-            <span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span>
             <span class="badge category">${formule.nombre_couverts} couverts</span>
           </div>
           ${ownershipBadge}
@@ -609,8 +607,7 @@ function displayFormulesTable(formules, container) {
         <tbody>
           ${formules
             .map((formule) => {
-              const typeBadgeClass =
-                formule.type_formule === "Brunch" ? "type" : "category";
+              const typeBadgeClass = "category";
               const isFranchiseOwned =
                 !isTechAdmin && (formule.nb_franchises || 0) === 1;
               const ownershipBadge = isFranchiseOwned
@@ -684,7 +681,6 @@ function displayFormulesTable(formules, container) {
               return `
                 <tr>
                   <td class="product-name">${displayName}${ownershipBadge}</td>
-                  <td><span class="badge ${typeBadgeClass}">${formule.type_formule || "Non-Brunch"}</span></td>
                   <td>${formule.nombre_couverts}</td>
                   ${franchisesCell}
                   <td>
@@ -862,7 +858,6 @@ async function handleAddFormule(event) {
     const nouvelleFormule = await createFormule({
       name: name,
       nombre_couverts: parseInt(couverts),
-      type_formule: type,
     });
 
     allFormules.push(nouvelleFormule);
@@ -937,7 +932,6 @@ async function handleEditFormule(formule) {
   document.getElementById("detail-formule-name").value = formule.name;
   document.getElementById("detail-formule-couverts").value =
     formule.nombre_couverts;
-  document.getElementById("detail-formule-type").value = formule.type_formule;
 
   // Toujours afficher le bouton de sauvegarde pour non-admin et admin
   const saveBtn = document.getElementById("save-formule-details");
@@ -1193,7 +1187,6 @@ async function handleSaveFormuleDetails() {
     const formuleModifiee = await updateFormule(currentEditingFormule.id, {
       name: name,
       nombre_couverts: parseInt(couverts),
-      type_formule: type,
     });
 
     // ✅ Vérifier si une copie a été créée (réponse du backend avec is_new_copy)
@@ -1459,7 +1452,7 @@ async function handleRestoreSharedDeletedFormule() {
     const optionsText = restorable
       .map(
         (f, index) =>
-          `${index + 1}. ${getDisplayFormuleName(f.name)} (${f.type_formule || "Non-Brunch"}, ${f.nombre_couverts || 0} couverts)`,
+          `${index + 1}. ${getDisplayFormuleName(f.name)} (${f.nombre_couverts || 0} couverts)`,
       )
       .join("\n");
 
@@ -1555,9 +1548,7 @@ function applyFilters() {
 
   // Filtre par type
   if (currentTypeFilter) {
-    filteredFormules = filteredFormules.filter(
-      (formule) => formule.type_formule === currentTypeFilter,
-    );
+    filteredFormules = filteredFormules.filter();
   }
 
   currentFilteredFormules = filteredFormules;
@@ -1741,7 +1732,6 @@ async function handleCreateFormuleWithProduits() {
     const formuleData = {
       name: name,
       nombre_couverts: parseInt(couverts),
-      type_formule: type,
     };
 
     if (isCatalogAdminRole(currentUser)) {
