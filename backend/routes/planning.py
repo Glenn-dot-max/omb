@@ -13,7 +13,7 @@ supabase = get_supabase_client()
 async def get_planning_production(
     date_debut: str, 
     date_fin: str, 
-    type_formule: str = "toutes", 
+    type_prestation: str = "toutes", 
     categorie: str = "tous",
     franchise_id: str = "", 
     current_user: dict = Depends(get_current_user)  # ✅ AJOUTER current_user
@@ -25,7 +25,7 @@ async def get_planning_production(
     try:
         print(f"\n{'='*60}")
         print(f"🚀 Génération du planning: {date_debut} → {date_fin}")
-        print(f"   Type formule: {type_formule}")
+        print(f"   Type prestation: {type_prestation}")
         print(f"{'='*60}\n")
 
         # ==========================================
@@ -146,7 +146,7 @@ async def get_planning_production(
         if formule_ids:
             print("   🔗 Récupération des formules...")
             formules_response = supabase.table("formules")\
-                .select("id, name, type_formule")\
+                .select("id, name")\
                 .in_("id", list(formule_ids))\
                 .execute()
             
@@ -275,23 +275,11 @@ async def get_planning_production(
         for commande in commandes:
             commande_id = commande["id"]
             
-            # Vérification du type de formule
-            if type_formule != "toutes":
-                formules_commande = commande_formules_map.get(commande_id, [])
-                
-                if not formules_commande:
+            # Vérification du type de prestation
+            if type_prestation != "toutes":
+                if commande.get("type_prestation", "non-brunch") != type_prestation:
                     continue
-                
-                # Vérifier si au moins une formule correspond
-                formule_correspond = False
-                for cf in formules_commande:
-                    formule_info = formules_info_map.get(cf["formule_id"])
-                    if formule_info and formule_info.get("type_formule", "").lower() == type_formule.lower():
-                        formule_correspond = True
-                        break
-                
-                if not formule_correspond:
-                    continue
+
             
             commandes_filtrees.append(commande)
         

@@ -154,7 +154,7 @@ async function handleGeneratePlanning() {
   container.innerHTML = '<p style="text-align:center;">⏳ Chargement...</p>';
 
   try {
-    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_formule=${typeFormule}&categorie=${categorieProduit}&franchise=${franchiseFilter}`;
+    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_prestation=${typeFormule}&categorie=${categorieProduit}&franchise=${franchiseFilter}`;
     console.log("🌐 Appel API:", endpoint);
 
     const data = await apiGet(endpoint);

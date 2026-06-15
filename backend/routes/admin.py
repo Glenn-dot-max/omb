@@ -345,12 +345,11 @@ async def get_franchise_formules(
             formule_data = {
                 "id": f["id"],
                 "nom": f["name"],
-                "type_formule": f.get("type_formule"),
                 "nombre_couverts": f.get("nombre_couverts"),
                 "active": True
             }
             formules.append(formule_data)
-            print(f"  🍽️ {formule_data['nom']} - {formule_data['type_formule']} - {formule_data['nombre_couverts']} couverts")
+            print(f"  🍽️ {formule_data['nom']} - {formule_data['nombre_couverts']} couverts")
         
         print(f"✅ {len(formules)} formules formatées pour le frontend")
         return formules

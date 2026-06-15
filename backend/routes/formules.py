@@ -123,7 +123,7 @@ async def get_restorable_shared_formules(
         return []
 
     formules_resp = supabase.table("formules")\
-        .select("id, name, type_formule, nombre_couverts")\
+        .select("id, name, nombre_couverts")\
         .in_("id", formule_ids)\
         .order("name")\
         .execute()
@@ -243,7 +243,6 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
                 .update({
                     "name": formule_data["name"],
                     "nombre_couverts": formule_data["nombre_couverts"],
-                    "type_formule": formule_data["type_formule"],
                 })\
                 .eq("id", reusable_formule_id)\
                 .execute()
@@ -687,7 +686,6 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
             new_formule_data = {
                 "name": base_name,
                 "nombre_couverts": formule.nombre_couverts or existing.data[0]["nombre_couverts"],
-                "type_formule": formule.type_formule or existing.data[0]["type_formule"],
             }
 
             try:

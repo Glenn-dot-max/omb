@@ -309,8 +309,8 @@ function sortFormules(formules, column, direction) {
         bVal = b.name?.toLowerCase() || "";
         break;
       case "type":
-        aVal = a.type_formule?.toLowerCase() || "";
-        bVal = b.type_formule?.toLowerCase() || "";
+        aVal = a.name?.toLowerCase() || "";
+        bVal = b.name?.toLowerCase() || "";
         break;
       case "couverts":
         aVal = parseInt(a.nombre_couverts) || 0;
@@ -467,7 +467,7 @@ function displayFormulesCards(formules, container) {
   container.innerHTML = formules
     .map((formule) => {
       const typeBadgeClass =
-        formule.type_formule === "Brunch" ? "type" : "category";
+        "category";
       const isFranchiseOwned =
         !isTechAdmin && (formule.nb_franchises || 0) === 1;
       const ownershipBadge = isFranchiseOwned

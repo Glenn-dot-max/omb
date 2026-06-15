@@ -1056,7 +1056,6 @@ async function handleEditCommande(commande) {
           id: f.id,
           formule_id: f.formule_id,
           formule_name: formuleData ? formuleData.name : "Formule Inconnue",
-          formule_type: formuleData ? formuleData.type_formule : "",
           couverts: f.quantite_finale,
           produits_exclus: exclusions || [],
           expanded: false,
@@ -1102,7 +1101,7 @@ function populateEditFormuleSelector() {
   allFormules.forEach((formule) => {
     const option = document.createElement("option");
     option.value = formule.id;
-    option.textContent = `${formule.name} - (${formule.type_formule})`;
+    option.textContent = formule.name;
     select.appendChild(option);
   });
 }
@@ -1457,7 +1456,6 @@ function handleAddEditFormule() {
   editFormules.push({
     formule_id: formule.id,
     formule_name: formule.name,
-    formule_type: formule.type_formule,
     couverts: couverts,
     produits_exclus: [],
     expanded: false,
@@ -1727,7 +1725,7 @@ function populateFormuleSelector() {
   allFormules.forEach((formule) => {
     const option = document.createElement("option");
     option.value = formule.id;
-    option.textContent = `${formule.name.trim()} - (${formule.type_formule.trim()})`;
+    option.textContent = formule.name.trim();
     select.appendChild(option);
   });
 }
@@ -2073,7 +2071,6 @@ function handleAddFormule() {
   tempFormules.push({
     formule_id: formuleId,
     formule_name: formule.name,
-    formule_type: formule.type_formule,
     couverts: couverts,
     produits_exclus: [],
     expanded: false,

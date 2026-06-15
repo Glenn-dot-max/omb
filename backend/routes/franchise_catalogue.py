@@ -105,7 +105,6 @@ async def get_franchise_formules(
                 "nom": formule["name"],
                 "description": formule.get("description"),
                 "nombre_couverts": formule["nombre_couverts"],
-                "type_formule": formule.get("type_formule", "Non-Brunch"),
                 "active": formule["id"] in active_ids,
                 "produits_count": produits_count
             })

@@ -54,7 +54,6 @@ class ToggleFranchisesRequest(BaseModel):
 class FormuleBase(BaseModel):
     name: constr(min_length=1, max_length=200, strip_whitespace=True)
     nombre_couverts: int = Field(default=1, ge=1, le=10000)
-    type_formule: str = Field(default="Non-Brunch", max_length=100)
     
     @validator('name')
     def validate_name(cls, v):
@@ -67,13 +66,11 @@ class FormuleBase(BaseModel):
 class FormuleCreate(BaseModel):
     name: str
     nombre_couverts: int = 1
-    type_formule: str = "Brunch"
     franchise_ids: Optional[List[str]] = None  
 
 class FormuleUpdate(BaseModel):
     name: Optional[constr(min_length=1, max_length=200)] = None
     nombre_couverts: Optional[int] = Field(None, ge=1, le=10000)
-    type_formule: Optional[str] = Field(None, max_length=100)
     
     class Config:
         extra = 'forbid'
@@ -84,6 +81,7 @@ class FormuleUpdate(BaseModel):
 class CarnetCommandeBase(BaseModel):
     nom_client: constr(min_length=2, max_length=200, strip_whitespace=True)
     nombre_couverts: int = Field(default=1, ge=1, le=10000)
+    type_prestation: str = Field(default="non-brunch", max_length=50)
     service: bool = False
     delivery_date: date
     delivery_hour: time
@@ -137,6 +135,7 @@ class CarnetCommandeCreate(CarnetCommandeBase):
 class CarnetCommandeUpdate(BaseModel):
     nom_client: Optional[constr(min_length=2, max_length=200)] = None
     nombre_couverts: Optional[int] = Field(None, ge=1, le=10000)
+    type_prestation: Optional[str] = Field(None, max_length=50)
     service: Optional[bool] = None
     delivery_date: Optional[date] = None
     delivery_hour: Optional[time] = None
