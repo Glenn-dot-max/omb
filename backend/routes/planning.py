@@ -360,10 +360,10 @@ async def get_planning_production(
                 formule_produits = formule_produits_map.get(formule_id, [])
 
                 for fp in formule_produits:
-                    produits_id = fp["produit_id"]
+                    produit_id = fp["produit_id"]
 
                     # Ignorer les produits exclus pour cette commande-formule
-                    if str(produits_id) in produits_exclus:
+                    if str(produit_id) in produits_exclus:
                         continue
 
                     quantite_par_personne = fp["quantite"]
