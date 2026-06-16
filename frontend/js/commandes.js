@@ -975,18 +975,9 @@ async function displayDetailsFormules(formules) {
 
     div.innerHTML = `
       <div class="item-info">
-        <div class="item-name">${formule.formule_name}</div>
-        <div class="item-detail" style="display:flex; align-items:center; gap:8px;">
-          <label style="margin:0; font-size:13px;">Couverts :</label>
-          <input
-            type="number"
-            min="1"
-            value="${formule.couverts}"
-            style="width:70px; padding:4px 6px; border:1px solid #ddd; border-radius:4px;"
-            onchange="editFormules[${index}].couverts = parseInt(this.value)"
-          />
-        </div>
-        ${exclusionsDisplay}
+        <div class="item-name">${formuleName}</div>
+        <div class="item-detail">Quantité : ${formule.quantite_finale} couverts</div>
+        ${produitsHTML}
       </div>
     `;
 
@@ -1183,8 +1174,15 @@ function displayEditFormules() {
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${formule.formule_name}</div>
-        <div class="item-detail">
-          ${formule.formule_type} • ${formule.couverts} couverts
+        <div class="item-detail" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <label style="margin:0; font-size:13px;">Couverts :</label>
+          <input
+            type="number"
+            min="1"
+            value="${formule.couverts}"
+            style="width:70px; padding:4px 6px; border:1px solid #ddd; border-radius:4px;"
+            onchange="editFormules[${index}].couverts = parseInt(this.value)"
+          />
           ${exclusionsDisplay}
         </div>
 

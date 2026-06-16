@@ -413,7 +413,7 @@ async function getPlanningProduction(
   typeFormule = "toutes",
 ) {
   try {
-    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_presentation=${typeFormule}`;
+    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_prestation=${typeFormule}`;
     return await apiGet(endpoint);
   } catch (error) {
     console.error("Erreur API getPlanningProduction:", error);
