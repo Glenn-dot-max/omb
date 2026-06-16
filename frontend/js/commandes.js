@@ -507,6 +507,12 @@ function createCommandeElement(commande, isUrgent = false) {
     : "⭕ Sans service";
   detailsDiv.appendChild(serviceBadge);
 
+  // Badge type prestation
+  const typeBadge = document.createElement("span");
+  typeBadge.className = "badge category";
+  typeBadge.textContent = `🏷️ ${commande.type_prestation || "non-brunch"}`;
+  detailsDiv.appendChild(typeBadge);
+
   // Notes
   if (commande.notes && commande.notes.trim()) {
     const notesP = document.createElement("p");
@@ -888,6 +894,8 @@ async function handleViewDetails(commande) {
 
     document.getElementById("detail-avec-service").textContent =
       commande.avec_service ? "✅ Oui" : "⭕ Non";
+    document.getElementById("detail-type-prestation").textContent =
+      commande.type_prestation || "non-brunch";
     document.getElementById("detail-notes").textContent =
       commande.notes || "Aucune note";
 
@@ -967,9 +975,18 @@ async function displayDetailsFormules(formules) {
 
     div.innerHTML = `
       <div class="item-info">
-        <div class="item-name">${formuleName}</div>
-        <div class="item-detail">Quantité : ${formule.quantite_finale} couverts</div>
-        ${produitsHTML}
+        <div class="item-name">${formule.formule_name}</div>
+        <div class="item-detail" style="display:flex; align-items:center; gap:8px;">
+          <label style="margin:0; font-size:13px;">Couverts :</label>
+          <input
+            type="number"
+            min="1"
+            value="${formule.couverts}"
+            style="width:70px; padding:4px 6px; border:1px solid #ddd; border-radius:4px;"
+            onchange="editFormules[${index}].couverts = parseInt(this.value)"
+          />
+        </div>
+        ${exclusionsDisplay}
       </div>
     `;
 
@@ -1032,6 +1049,8 @@ async function handleEditCommande(commande) {
       commande.nombre_couverts;
     document.getElementById("edit-avec-service").checked =
       commande.avec_service;
+    document.getElementById("edit-type-prestation").value =
+      commande.type_prestation || "non-brunch";
     document.getElementById("edit-notes").value = commande.notes || "";
     document.getElementById("edit-formule-couverts").value =
       commande.nombre_couverts;
@@ -1539,6 +1558,9 @@ async function handleSaveEditCommande() {
       document.getElementById("edit-nombre-couverts").value,
     );
     const avecService = document.getElementById("edit-avec-service").checked;
+    const typePrestation = document.getElementById(
+      "edit-type-prestation",
+    ).value;
     const notes = document.getElementById("edit-notes").value.trim();
 
     // ===============================================
@@ -1595,6 +1617,7 @@ async function handleSaveEditCommande() {
       nombre_couverts: nombreCouverts,
       avec_service: avecService,
       service: avecService,
+      type_prestation: typePrestation,
       notes: notes || null,
     };
 
@@ -1611,6 +1634,7 @@ async function handleSaveEditCommande() {
         await updateCommandeFormuleExclusions(
           formule.id,
           formule.produits_exclus || [],
+          formule.couverts,
         );
       }
     }
@@ -2207,6 +2231,9 @@ async function handleCreateCommande() {
     document.getElementById("create-nombre-couverts").value,
   );
   const avecService = document.getElementById("create-avec-service").checked;
+  const typePrestation = document.getElementById(
+    "create-type-prestation",
+  ).value;
   const enAttente = document.getElementById("create-en-attente").checked;
   const notes = document.getElementById("create-notes").value.trim();
 
@@ -2276,9 +2303,10 @@ async function handleCreateCommande() {
       delivery_hour: deliveryHour,
       nombre_couverts: nombreCouverts,
       avec_service: avecService,
-      service: avecService, // Pour compatibilité avec l'API
-      notes: notes || null, // null si vide
-      validated: !enAttente, // Pour compatibilité avec l'API
+      service: avecService,
+      type_prestation: typePrestation,
+      notes: notes || null,
+      validated: !enAttente,
     };
 
     // Appel API pour créer la commande
@@ -2342,6 +2370,7 @@ async function handleCreateCommande() {
     document.getElementById("create-delivery-hour").value = "10:00";
     document.getElementById("create-nombre-couverts").value = "1";
     document.getElementById("create-avec-service").checked = true;
+    document.getElementById("create-type-prestation").value = "non-brunch";
     document.getElementById("create-en-attente").checked = false;
     document.getElementById("create-notes").value = "";
     document.getElementById("formule-couverts").value = "1";

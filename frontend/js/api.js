@@ -454,11 +454,14 @@ async function validateCommande(commandeId) {
 async function updateCommandeFormuleExclusions(
   commandeFormuleId,
   produits_exclus,
+  quantite_finale = null,
 ) {
   try {
-    return await apiPatch(`/commande-formules/${commandeFormuleId}`, {
-      produits_exclus,
-    });
+    const body = { produits_exclus };
+    if (quantite_finale !== null) {
+      body.quantite_finale = quantite_finale;
+    }
+    return await apiPatch(`/commande-formules/${commandeFormuleId}`, body);
   } catch (error) {
     console.error("Erreur API updateCommandeFormuleExclusions:", error);
     throw error;

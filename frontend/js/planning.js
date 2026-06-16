@@ -128,7 +128,7 @@ async function handleGeneratePlanning() {
   //1. Récupérer les valeurs des filtres
   const dateDebut = document.getElementById("date-debut").value;
   const dateFin = document.getElementById("date-fin").value;
-  const typeFormule = document.getElementById("type-formule").value;
+  const typeFormule = document.getElementById("type-formule").value; // filtre type_prestation
   const categorieProduit = document.getElementById("categorie-produit").value;
   const afficherTotaux = document.getElementById("afficher-totaux").checked;
 

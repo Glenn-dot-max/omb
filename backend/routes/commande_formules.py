@@ -154,11 +154,21 @@ async def get_formule_exclusions(commande_formule_id: int, current_user: dict = 
 async def update_commande_formule_exclusions(commande_formule_id: int, update_data: dict):
     """Update exclusions for a commande-formule"""
     produits_exclus = update_data.get("produits_exclus", [])
+    quantite_finale = update_data.get("quantite_finale")
     
     print(f"📝 Mise à jour exclusions pour commande_formule {commande_formule_id}")
     print(f"🚫 Nouveaux produits exclus : {produits_exclus}")
+    if quantite_finale is not None:
+        print(f"🔢 Nouvelle quantité finale : {quantite_finale}")
     
-    # 1. Supprimer toutes les exclusions existantes
+    # 1. Mettre à jour quantite_finale si fournie
+    if quantite_finale is not None:
+        supabase.table("commande_formules")\
+            .update({"quantite_finale": quantite_finale})\
+            .eq("id", commande_formule_id)\
+            .execute()
+    
+    # 2. Supprimer toutes les exclusions existantes
     supabase.table("commande_formule_exclusions")\
         .delete()\
         .eq("commande_formule_id", commande_formule_id)\
@@ -180,5 +190,6 @@ async def update_commande_formule_exclusions(commande_formule_id: int, update_da
     
     return {
         "message": "Exclusions mises à jour avec succès", 
-        "produits_exclus": produits_exclus
+        "produits_exclus": produits_exclus,
+        "quantite_finale": quantite_finale
     }

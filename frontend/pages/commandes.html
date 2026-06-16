@@ -142,6 +142,19 @@
               </div>
             </div>
 
+            <div class="form-row">
+              <div class="form-group">
+                <label for="create-type-prestation">Type de prestation *</label>
+                <select id="create-type-prestation">
+                  <option value="non-brunch" selected>Non-Brunch</option>
+                  <option value="brunch">Brunch</option>
+                  <option value="pause petit déjeuner">Pause petit déjeuner</option>
+                  <option value="mariage">Mariage</option>
+                  <option value="NC">NC</option>
+                </select>
+              </div>
+            </div>
+
             <!-- Section validation -->
             <div class="form-row">
               <div class="form-group" style="flex: 1;">
@@ -302,6 +315,10 @@
                   <span id="detail-avec-service"></span>
                 </div>
                 <div class="detail-item">
+                  <strong>Type de prestation</strong>
+                  <span id="detail-type-prestation"></span>
+                </div>
+                <div class="detail-item">
                   <strong>Notes :</strong>
                   <span id="detail-notes"></span> 
                 </div>
@@ -376,6 +393,19 @@
                     <input type="checkbox" id="edit-avec-service" />
                     <span>✅ Avec service</span>
                   </label>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="edit-type-presentation">Type de prestation*</label>
+                  <select id="edit-type-presentation">
+                    <option value="non-brunch">Non-Brunch</option>
+                    <option value="brunch">Brunch</option>
+                    <option value="pause petit déjeuner">Pause petit déjeuner</option>
+                    <option value="mariage">Mariage></option>
+                    <option value="NC">NC</option>
+                  </select>
                 </div>
               </div>
 
