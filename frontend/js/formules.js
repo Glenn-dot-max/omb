@@ -1575,7 +1575,6 @@ async function handleOpenCreateModal() {
   // Réinitialiser les champs
   document.getElementById("create-formule-name").value = "";
   document.getElementById("create-formule-couverts").value = "1";
-  document.getElementById("create-formule-type").value = "Brunch";
 
   // Réinitialiser le quantité et unité
   document.getElementById("create-produit-quantite").value = "1";
@@ -1697,7 +1696,6 @@ function handleRemoveProduitFromCreate(index) {
 async function handleCreateFormuleWithProduits() {
   const name = document.getElementById("create-formule-name").value.trim();
   const couverts = document.getElementById("create-formule-couverts").value;
-  const type = document.getElementById("create-formule-type").value;
 
   if (!name) {
     alert("Le nom de la formule est requis.");

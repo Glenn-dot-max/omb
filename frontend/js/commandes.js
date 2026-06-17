@@ -775,6 +775,97 @@ function setupEventListeners() {
       closeEditModal();
     }
   });
+
+  // Afficher/marquer le coefficient selon le type de prestation
+  document
+    .getElementById("create-type-prestation")
+    .addEventListener("change", (e) => {
+      const isMariage = e.target.value === "mariage";
+      document.getElementById("create-ponderation-group").style.display =
+        isMariage ? "block" : "none";
+      if (!isMariage)
+        document.getElementById("create-coefficient").value = "1.0";
+    });
+
+  document
+    .getElementById("edit-type-prestation")
+    .addEventListener("change", (e) => {
+      const isMariage = e.target.value === "mariage";
+      document.getElementById("edit-ponderation-group").style.display =
+        isMariage ? "block" : "none";
+      if (!isMariage) document.getElementById("edit-coefficient").value = "1.0";
+    });
+
+  // Synchroniser le champ couverts formule avec le nombre de couverts (× coefficient si mariage)
+  function getCouverts(nbCouverts, coeffFieldId, typePrestationFieldId) {
+    const type = document.getElementById(typePrestationFieldId)?.value;
+    if (type === "mariage") {
+      const coeff =
+        parseFloat(document.getElementById(coeffFieldId)?.value) || 1.0;
+      return Math.round(nbCouverts * coeff * 100) / 100;
+    }
+    return nbCouverts;
+  }
+
+  document
+    .getElementById("create-nombre-couverts")
+    .addEventListener("input", (e) => {
+      const val = parseInt(e.target.value);
+      if (val >= 1) {
+        const couverts = getCouverts(
+          val,
+          "create-coefficient",
+          "create-type-prestation",
+        );
+        document.getElementById("formule-couverts").value = couverts;
+        document.getElementById("produit-quantite").value = couverts;
+      }
+    });
+
+  document
+    .getElementById("create-coefficient")
+    .addEventListener("input", () => {
+      const val = parseInt(
+        document.getElementById("create-nombre-couverts").value,
+      );
+      if (val >= 1) {
+        const couverts = getCouverts(
+          val,
+          "create-coefficient",
+          "create-type-prestation",
+        );
+        document.getElementById("formule-couverts").value = couverts;
+        document.getElementById("produit-quantite").value = couverts;
+      }
+    });
+
+  document
+    .getElementById("edit-nombre-couverts")
+    .addEventListener("input", (e) => {
+      const val = parseInt(e.target.value);
+      if (val >= 1) {
+        const couverts = getCouverts(
+          val,
+          "edit-coefficient",
+          "edit-type-prestation",
+        );
+        document.getElementById("edit-formule-couverts").value = couverts;
+        document.getElementById("edit-produit-quantite").value = couverts;
+      }
+    });
+
+  document.getElementById("edit-coefficient").addEventListener("input", () => {
+    const val = parseInt(document.getElementById("edit-nombre-couverts").value);
+    if (val >= 1) {
+      const couverts = getCouverts(
+        val,
+        "edit-coefficient",
+        "edit-type-prestation",
+      );
+      document.getElementById("edit-formule-couverts").value = couverts;
+      document.getElementById("edit-produit-quantite").value = couverts;
+    }
+  });
 }
 
 // ===============================================
@@ -842,6 +933,9 @@ async function handleOpenCreateModal() {
   document.getElementById("create-en-attente").checked = false;
   document.getElementById("create-notes").value = "";
   document.getElementById("formule-couverts").value = "1";
+  document.getElementById("create-type-prestation").value = "non-brunch";
+  document.getElementById("create-coefficient").value = "1.0";
+  document.getElementById("create-ponderation-group").style.display = "none";
 
   // 4. Afficher les listes vides
   displayTempFormules();
@@ -896,13 +990,22 @@ async function handleViewDetails(commande) {
       commande.avec_service ? "✅ Oui" : "⭕ Non";
     document.getElementById("detail-type-prestation").textContent =
       commande.type_prestation || "non-brunch";
+    const ponderationItem = document.getElementById("detail-ponderation-item");
+    const coeff = commande.coefficient_ponderation || 1.0;
+    if (commande.type_prestation === "mariage") {
+      document.getElementById("detail-coefficient").textContent = `x${coeff}`;
+      ponderationItem.style.display = "block";
+    } else {
+      ponderationItem.style.display = "none";
+    }
     document.getElementById("detail-notes").textContent =
       commande.notes || "Aucune note";
 
     const formules = await getCommandeFormules(commande.id);
     const produits = await getCommandeProduits(commande.id);
 
-    await displayDetailsFormules(formules);
+    const coefficient = commande.coefficient_ponderation || 1.0;
+    await displayDetailsFormules(formules, coefficient);
     displayDetailsProduits(produits);
 
     document.getElementById("detail-modal").style.display = "block";
@@ -918,7 +1021,7 @@ async function handleViewDetails(commande) {
   }
 }
 
-async function displayDetailsFormules(formules) {
+async function displayDetailsFormules(formules, coefficient = 1.0) {
   const container = document.getElementById("detail-formules-list");
   const count = document.getElementById("detail-formules-count");
 
@@ -938,6 +1041,14 @@ async function displayDetailsFormules(formules) {
     const formuleData = allFormules.find((f) => f.id === formule.formule_id);
     const formuleName = formuleData ? formuleData.name : "Formule Inconnue";
 
+    // Couverts effectifs après application du coefficient
+    const couvertsEffectifs =
+      Math.round(formule.quantite_finale * coefficient * 100) / 100;
+    const couvertsLabel =
+      coefficient !== 1.0
+        ? `${formule.quantite_finale} × ${coefficient} = <strong>${couvertsEffectifs} couverts effectifs</strong>`
+        : `${formule.quantite_finale} couverts`;
+
     // Récupérer les exclusions
     const exclusions = await getCommandeFormuleExclusions(formule.id);
 
@@ -956,13 +1067,10 @@ async function displayDetailsFormules(formules) {
       produitsHTML += '<ul class="composition-list">';
 
       for (const fp of produitsActifs) {
-        const produitData = allProduits.find((p) => p.id === fp.produit_id);
-        const produitName = produitData ? produitData.name : "Produit Inconnu";
-
+        const produitName = fp.produit_name || "Produit Inconnu";
         const totalQuantite =
-          fp.quantite_par_personne * formule.quantite_finale;
-
-        produitsHTML += `<li>${produitName} - ${totalQuantite} ${fp.unite}</li>`;
+          Math.round(fp.quantite * couvertsEffectifs * 100) / 100;
+        produitsHTML += `<li>${produitName} — ${totalQuantite} ${fp.unite}</li>`;
       }
 
       produitsHTML += "</ul></div>";
@@ -970,13 +1078,13 @@ async function displayDetailsFormules(formules) {
 
     // Afficher un message si des produits sont exclus
     if (exclusions.length > 0) {
-      produitsHTML += `<p style="color: #ff6b6b; font-size: 12 px; margin-top: 8px;">🚫 ${exclusions.length} produit(s) exclus</p>`;
+      produitsHTML += `<p style="color: #ff6b6b; font-size: 12px; margin-top: 8px;">🚫 ${exclusions.length} produit(s) exclus</p>`;
     }
 
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name">${formuleName}</div>
-        <div class="item-detail">Quantité : ${formule.quantite_finale} couverts</div>
+        <div class="item-detail">Quantité : ${couvertsLabel}</div>
         ${produitsHTML}
       </div>
     `;
@@ -1040,8 +1148,12 @@ async function handleEditCommande(commande) {
       commande.nombre_couverts;
     document.getElementById("edit-avec-service").checked =
       commande.avec_service;
-    document.getElementById("edit-type-prestation").value =
-      commande.type_prestation || "non-brunch";
+    const editTypePrestation = commande.type_prestation || "non-brunch";
+    document.getElementById("edit-type-prestation").value = editTypePrestation;
+    const editCoeff = commande.coefficient_ponderation || 1.0;
+    document.getElementById("edit-coefficient").value = editCoeff;
+    document.getElementById("edit-ponderation-group").style.display =
+      editTypePrestation === "mariage" ? "block" : "none";
     document.getElementById("edit-notes").value = commande.notes || "";
     document.getElementById("edit-formule-couverts").value =
       commande.nombre_couverts;
@@ -1266,8 +1378,7 @@ async function loadEditFormuleProduits(index) {
     produitsContainer.id = `edit-produits-container-${index}`;
 
     produits.forEach((produit) => {
-      const produitData = allProduits.find((p) => p.id === produit.produit_id);
-      const produitName = produitData ? produitData.name : "Produit Inconnu";
+      const produitName = produit.produit_name || "Produit Inconnu";
 
       const isExcluded = formule.produits_exclus.includes(produit.produit_id);
       const isChecked = !isExcluded;
@@ -1559,6 +1670,10 @@ async function handleSaveEditCommande() {
     const typePrestation = document.getElementById(
       "edit-type-prestation",
     ).value;
+    const coefficientPonderation =
+      typePrestation === "mariage"
+        ? parseFloat(document.getElementById("edit-coefficient").value) || 1.0
+        : 1.0;
     const notes = document.getElementById("edit-notes").value.trim();
 
     // ===============================================
@@ -1616,6 +1731,7 @@ async function handleSaveEditCommande() {
       avec_service: avecService,
       service: avecService,
       type_prestation: typePrestation,
+      coefficient_ponderation: coefficientPonderation,
       notes: notes || null,
     };
 
@@ -1824,7 +1940,7 @@ function displayTempFormules() {
         <div class="item-info">
           <div class="item-name">${formule.formule_name}</div>
           <div class="item-detail">
-            ${formule.formule_type} • ${formule.couverts} couverts
+            ${formule.couverts} couverts
             ${exclusionsDisplay}
           </div>
 
@@ -1909,8 +2025,7 @@ async function loadFormuleProduits(index) {
     produitsContainer.id = `produits-container-${index}`;
 
     produits.forEach((produit) => {
-      const produitData = allProduits.find((p) => p.id === produit.produit_id);
-      const produitName = produitData ? produitData.name : "Produit Inconnu";
+      const produitName = produit.produit_name || "Produit Inconnu";
 
       const isExcluded = formule.produits_exclus.includes(produit.produit_id);
       const isChecked = !isExcluded;
@@ -2232,6 +2347,10 @@ async function handleCreateCommande() {
   const typePrestation = document.getElementById(
     "create-type-prestation",
   ).value;
+  const coefficientPonderation =
+    typePrestation === "mariage"
+      ? parseFloat(document.getElementById("create-coefficient").value) || 1.0
+      : 1.0;
   const enAttente = document.getElementById("create-en-attente").checked;
   const notes = document.getElementById("create-notes").value.trim();
 
@@ -2303,6 +2422,7 @@ async function handleCreateCommande() {
       avec_service: avecService,
       service: avecService,
       type_prestation: typePrestation,
+      coefficient_ponderation: coefficientPonderation,
       notes: notes || null,
       validated: !enAttente,
     };

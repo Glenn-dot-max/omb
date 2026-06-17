@@ -82,6 +82,7 @@ class CarnetCommandeBase(BaseModel):
     nom_client: constr(min_length=2, max_length=200, strip_whitespace=True)
     nombre_couverts: int = Field(default=1, ge=1, le=10000)
     type_prestation: str = Field(default="non-brunch", max_length=50)
+    coefficient_ponderation: float = Field(default=1.0, gt=0, le=10.0)
     service: bool = False
     delivery_date: date
     delivery_hour: time
@@ -136,6 +137,7 @@ class CarnetCommandeUpdate(BaseModel):
     nom_client: Optional[constr(min_length=2, max_length=200)] = None
     nombre_couverts: Optional[int] = Field(None, ge=1, le=10000)
     type_prestation: Optional[str] = Field(None, max_length=50)
+    coefficient_ponderation: Optional[float] = Field(None, gt=0, le=10.0)
     service: Optional[bool] = None
     delivery_date: Optional[date] = None
     delivery_hour: Optional[time] = None

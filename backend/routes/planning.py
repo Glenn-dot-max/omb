@@ -309,10 +309,12 @@ async def get_planning_production(
             # ----------------------------------------
             
             produits_directs = commande_produits_map.get(commande_id, [])
+
+            coefficient = commande.get("coefficient_ponderation") or 1.0
             
             for cp in produits_directs:
                 produit_id = cp["produit_id"]
-                quantite = cp["quantite"]
+                quantite = cp["quantite"] * coefficient
                 unite = cp["unite"]
                 
                 prod_info = produits_infos.get(produit_id)
@@ -368,7 +370,7 @@ async def get_planning_production(
 
                     quantite_par_personne = fp["quantite"]
                     unite = fp["unite"]
-                    quantite_totale = quantite_par_personne * quantite_finale
+                    quantite_totale = quantite_par_personne * quantite_finale * coefficient
                     
                     prod_info = produits_infos.get(produit_id)
                     if not prod_info:
