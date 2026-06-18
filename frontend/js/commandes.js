@@ -581,9 +581,14 @@ function createCommandeElement(commande, isUrgent = false) {
     deleteBtn.textContent = "🗑️ Supprimer";
     deleteBtn.onclick = () => handleDeleteCommande(commande.id);
 
+    const duplicateBtn = document.createElement("button");
+    duplicateBtn.className = "edit-btn";
+    duplicateBtn.textContent = "📄 Dupliquer";
+    duplicateBtn.onclick = () => handleDuplicateCommande(commande);
+
     actionsDiv.appendChild(detailsBtn);
     actionsDiv.appendChild(editBtn);
-
+    actionsDiv.appendChild(duplicateBtn);
     actionsDiv.appendChild(deleteBtn);
   }
 
@@ -1807,6 +1812,91 @@ function closeEditModal() {
   currentEditingCommande = null;
   editFormules = [];
   editProduits = [];
+}
+
+async function handleDuplicateCommande(commande) {
+  try {
+    // 1. Charger les données si nécessaire
+    if (allFormules.length === 0 || allProduits.length === 0) {
+      await loadDataForModal();
+    }
+
+    // 2. Réinitialiser les listes temporaires
+    tempFormules = [];
+    tempProduits = [];
+
+    // 3. Pré-remplir les champs du formulaire
+    document.getElementById("create-nom-client").value =
+      `Copie - ${commande.nom_client}`;
+    document.getElementById("create-delivery-date").value =
+      commande.delivery_date.split("T")[0];
+    document.getElementById("create-delivery-hour").value =
+      commande.delivery_hour;
+    document.getElementById("create-nombre-couverts").value =
+      commande.nombre_couverts;
+    document.getElementById("create-avec-service").checked =
+      commande.avec_service;
+    document.getElementById("create-notes").value = commande.notes || "";
+    document.getElementById("create-en-attente").checked = false;
+
+    const typePrestation = commande.type_prestation || "non-brunch";
+    document.getElementById("create-type-prestation").value = typePrestation;
+    const coeff = commande.coefficient_ponderation || 1.0;
+    document.getElementById("create-coefficient").value = coeff;
+    document.getElementById("create-ponderation-group").style.display =
+      typePrestation === "mariage" ? "block" : "none";
+
+    // Couverts effectifs pour les champs formule/produit
+    const couvertsEffectifs =
+      typePrestation === "mariage"
+        ? Math.round(commande.nombre_couverts * coeff * 100) / 100
+        : commande.nombre_couverts;
+    document.getElementById("formule-couverts").value = couvertsEffectifs;
+    document.getElementById("produit-quantite").value = couvertsEffectifs;
+
+    // 4. Charger les formules avec leurs exclusions
+    const formules = await getCommandeFormules(commande.id);
+    for (const f of formules) {
+      const exclusions = await getCommandeFormuleExclusions(f.id);
+      const formuleData = allFormules.find((form) => form.id === f.formule_id);
+      if (formuleData) {
+        tempFormules.push({
+          formule_id: f.formule_id,
+          formule_name: formuleData.name,
+          couverts: f.quantite_finale,
+          produits_exclus: exclusions || [],
+          expanded: false,
+        });
+      }
+    }
+
+    // 5. Charger les produits directs
+    const produits = await getCommandeProduits(commande.id);
+    for (const p of produits) {
+      const produitData = allProduits.find((prod) => prod.id === p.produit_id);
+      tempProduits.push({
+        produit_id: p.produit_id,
+        produit_name: produitData ? produitData.name : "Produit Inconnu",
+        quantite: p.quantite,
+        unite: p.unite,
+      });
+    }
+
+    // 6. Afficher les listes
+    displayTempFormules();
+    displayTempProduits();
+
+    // 7. Ouvrir la modale de création
+    document.getElementById("create-modal").style.display = "block";
+
+    showToast(
+      '📋 Commande pré-remplie. Modifiez le nom puis cliquez "Créer".',
+      "info",
+    );
+  } catch (error) {
+    console.error("Erreur lors de la duplication :", error);
+    showToast("❌ Erreur lors de la préparation de la duplication.", "error");
+  }
 }
 
 async function handleDeleteCommande(commandeId) {

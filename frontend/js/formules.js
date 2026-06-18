@@ -598,7 +598,6 @@ function displayFormulesTable(formules, container) {
         <thead>
           <tr>
             <th class="${getSortClass("name")}" onclick="handleSort('name')">Nom</th>
-            <th class="${getSortClass("type")}" onclick="handleSort('type')">Type</th>
             <th class="${getSortClass("couverts")}" onclick="handleSort('couverts')">Couverts</th>
             ${isTechAdmin ? '<th style="min-width: 200px;">Franchises</th>' : ""}
             <th>Actions</th>

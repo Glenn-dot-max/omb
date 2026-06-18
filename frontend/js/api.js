@@ -498,3 +498,16 @@ async function deleteCategoryById(categoryId) {
     throw error;
   }
 }
+
+// ===========================================
+// DUPLICATION D'UNE COMMANDE
+// ===========================================
+
+async function duplicateCommande(commandeId) {
+  try {
+    return await apiPost(`/commandes/${commandeId}/duplicate`, {});
+  } catch (error) {
+    console.error("Erreur API duplicateCommande:", error);
+    throw error;
+  }
+}

@@ -406,5 +406,76 @@ async def validate_commande(commande_id: str, current_user: dict = Depends(get_c
             detail=f"Erreur lors de la validation de la commande: {str(e)}"
         )
 
+@router.post("/{commande_id}/duplicate")
+async def duplicate_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+    """Duplique une commande avec ses formules, exclusions et produits directs"""
 
+    #1. Récupérer la commande source (scoping franchise)
+    query = supabase.table("carnet_commande").select("*").eq("id", commande_id)
 
+    if current_user["role"] != "TECH_ADMIN":
+        if not current_user.get("franchise_id"):
+            raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
+        query = query.eq("franchise_id", current_user["franchise_id"])
+
+    source_response = query.execute()
+    if not source_response.data:
+        raise HTTPException(status_code=404, detail="Commande introuvable")
+    
+    source = source_response.data[0]
+
+    # 2. Créer la nouvelle commande (copie sans id/archived_at/create_at)
+    new_commande_data = {
+        k: v for k, v in source.items()
+        if k not in ("id", "archived", "archived_at", "created_at")
+    }
+    new_commande_data["archived"] = False
+    new_commande_data["archived_at"] = None
+
+    new_commande_response = supabase.table("carnet_commande").insert(new_commande_data).execute()
+    if not new_commande_response.data:
+        raise HTTPException(status_code=500, detail="Erreur lors de la duplication de la commande")
+    
+    new_commande = new_commande_response.data[0]
+    new_commande_id = new_commande["id"]
+
+    # 3. Copier les commande_formules + leurs exclusions
+    cf_response = supabase.table("commande_formules").select("*").eq("commande_id", commande_id).execute()
+
+    for cf in cf_response.data:
+        new_cf_data = {
+            k: v for k, v in cf.items()
+            if k not in ("id", "created_at")
+        }
+        new_cf_data["commande_id"] = new_commande_id
+
+        new_cf_response = supabase.table("commande_formules").insert(new_cf_data).execute()
+        if not new_cf_response.data:
+            continue
+
+        new_cf_id = new_cf_response.data[0]["id"]
+
+        excl_response = supabase.table("commande_formule_exclusions")\
+            .select("produit_id")\
+            .eq("commande_formule_id", cf["id"])\
+            .execute()
+        
+        for excl in excl_response.data:
+            supabase.table("commande_formule_exclusions").insert({
+                "commande_formule_id": new_cf_id,
+                "produit_id": excl["produit_id"]
+            }).execute()
+
+    # 4. Copier les produits directs
+    cp_response = supabase.table("commande_produits").select("*").eq("commande_id", commande_id).execute()
+
+    for cp in cp_response.data:
+        new_cp_data = {
+            k: v for k, v in cp.items()
+            if k not in ("id", "created_at")
+        }
+        new_cp_data["commande_id"] = new_commande_id
+        supabase.table("commande_produits").insert(new_cp_data).execute()
+
+    print(f"[COMMANDES] Duplication: {commande_id} → {new_commande_id}")
+    return serialize_commande(new_commande)
