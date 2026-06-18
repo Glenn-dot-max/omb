@@ -427,20 +427,7 @@ async function getPlanningProduction(
 
 async function validateCommande(commandeId) {
   try {
-    const response = await fetch(
-      `${API_URL}/commandes/${commandeId}/validate`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Erreur validation commande");
-    }
-
-    return await response.json();
+    return await apiPatch(`/commandes/${commandeId}/validate`, {});
   } catch (error) {
     console.error("Erreur API validateCommande:", error);
     throw error;
