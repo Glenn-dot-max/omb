@@ -300,6 +300,7 @@ async def get_planning_production(
                 "client": commande.get('nom_client', ''),
                 "heure": commande.get("delivery_hour", ""),
                 "couverts": commande.get("nombre_couverts", 0),
+                "avec_service": bool(commande.get("avec_service", commande.get("service", False))),
                 "notes": commande.get("notes", ""),
                 "produits": {}
             }

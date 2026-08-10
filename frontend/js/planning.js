@@ -687,7 +687,11 @@ async function handleExportExcel() {
       if (commandes.length > 0) {
         commandes.forEach((cmd) => {
           const serviceCell = worksheet.getCell(currentRow, colIdx);
-          serviceCell.value = cmd.service || "Sans";
+          const hasService =
+            typeof cmd.avec_service === "boolean"
+              ? cmd.avec_service
+              : cmd.service === true || cmd.service === "Avec";
+          serviceCell.value = hasService ? "Avec" : "Sans";
           serviceCell.font = { size: 9 };
           serviceCell.fill = {
             type: "pattern",
