@@ -5,6 +5,7 @@ from datetime import datetime, date
 from typing import List, Dict, Any
 from collections import defaultdict
 import traceback
+import math
 
 router = APIRouter(prefix="/planning", tags=["planning"])
 supabase = get_supabase_client()
@@ -291,6 +292,8 @@ async def get_planning_production(
         
         print("\n📦 Étape 5: Traitement des commandes...")
         
+        rounded_commandes = set()
+
         for commande in commandes_filtrees:
             commande_id = commande["id"]
             delivery_date = commande["delivery_date"]
@@ -316,6 +319,9 @@ async def get_planning_production(
             for cp in produits_directs:
                 produit_id = cp["produit_id"]
                 quantite = cp["quantite"] * coefficient
+                # Si commande mariage, arrondir à l'unité supérieure
+                if commande.get("type_prestation") == "mariage":
+                    quantite = float(math.ceil(quantite))
                 unite = cp["unite"]
                 
                 prod_info = produits_infos.get(produit_id)
@@ -341,7 +347,7 @@ async def get_planning_production(
                         "source": "suppl"
                     }
                 
-                # Mettre à jour les totaux du jour
+                    # Mettre à jour les totaux du jour
                 planning[delivery_date]["totaux"][produit_id]["quantite"] += quantite
                 planning[delivery_date]["totaux"][produit_id]["unite"] = unite
                 planning[delivery_date]["totaux"][produit_id]["nom"] = prod_info["name"]
@@ -372,6 +378,9 @@ async def get_planning_production(
                     quantite_par_personne = fp["quantite"]
                     unite = fp["unite"]
                     quantite_totale = quantite_par_personne * quantite_finale * coefficient
+                    # Si commande mariage, arrondir à l'unité supérieure
+                    if commande.get("type_prestation") == "mariage":
+                        quantite_totale = float(math.ceil(quantite_totale))
                     
                     prod_info = produits_infos.get(produit_id)
                     if not prod_info:
@@ -405,6 +414,12 @@ async def get_planning_production(
             
             # Ajouter la commande au planning
             planning[delivery_date]["commandes"].append(commande_data)
+            # Si c'est une commande mariage avec coefficient != 1, enregistrer qu'on a arrondi
+            try:
+                if commande.get("type_prestation") == "mariage" and (commande.get("coefficient_ponderation") or 1.0) != 1.0:
+                    rounded_commandes.add(str(commande_id))
+            except Exception:
+                pass
         
         # =========================================
         # ÉTAPE 6: FINALISATION
@@ -447,6 +462,8 @@ async def get_planning_production(
                 }
                 for c in commandes_non_validees
             ]
+            ,
+            "rounded_commandes": list(rounded_commandes)
         }
     
     except ValueError as e:

@@ -799,15 +799,49 @@ function setupEventListeners() {
       document.getElementById("edit-ponderation-group").style.display =
         isMariage ? "block" : "none";
       if (!isMariage) document.getElementById("edit-coefficient").value = "1.0";
+      recalcEditFormulesEtProduits();
     });
+
+  // Recalculer les couverts des formules et produits déjà présents
+  // dans la modale d'édition en fonction du type de prestation.
+  function recalcEditFormulesEtProduits() {
+    const val = parseInt(document.getElementById("edit-nombre-couverts").value);
+    if (!val || val < 1) return;
+
+    const couverts = getCouverts(
+      val,
+      "edit-coefficient",
+      "edit-type-prestation",
+    );
+
+    // Mettre à jour les formules déjà ajoutées
+    if (Array.isArray(editFormules)) {
+      editFormules.forEach((f) => {
+        f.couverts = couverts;
+      });
+    }
+
+    // Mettre à jour les produits déjà ajoutés
+    if (Array.isArray(editProduits)) {
+      editProduits.forEach((p) => {
+        p.quantite = couverts;
+      });
+    }
+
+    // Re-rendre les listes pour refléter les nouvelles valeurs
+    if (typeof displayEditFormules === "function") displayEditFormules();
+    if (typeof displayEditProduits === "function") displayEditProduits();
+  }
 
   // Synchroniser le champ couverts formule avec le nombre de couverts (× coefficient si mariage)
   function getCouverts(nbCouverts, coeffFieldId, typePrestationFieldId) {
     const type = document.getElementById(typePrestationFieldId)?.value;
+    const coeff =
+      parseFloat(document.getElementById(coeffFieldId)?.value) || 1.0;
+
     if (type === "mariage") {
-      const coeff =
-        parseFloat(document.getElementById(coeffFieldId)?.value) || 1.0;
-      return Math.round(nbCouverts * coeff * 100) / 100;
+      // Pour les mariages, on arrondit à l'unité supérieure après application du coefficient
+      return Math.ceil(nbCouverts * coeff);
     }
     return nbCouverts;
   }
@@ -856,6 +890,7 @@ function setupEventListeners() {
         );
         document.getElementById("edit-formule-couverts").value = couverts;
         document.getElementById("edit-produit-quantite").value = couverts;
+        recalcEditFormulesEtProduits();
       }
     });
 
@@ -869,6 +904,7 @@ function setupEventListeners() {
       );
       document.getElementById("edit-formule-couverts").value = couverts;
       document.getElementById("edit-produit-quantite").value = couverts;
+      recalcEditFormulesEtProduits();
     }
   });
 }
@@ -1010,7 +1046,11 @@ async function handleViewDetails(commande) {
     const produits = await getCommandeProduits(commande.id);
 
     const coefficient = commande.coefficient_ponderation || 1.0;
-    await displayDetailsFormules(formules, coefficient);
+    await displayDetailsFormules(
+      formules,
+      coefficient,
+      commande.type_prestation,
+    );
     displayDetailsProduits(produits);
 
     document.getElementById("detail-modal").style.display = "block";
@@ -1026,7 +1066,11 @@ async function handleViewDetails(commande) {
   }
 }
 
-async function displayDetailsFormules(formules, coefficient = 1.0) {
+async function displayDetailsFormules(
+  formules,
+  coefficient = 1.0,
+  typePrestation = "non-brunch",
+) {
   const container = document.getElementById("detail-formules-list");
   const count = document.getElementById("detail-formules-count");
 
@@ -1047,8 +1091,14 @@ async function displayDetailsFormules(formules, coefficient = 1.0) {
     const formuleName = formuleData ? formuleData.name : "Formule Inconnue";
 
     // Couverts effectifs après application du coefficient
-    const couvertsEffectifs =
-      Math.round(formule.quantite_finale * coefficient * 100) / 100;
+    let couvertsEffectifs;
+    if (typePrestation === "mariage") {
+      // pour les mariages, arrondir à l'unité supérieure
+      couvertsEffectifs = Math.ceil(formule.quantite_finale * coefficient);
+    } else {
+      couvertsEffectifs =
+        Math.round(formule.quantite_finale * coefficient * 100) / 100;
+    }
     const couvertsLabel =
       coefficient !== 1.0
         ? `${formule.quantite_finale} × ${coefficient} = <strong>${couvertsEffectifs} couverts effectifs</strong>`
@@ -1073,8 +1123,13 @@ async function displayDetailsFormules(formules, coefficient = 1.0) {
 
       for (const fp of produitsActifs) {
         const produitName = fp.produit_name || "Produit Inconnu";
-        const totalQuantite =
-          Math.round(fp.quantite * couvertsEffectifs * 100) / 100;
+        let totalQuantite;
+        if (typePrestation === "mariage") {
+          totalQuantite = Math.ceil(fp.quantite * couvertsEffectifs);
+        } else {
+          totalQuantite =
+            Math.round(fp.quantite * couvertsEffectifs * 100) / 100;
+        }
         produitsHTML += `<li>${produitName} — ${totalQuantite} ${fp.unite}</li>`;
       }
 
@@ -1798,6 +1853,12 @@ async function handleSaveEditCommande() {
     closeEditModal();
 
     showToast(`Commande "${nomClient}" mise à jour avec succès.`, "success");
+    if (typePrestation === "mariage" && coefficientPonderation !== 1.0) {
+      showToast(
+        "ℹ️ Pour les mariages : les quantités sont arrondies à l'unité supérieure après application de la pondération.",
+        "info",
+      );
+    }
   } catch (error) {
     console.error("Erreur lors de la sauvegarde de la commande :", error);
     showToast("Erreur lors de la sauvegarde de la commande.", "error");
@@ -2588,6 +2649,12 @@ async function handleCreateCommande() {
     // ==========================================
 
     showToast(`Commande "${nomClient}" créée avec succès ! 🎉`, "success");
+    if (typePrestation === "mariage" && coefficientPonderation !== 1.0) {
+      showToast(
+        "ℹ️ Pour les mariages : les quantités sont arrondies à l'unité supérieure après application de la pondération.",
+        "info",
+      );
+    }
   } catch (error) {
     console.error("❌ Erreur lors de la création de la commande:", error);
 
