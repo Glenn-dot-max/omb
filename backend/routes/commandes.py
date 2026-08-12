@@ -117,7 +117,6 @@ async def get_commande(commande_id: str, current_user: dict = Depends(get_curren
 @router.post("/")
 async def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
     """Create a new commande"""
-    from zoneinfo import ZoneInfo
 
     commande_data = commande.model_dump()
 
@@ -284,8 +283,6 @@ async def archive_commande(commande_id: str, current_user: dict = Depends(get_cu
 @router.put("/{commande_id}")
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
     """Update an existing commande"""
-    from zoneinfo import ZoneInfo
-
     update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
 
     if 'delivery_date' in update_data:

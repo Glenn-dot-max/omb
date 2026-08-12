@@ -37,12 +37,14 @@ Octobre 2026
 | 1.5 | ✅ Fait | Vérification `active = True` dans `get_current_user`                   | `auth.py`                                                                                       | 30 min |
 | 1.6 | ✅ Fait | Déplacer les 4 scripts root dans `scripts/`                            | `generate_password.py`, `create_catalog_admin.py`, `create_user_paris.py`, `test_connection.py` | 10 min |
 
+**✅ Sprint 1 terminé et mergé sur v8 — 12 août 2026**
+
 **Critère de validation :**
 
-- [ ] Un compte désactivé ne peut plus appeler l'API
-- [ ] Brute-force sur `/auth/login` bloqué après 5 tentatives
-- [ ] Aucun `str(e)` retourné au client en prod
-- [ ] Aucun `console.log` en prod
+- [x] Un compte désactivé ne peut plus appeler l'API
+- [x] Brute-force sur `/auth/login` bloqué après 5 tentatives
+- [x] Aucun `str(e)` retourné au client en prod
+- [x] Aucun `console.log` en prod
 
 ---
 

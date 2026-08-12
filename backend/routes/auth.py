@@ -127,11 +127,11 @@ async def change_password(
     new_password_hash = hash_password(request.new_password)
 
     # 5. Mettre à jour dans la DB
-    from datetime import datetime
+    from datetime import datetime, timezone
     supabase.table("users").update({
         "password_hash": new_password_hash,
         "must_change_password": False,
-        "password_changed_at": datetime.utcnow().isoformat()
+        "password_changed_at": datetime.now(timezone.utc).isoformat()
     }).eq("id", current_user["user_id"]).execute()
 
     return {"message": "Mot de passe changé avec succès"}

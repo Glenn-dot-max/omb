@@ -4,49 +4,13 @@ logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_supabase_client
 from auth import is_tech_admin, is_catalog_admin
-from pydantic import BaseModel, EmailStr, Field
+from models import FranchiseCreate, FranchiseUpdate, UserCreate, UserUpdate, PasswordReset
 from typing import Optional
 import bcrypt
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 supabase = get_supabase_client()
-
-# ============================
-# MODELS
-# ============================
-
-class FranchiseCreate(BaseModel):
-    nom: str
-    city: Optional[str] = None
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
-
-class FranchiseUpdate(BaseModel):
-    nom: Optional[str] = None
-    city: Optional[str] = None
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
-    active: Optional[bool] = None
-
-class UserCreate(BaseModel):
-    email: EmailStr
-    full_name: str
-    franchise_id: Optional[str] = None
-    password: str
-    role: str = "USER"
-
-class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = None
-    full_name: Optional[str] = None
-    franchise_id: Optional[str] = None
-    role: Optional[str] = None
-    active: Optional[bool] = None
-
-class PasswordReset(BaseModel):
-    new_password: str = Field(min_length=8, description="Minimum 8 caractères")
 
 # ======================================
 # FRANCHISE - CRUD
@@ -69,7 +33,7 @@ async def get_franchise(franchise_id: str, current_user: dict = Depends(is_catal
 async def create_franchise(franchise: FranchiseCreate, current_user: dict = Depends(is_tech_admin)):
     """Crée une nouvelle franchise (TECH ADMIN UNIQUEMENT)"""
     franchise_data = franchise.model_dump()
-    franchise_data["created_at"] = datetime.utcnow().isoformat()
+    franchise_data["created_at"] = datetime.now(timezone.utc).isoformat()
     franchise_data["active"] = True
 
     response = supabase.table("franchises").insert(franchise_data).execute()
@@ -151,7 +115,7 @@ async def create_user(user: UserCreate, current_user: dict = Depends(is_tech_adm
         "role": role,
         "active": True,
         "must_change_password": True,
-        "created_at": datetime.utcnow().isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat()
     }
 
     response = supabase.table("users").insert(user_data).execute()
@@ -200,7 +164,7 @@ async def reset_password(
     response = supabase.table("users").update({
         "password_hash": hashed_password,
         "must_change_password": True,
-        "password_changed_at": datetime.utcnow().isoformat()
+        "password_changed_at": datetime.now(timezone.utc).isoformat()
     }).eq("id", user_id).execute()
 
     if not response.data:

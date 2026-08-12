@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
@@ -87,6 +90,8 @@ async def get_planning_production(
                     detail="Utilisateur sans franchise associée"
                 )
             query = query.eq("franchise_id", current_user["franchise_id"])
+            if franchise_id and franchise_id != current_user["franchise_id"]:
+                logger.warning(f"franchise_is query param ignoré pour user {current_user['email']} (rôle USER)")
             print(f"    🔒 Filtrage par franchise utilisateur: {current_user['franchise_id']}")
         
         all_commandes_response = query.execute()

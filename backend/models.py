@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, validator, Field, constr, field_validator
+from pydantic import BaseModel, EmailStr, Field, constr, field_validator
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime, date, time
@@ -20,7 +20,8 @@ class ProduitBase(BaseModel):
     categorie_id: Optional[int] = None
     type_id: Optional[int] = None
     
-    @validator('name')
+    @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         if not v or not v.strip():
             raise ValueError('Le nom ne peut pas être vide')
@@ -28,7 +29,8 @@ class ProduitBase(BaseModel):
             raise ValueError('Caractères non autorisés dans le nom')
         return v.strip()
     
-    @validator('categorie_id', 'type_id')
+    @field_validator('categorie_id', 'type_id')
+    @classmethod
     def validate_ids(cls, v):
         if v is not None and v < 1:
             raise ValueError('ID doit être positif')
@@ -55,7 +57,8 @@ class FormuleBase(BaseModel):
     name: constr(min_length=1, max_length=200, strip_whitespace=True)
     nombre_couverts: int = Field(default=1, ge=1, le=10000)
     
-    @validator('name')
+    @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         if not v or not v.strip():
             raise ValueError('Le nom ne peut pas être vide')
@@ -90,7 +93,8 @@ class CarnetCommandeBase(BaseModel):
     avec_service: bool = True
     validated: bool = True
     
-    @validator('nom_client')
+    @field_validator('nom_client')
+    @classmethod
     def validate_nom_client(cls, v):
         if not v or not v.strip():
             raise ValueError('Le nom du client ne peut pas être vide')
@@ -98,7 +102,8 @@ class CarnetCommandeBase(BaseModel):
             raise ValueError('Caractères non autorisés dans le nom du client')
         return v.strip()
     
-    @validator('delivery_date')
+    @field_validator('delivery_date')
+    @classmethod
     def validate_delivery_date(cls, v):
         from zoneinfo import ZoneInfo
         from datetime import timedelta
@@ -119,7 +124,8 @@ class CarnetCommandeBase(BaseModel):
         
         return v
     
-    @validator('notes')
+    @field_validator('notes')
+    @classmethod
     def validate_notes(cls, v):
         if v:
             v = v.strip()
@@ -157,7 +163,8 @@ class CommandeFormuleBase(UUIDModel):
     quantite_finale: float = Field(default=0, ge=0, le=10000)
     produits_exclus: list[str] = Field(default_factory=list)
     
-    @validator('quantite_recommandee', 'quantite_finale')
+    @field_validator('quantite_recommandee', 'quantite_finale')
+    @classmethod
     def validate_quantites(cls, v):
         if v < 0:
             raise ValueError('La quantité ne peut pas être négative')
@@ -185,7 +192,8 @@ class CommandeProduitBase(UUIDModel):
     quantite: float = Field(default=0, ge=0, le=10000)
     unite: Optional[constr(max_length=50)] = None
     
-    @validator('quantite')
+    @field_validator('quantite')
+    @classmethod
     def validate_quantite(cls, v):
         if v < 0:
             raise ValueError('La quantité ne peut pas être négative')
@@ -213,7 +221,8 @@ class FormuleProduitBase(UUIDModel):
     quantite: float = Field(default=0, ge=0, le=10000)
     unite: Optional[constr(max_length=50)] = None
     
-    @validator('quantite')
+    @field_validator('quantite')
+    @classmethod
     def validate_quantite(cls, v):
         if v < 0:
             raise ValueError('La quantité ne peut pas être négative')
@@ -243,6 +252,7 @@ class CreateUserRequest(BaseModel):
     franchise_id: str
 
     @field_validator('email')
+    @classmethod
     def validate_email(cls, v):
         """Valider le format email"""
         email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -251,6 +261,7 @@ class CreateUserRequest(BaseModel):
         return v.lower()
     
     @field_validator('password')
+    @classmethod
     def validate_password(cls, v):
         """
         Valider la complexité du mot de passe :
@@ -328,6 +339,7 @@ class CategorieCreate(BaseModel):
     name: constr(min_length=1, max_length=100, strip_whitespace=True)
 
     @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         if not v or not v.strip():
             raise ValueError('Le nom de la catégorie ne peut pas être vide')
@@ -342,6 +354,7 @@ class CategorieUpdate(BaseModel):
     name: constr(min_length=1, max_length=100, strip_whitespace=True)
 
     @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         if not v or not v.strip():
             raise ValueError('Le nom de la catégorie ne peut pas être vide')
@@ -351,3 +364,36 @@ class CategorieUpdate(BaseModel):
     
     class Config:
         extra = 'forbid'
+
+# ================== ADMIN MODELS ==================
+class FranchiseCreate(BaseModel):
+    nom: str
+    city: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+class FranchiseUpdate(BaseModel):
+    nom: Optional[str] = None
+    city: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    active: Optional[bool] = None
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    full_name: str
+    franchise_id: Optional[str] = None
+    password: str
+    role: str = "USER"
+
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    franchise_id: Optional[str] = None
+    role: Optional[str] = None
+    active: Optional[bool] = None
+
+class PasswordReset(BaseModel):
+    new_password: str = Field(min_length=8, description="Minimum 8 caractères")

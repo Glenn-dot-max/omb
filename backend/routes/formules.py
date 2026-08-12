@@ -40,14 +40,30 @@ async def get_formules(current_user: dict = Depends(get_current_user)):
         total_franchises = len(all_franchises.data)
         franchise_map = {f["id"]: f["nom"] for f in all_franchises.data}
 
-        all_liens = supabase.table("franchise_formules")\
-            .select("formule_id, franchise_id")\
-            .eq("active", True)\
-            .execute()
+        all_liens_data = []
+        page_size = 1000
+        offset = 0
+
+        while True:
+            liens_page = supabase.table("franchise_formules")\
+                .select("formule_id, franchise_id")\
+                .eq("active", True)\
+                .range(offset, offset + page_size - 1)\
+                .execute()
+
+            if not liens_page.data:
+                break
+
+            all_liens_data.extend(liens_page.data)
+
+            if len(liens_page.data) < page_size:
+                break
+
+            offset += page_size
 
         from collections import defaultdict
         liens_par_formule = defaultdict(list)
-        for lien in all_liens.data:
+        for lien in all_liens_data:
             liens_par_formule[lien["formule_id"]].append(lien["franchise_id"])
 
         for formule in formules:
