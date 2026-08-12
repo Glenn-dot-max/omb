@@ -15,15 +15,13 @@ const API_URL =
     : "https://omb-backend.onrender.com";
 
 // Logs de débogage
-console.log("🌍 Environnement détecté :", window.location.hostname);
-console.log("🔗 API URL:", API_URL);
-console.log(
-  "📍 Mode:",
+if (
   window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-    ? "DÉVELOPPEMENT"
-    : "PRODUCTION",
-);
+  window.location.hostname === "127.0.0.1"
+) {
+  console.log("🌍 Environnement : DÉVELOPPEMENT");
+  console.log("🔗 URL de l'API :", API_URL);
+}
 
 // Configuration exportée globalement
 window.APP_CONFIG = {

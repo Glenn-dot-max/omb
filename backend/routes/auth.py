@@ -1,6 +1,7 @@
 # backend/routes/auth.py
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
+from limiter import limiter
 from database import get_supabase_client
 from models import LoginRequest, LoginResponse, UserInfo, ChangePasswordRequest
 from auth import verify_password, create_access_token, get_current_user
@@ -13,7 +14,8 @@ supabase = get_supabase_client()
 # ===============================================
 
 @router.post("/login", response_model=LoginResponse)
-async def login(credentials: LoginRequest):
+@limiter.limit("5/minute")
+async def login(request: Request, credentials: LoginRequest):
     """Connexion utilisateur"""
     
     # 1. Récupérer l'utilisateur par email

@@ -1,7 +1,10 @@
+import logging
+logger = logging.getLogger(__name__)
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_supabase_client
 from auth import is_tech_admin, is_catalog_admin
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 import bcrypt
 from datetime import datetime
@@ -43,7 +46,7 @@ class UserUpdate(BaseModel):
     active: Optional[bool] = None
 
 class PasswordReset(BaseModel):
-    new_password: str
+    new_password: str = Field(min_length=8, description="Minimum 8 caractères")
 
 # ======================================
 # FRANCHISE - CRUD
@@ -293,10 +296,8 @@ async def get_franchise_produits(
         return produits
     
     except Exception as e:
-        print(f"❌ ERREUR get_franchise_produits: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+        logger.error(f"❌ ERREUR get_franchise_produits: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
     
 # ======================================
 # FRANCHISE - FORMULES
@@ -355,10 +356,8 @@ async def get_franchise_formules(
         return formules
     
     except Exception as e:
-        print(f"❌ ERREUR get_franchise_formules: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+        logger.error(f"❌ ERREUR get_franchise_formules: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
     
 # ======================================
 # FRANCHISE - COMMANDES
@@ -405,8 +404,6 @@ async def get_franchise_commandes(
         return [serialize_commande(cmd) for cmd in response.data]
     
     except Exception as e:
-        print(f"❌ ERREUR get_franchise_commandes: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erreur: {str(e)}")
+        logger.error(f"❌ ERREUR get_franchise_commandes: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Erreur interne du serveur")
     

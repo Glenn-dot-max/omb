@@ -56,10 +56,10 @@ async def get_commandes(current_user: dict = Depends(get_current_user)):
         }
     
     except Exception as e:
-        logger.error(f"Error loading commandes: {e}")
+        logger.error(f"Error loading commandes: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Erreur lors du chargement des commandes"
         )   
 
 @router.get("/archived")
@@ -87,10 +87,10 @@ async def get_archived_commandes(current_user: dict = Depends(get_current_user))
         
         return [serialize_commande(commande) for commande in response.data]
     except Exception as e:
-        logger.error(f"Error loading archived commandes: {e}")
+        logger.error(f"Error loading archived commandes: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Erreur lors du chargement des commandes archivées"
         )
     
 
@@ -247,10 +247,10 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
         }
     
     except Exception as e:
-        logger.error(f"Erreur auto-archive: {e}")
+        logger.error(f"Erreur auto-archive: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            detail="Erreur lors de l'archivage automatique des commandes"
         )
     
 
@@ -401,9 +401,10 @@ async def validate_commande(commande_id: str, current_user: dict = Depends(get_c
         return {"message": "Commande validée avec succès", "commande": serialize_commande(response.data[0])}
     
     except Exception as e:
+        logger.error(f"Erreur validation commande {commande_id}: {e}", exc_info=True)
         raise HTTPException(
             status_code=500, 
-            detail=f"Erreur lors de la validation de la commande: {str(e)}"
+            detail="Erreur lors de la validation de la commande"
         )
 
 @router.post("/{commande_id}/duplicate")

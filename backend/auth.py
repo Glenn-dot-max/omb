@@ -8,6 +8,7 @@ from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
+from database import get_supabase_client
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -95,6 +96,17 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide: franchise_id manquant",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Vérifier que le compte est toujours actif en BDD
+    supabase = get_supabase_client()
+    db_user = supabase.table("users").select("active").eq("id", user_id).execute()
+
+    if not db_user.data or not db_user.data[0].get("active", False):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Compte désactivé",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
