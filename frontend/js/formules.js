@@ -1092,10 +1092,28 @@ async function loadProduitsForSelect() {
     select.innerHTML =
       '<option value="">-- Sélectionner un produit --</option>';
 
+    // Récupérer les IDs des produits déjà présents dans la formule en cours d'édition
+    let produitsDejaPresents = [];
+    if (currentEditingFormule?.id) {
+      try {
+        const composition = await getFormuleProduits(currentEditingFormule.id);
+        produitsDejaPresents = composition.map((fp) => fp.produit_id);
+      } catch (e) {
+        console.warn("Impossible de charger la composition:", e);
+      }
+    }
+
     produits.forEach((produit) => {
       const option = document.createElement("option");
       option.value = produit.id;
       option.textContent = produit.name;
+
+      if (produitsDejaPresents.includes(produit.id)) {
+        option.textContent = `${produit.name} (déjà dans la formule)`;
+        option.disabled = true;
+        option.style.color = "#999";
+      }
+
       select.appendChild(option);
     });
   } catch (error) {
@@ -1136,7 +1154,29 @@ async function handleAddProduitToFormule(event) {
     alert("Produit ajouté à la formule !");
   } catch (error) {
     console.error("Erreur ajout produit:", error);
-    alert("Erreur lors de l'ajout du produit.");
+
+    const msg = String(error?.message || "");
+
+    // Le backend renvoie 409 avec detail : "Ce produit est déjà présent dans la formule"
+    if (
+      msg.includes("déjà présent dans la formule") ||
+      msg.includes("déjà présente dans la formule") ||
+      msg.toLowerCase().includes("already")
+    ) {
+      alert(
+        "⚠️ Ce produit est déjà présent dans cette formule.\n\n" +
+          "👉 Modifie sa quantité directement dans la liste, " +
+          "ou retire-le avant de l'ajouter à nouveau.",
+      );
+      return;
+    }
+
+    if (msg.includes("Access denied")) {
+      alert("❌ Vous n'avez pas accès à ce produit ou à cette formule.");
+      return;
+    }
+
+    alert(`Erreur lors de l'ajout du produit : ${msg || "erreur inconnue"}`);
   }
 }
 
@@ -1759,10 +1799,23 @@ async function handleCreateFormuleWithProduits() {
   } catch (error) {
     console.error("Erreur création formule avec produits:", error);
 
-    if (error.message && error.message.includes("existe déjà")) {
-      alert("❌ Cette formule existe déjà dans la base de données.");
-    } else {
-      alert("Erreur lors de la création de la formule.");
+    const msg = String(error?.message || "");
+
+    if (msg.includes("déjà présent dans la formule")) {
+      alert(
+        "⚠️ Un des produits est déjà présent dans cette formule. \n" +
+          "La formule a été créée mais certains produits n'ont pas été ajoutés (doublons).",
+      );
+      return;
     }
+
+    if (msg.includes("existe déjà")) {
+      alert("❌ Cette formule existe déjà dans la base de données.");
+      return;
+    }
+
+    alert(
+      `Erreur lors de la création de la formule : ${msg || "erreur inconnue"}`,
+    );
   }
 }
