@@ -20,14 +20,21 @@ window.alert = function (message) {
 // VARIABLES GLOBALES
 // ===========================================
 
-let allFormules = [];
-let allProduits = [];
-let allUnites = [];
-let allFranchises = [];
+const AppState = {
+  allFormules: [],
+  allProduits: [],
+  allUnites: [],
+  allFranchises: [],
+  currentView: localStorage.getItem("formulesView") || "cards",
+  sortColumn: localStorage.getItem("formules_sort_column") || "name",
+};
 
-// Variables pour le toggle et le tri
-let currentView = localStorage.getItem("formulesView") || "cards";
-let sortColumn = localStorage.getItem("formules_sort_column") || "name";
+// Aliases de compatibilité
+let allFormules = AppState.allFormules;
+let allProduits = AppState.allProduits;
+let allUnites = AppState.allUnites;
+let allFranchises = AppState.allFranchises;
+
 let sortDirection = localStorage.getItem("formules_sort_direction") || "asc";
 
 // Variables de filtrage
@@ -269,14 +276,14 @@ function initViewToggle() {
   }
 
   // Appliquer la vue sauvegardée
-  setViewMode(currentView);
+  setViewMode(AppState.currentView);
 
   viewCardsBtn.addEventListener("click", () => setViewMode("cards"));
   viewTableBtn.addEventListener("click", () => setViewMode("table"));
 }
 
 function setViewMode(mode) {
-  currentView = mode;
+  AppState.currentView = mode;
   localStorage.setItem("formulesView", mode);
 
   const viewCardsBtn = document.getElementById("view-cards");
@@ -331,14 +338,14 @@ function sortFormules(formules, column, direction) {
 }
 
 function handleSort(column) {
-  if (sortColumn === column) {
+  if (AppState.sortColumn === column) {
     sortDirection = sortDirection === "asc" ? "desc" : "asc";
   } else {
-    sortColumn = column;
+    AppState.sortColumn = column;
     sortDirection = "asc";
   }
 
-  localStorage.setItem("formules_sort_column", sortColumn);
+  localStorage.setItem("formules_sort_column", AppState.sortColumn);
   localStorage.setItem("formules_sort_direction", sortDirection);
 
   const formules =
@@ -407,7 +414,7 @@ function displayFormules(formules) {
   const container = document.getElementById("formules-list");
 
   if (!formules || formules.length === 0) {
-    if (currentView === "cards") {
+    if (AppState.currentView === "cards") {
       container.className = "products-list";
       container.innerHTML =
         '<p style="text-align: center; color: #999; padding: 2rem;">Aucune formule trouvée</p>';
@@ -437,9 +444,13 @@ function displayFormules(formules) {
   }
 
   // Trier les formules
-  const sortedFormules = sortFormules(formules, sortColumn, sortDirection);
+  const sortedFormules = sortFormules(
+    formules,
+    AppState.sortColumn,
+    sortDirection,
+  );
 
-  if (currentView === "cards") {
+  if (AppState.currentView === "cards") {
     displayFormulesCards(sortedFormules, container);
   } else {
     displayFormulesTable(sortedFormules, container);
@@ -588,7 +599,7 @@ function displayFormulesTable(formules, container) {
   const isTechAdmin = isCatalogAdminRole(currentUser);
 
   const getSortClass = (column) => {
-    if (sortColumn !== column) return "sortable";
+    if (AppState.sortColumn !== column) return "sortable";
     return sortDirection === "asc" ? "sort-asc" : "sort-desc";
   };
 
