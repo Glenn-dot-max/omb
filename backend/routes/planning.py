@@ -7,6 +7,7 @@ from database import get_supabase_client
 from datetime import datetime, date
 from typing import List, Dict, Any
 from collections import defaultdict
+from cache import get_cached, set_cached
 import traceback
 import math
 
@@ -52,10 +53,10 @@ async def get_planning_production(
             )
         
         delta = (date_fin_obj - date_debut_obj).days
-        if delta > 365:
+        if delta > 90:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="La période ne peut pas dépasser 365 jours."
+                detail="La période ne peut pas dépasser 90 jours."
             )
         
         print(f"✅ Paramètres validés: {delta+1} jours à traiter")
@@ -223,13 +224,12 @@ async def get_planning_production(
             categories_map = {}
             if categorie_ids:
                 print(f"   🔗 Récupération de {len(categorie_ids)} catégories...")
-                categories_response = supabase.table("categories")\
-                    .select("id, name")\
-                    .in_("id", list(categorie_ids))\
-                    .execute()
-                
-                for cat in categories_response.data:
-                    categories_map[cat["id"]] = cat["name"]
+                cached_categories = get_cached("categories_all")
+                if cached_categories is None:
+                    cat_resp = supabase.table("categories").select("id, name").execute()
+                    cached_categories = {c["id"]: c["name"] for c in cat_resp.data}
+                    set_cached("categories_all", cached_categories)
+                categories_map = {k: v for k, v in cached_categories.items() if k in categorie_ids}
                 
                 print(f"      ✅ {len(categories_map)} catégories")
             
@@ -237,14 +237,13 @@ async def get_planning_production(
             types_map = {}
             if type_ids:
                 print(f"   🔗 Récupération de {len(type_ids)} types...")
-                types_response = supabase.table("types")\
-                    .select("id, name")\
-                    .in_("id", list(type_ids))\
-                    .execute()
-                
-                for typ in types_response.data:
-                    types_map[typ["id"]] = typ["name"]
-                
+                cached_types = get_cached("types_all")
+                if cached_types is None:
+                    type_resp = supabase.table("types").select("id, name").execute()
+                    cached_types = {t["id"]: t["name"] for t in type_resp.data}
+                    set_cached("types_all", cached_types)
+                types_map = {k: v for k, v in cached_types.items() if k in type_ids}
+
                 print(f"      ✅ {len(types_map)} types")
             
             # 3.5 JOINDRE EN MÉMOIRE (très rapide)

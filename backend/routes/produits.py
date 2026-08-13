@@ -4,7 +4,11 @@ from database import get_supabase_client
 from models import ProduitCreate, ProduitUpdate, ToggleFranchisesRequest
 from fastapi.encoders import jsonable_encoder
 from typing import List
+from cache import get_cached, set_cached
 import re
+
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/produits", tags=["produits"])
 supabase = get_supabase_client()
@@ -38,11 +42,14 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
         produits = response.data
 
         # 2️⃣ Récupérer toutes les franchises (UNE SEULE REQUÊTE)
-        all_franchises = supabase.table("franchises").select("id, nom").execute()
-        total_franchises = len(all_franchises.data)
+        cached_franchises = get_cached("franchises_all")
+        if cached_franchises is None:
+            all_franchises = supabase.table("franchises").select("id, nom").execute()
+            cached_franchises = all_franchises.data
+            set_cached("franchises_all", cached_franchises)
 
-        # Créer un dictionnaire {id: nom} pour accès rapide
-        franchise_map = {str(f["id"]): f["nom"] for f in all_franchises.data}
+        total_franchises = len(cached_franchises)
+        franchise_map = {str(f["id"]): f["nom"] for f in cached_franchises}
 
         # 3️⃣ Récupérer TOUS les liens en plusieurs pages (pagination)
         from collections import defaultdict
@@ -122,8 +129,12 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
 
     produits = produits_resp.data
 
-    all_franchises = supabase.table("franchises").select("id").execute()
-    total_franchises = len(all_franchises.data)
+    cached_franchises = get_cached("franchises_all")
+    if cached_franchises is None:
+        all_franchises = supabase.table("franchises").select("id, nom").execute()
+        cached_franchises = all_franchises.data
+        set_cached("franchises_all", cached_franchises)
+    total_franchises = len(cached_franchises)
 
     all_liens = supabase.table("franchise_produits")\
         .select("produit_id")\
@@ -332,8 +343,8 @@ async def delete_produit(produit_id: str, current_user: dict = Depends(get_curre
             }
         
         except Exception as e:
-            print(f"❌ Delete error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")
+            logger.error(f"Delete error produit {produit_id}: {e}", exc_info=True)            
+            raise HTTPException(status_code=500, detail="Erreur lors de la suppression du produit")
     
     # 🔒 FRANCHISE : désactivation uniquement pour sa franchise
     else:
@@ -398,8 +409,8 @@ async def delete_produit(produit_id: str, current_user: dict = Depends(get_curre
             }
         
         except Exception as e:
-            print(f"❌ Deactivate error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Erreur lors de la désactivation: {str(e)}")
+            logger.error(f"Deactivate error produit {produit_id}: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Erreur lors de la désactivation du produit")
 
 
 @router.patch("/{produit_id}/franchises")

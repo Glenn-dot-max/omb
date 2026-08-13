@@ -6,6 +6,7 @@ from database import get_supabase_client
 from auth import is_tech_admin, is_catalog_admin
 from models import FranchiseCreate, FranchiseUpdate, UserCreate, UserUpdate, PasswordReset
 from typing import Optional
+from cache import invalidate, get_cached, set_cached
 import bcrypt
 from datetime import datetime, timezone
 
@@ -37,6 +38,7 @@ async def create_franchise(franchise: FranchiseCreate, current_user: dict = Depe
     franchise_data["active"] = True
 
     response = supabase.table("franchises").insert(franchise_data).execute()
+    invalidate("franchises_all")
     return response.data[0]
 
 @router.put("/franchises/{franchise_id}")
@@ -53,6 +55,7 @@ async def update_franchise(
     response = supabase.table("franchises").update(update_data).eq("id", franchise_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Franchise introuvable")
+    invalidate("franchises_all")
     return response.data[0]
 
 @router.delete("/franchises/{franchise_id}")
@@ -61,6 +64,7 @@ async def delete_franchise(franchise_id: str, current_user: dict = Depends(is_te
     response = supabase.table("franchises").update({"active": False}).eq("id", franchise_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Franchise introuvable")
+    invalidate("franchises_all")
     return {"message": "Franchise désactivée avec succès"}
 
 # ======================================
@@ -225,19 +229,25 @@ async def get_franchise_produits(
             return []
         
         # 3️⃣ Récupérer toutes les catégories
-        categories_response = supabase.table("categories")\
-            .select("*")\
-            .execute()
-        
-        categories_map = {cat["id"]: cat["name"] for cat in categories_response.data}
+        cached_categories = get_cached("categories_all")
+        if cached_categories is None:
+            cat_resp = supabase.table("categories").select("id, name").execute()
+            cached_categories = {c["id"]: c["name"] for c in cat_resp.data}
+            set_cached("categories_all", cached_categories)
+        categories_map = cached_categories
+
+
         print(f"✅ {len(categories_map)} catégories chargées")
         
         # 4️⃣ Récupérer tous les types
-        types_response = supabase.table("types")\
-            .select("*")\
-            .execute()
-        
-        types_map = {typ["id"]: typ["name"] for typ in types_response.data}
+        cached_types = get_cached("types_all")
+        if cached_types is None:
+            type_resp = supabase.table("types").select("id, name").execute()
+            cached_types = {t["id"]: t["name"] for t in type_resp.data}
+            set_cached("types_all", cached_types)
+        types_map = cached_types
+
+
         print(f"✅ {len(types_map)} types chargés")
         
         # 5️⃣ Formatter les données pour le frontend

@@ -53,20 +53,22 @@ Octobre 2026
 **Branche :** `refactor/backend-consistency`
 **Durée estimée :** 2-3 jours
 
-| #   | Statut     | Tâche                                                                              | Fichier(s)                      | Effort |
-| --- | ---------- | ---------------------------------------------------------------------------------- | ------------------------------- | ------ |
-| 2.1 | ⬜ À faire | Remplacer `datetime.utcnow()` par `datetime.now(timezone.utc)`                     | `routes/admin.py` + autres      | 20 min |
-| 2.2 | ⬜ À faire | Retirer le double `from zoneinfo import ZoneInfo` dans `commandes.py`              | `routes/commandes.py`           | 5 min  |
-| 2.3 | ⬜ À faire | Migrer tous les `@validator` vers `@field_validator` (Pydantic v2)                 | `backend/models.py`             | 1h30   |
-| 2.4 | ⬜ À faire | Déplacer les modèles Pydantic de `admin.py` vers `models.py`                       | `routes/admin.py` → `models.py` | 30 min |
-| 2.5 | ⬜ À faire | Ajouter pagination dans `formules.py` pour `franchise_formules`                    | `routes/formules.py`            | 20 min |
-| 2.6 | ⬜ À faire | Ignorer le param `franchise_id` query si l'user n'est pas TECH_ADMIN dans planning | `routes/planning.py`            | 15 min |
-| 2.7 | ⬜ À faire | Nettoyer l'import `field_validator` inutilisé dans `models.py`                     | `backend/models.py`             | 5 min  |
+| #   | Statut  | Tâche                                                                              | Fichier(s)                      | Effort |
+| --- | ------- | ---------------------------------------------------------------------------------- | ------------------------------- | ------ |
+| 2.1 | ✅ Fait | Remplacer `datetime.utcnow()` par `datetime.now(timezone.utc)`                     | `routes/admin.py` + autres      | 20 min |
+| 2.2 | ✅ Fait | Retirer le double `from zoneinfo import ZoneInfo` dans `commandes.py`              | `routes/commandes.py`           | 5 min  |
+| 2.3 | ✅ Fait | Migrer tous les `@validator` vers `@field_validator` (Pydantic v2)                 | `backend/models.py`             | 1h30   |
+| 2.4 | ✅ Fait | Déplacer les modèles Pydantic de `admin.py` vers `models.py`                       | `routes/admin.py` → `models.py` | 30 min |
+| 2.5 | ✅ Fait | Ajouter pagination dans `formules.py` pour `franchise_formules`                    | `routes/formules.py`            | 20 min |
+| 2.6 | ✅ Fait | Ignorer le param `franchise_id` query si l'user n'est pas TECH_ADMIN dans planning | `routes/planning.py`            | 15 min |
+| 2.7 | ✅ Fait | Nettoyer l'import `field_validator` inutilisé dans `models.py`                     | `backend/models.py`             | 5 min  |
+
+**✅ Sprint 2 terminé et mergé sur v8 — 12 août 2026**
 
 **Critère de validation :**
 
-- [ ] `python -W error` sans warning de dépréciation Pydantic
-- [ ] Un USER ne peut pas modifier le scope franchise du planning via query param
+- [x] `python -W error` sans warning de dépréciation Pydantic
+- [x] Un USER ne peut pas modifier le scope franchise du planning via query param
 
 ---
 
