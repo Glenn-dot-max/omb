@@ -1,10 +1,14 @@
 // =======================================================
-// VARIABLES GLOBALES
+// APP STATE - point de vérité unique
 // =======================================================
 
-let planningData = null;
-let allFranchises = [];
-let currentFranchiseFilter = "";
+const AppState = {
+  planningData: null,
+  allFranchises: [],
+};
+
+// Aliases de compatibilité
+let allFranchises = AppState.allFranchises;
 
 // =======================================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -84,7 +88,8 @@ async function loadFranchises() {
       filterContainer.style.display = "block";
     }
 
-    allFranchises = await apiGet("/admin/franchises");
+    AppState.allFranchises = await apiGet("/admin/franchises");
+    allFranchises = AppState.allFranchises;
 
     const select = document.getElementById("filter-franchise-planning");
     if (select) {
@@ -175,7 +180,8 @@ async function handleGeneratePlanning() {
     }
 
     // 5. Stocker les données globalement
-    planningData = data;
+    AppState.planningData = data;
+    planningData = AppState.planningData;
 
     // 6. Afficher le planning
     renderPlanning(data, afficherTotaux);
