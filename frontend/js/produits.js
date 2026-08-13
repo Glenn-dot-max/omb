@@ -18,24 +18,28 @@ window.alert = function (message) {
 // VARIABLES GLOBALES
 // ===========================================
 
-let allProduits = [];
-let allCategories = [];
-let allTypes = [];
-let allFranchises = [];
+const AppState = {
+  allProduits: [],
+  allCategories: [],
+  allTypes: [],
+  allFranchises: [],
+  currentView: localStorage.getItem("produits_view") || "cards",
+  sortColumn: localStorage.getItem("produits_sort_column") || "name",
+  sortDirection: localStorage.getItem("produits_sort_direction") || "asc",
+  currentCategoryFilter: "",
+  currentTypeFilter: "",
+  currentSearchTerm: "",
+  currentFranchiseFilter: "",
+  currentEditingProduct: null,
+  currentFilteredProduits: [],
+};
 
-// Variables pour le toggle et le tri
-let currentView = localStorage.getItem("produits_view") || "cards";
-let sortColumn = localStorage.getItem("produits_sort_column") || "name";
-let sortDirection = localStorage.getItem("produits_sort_direction") || "asc";
-
-let currentCategoryFilter = "";
-let currentTypeFilter = "";
-let currentSearchTerm = "";
-let currentFranchiseFilter = "";
-
-let currentEditingProduct = null;
-
-let currentFilteredProduits = [];
+// Aliases de compatibilité (arrays)
+let allProduits = AppState.allProduits;
+let allCategories = AppState.allCategories;
+let allTypes = AppState.allTypes;
+let allFranchises = AppState.allFranchises;
+let currentFilteredProduits = AppState.currentFilteredProduits;
 
 function isCatalogAdminRole(user = getUser()) {
   return (
@@ -86,7 +90,8 @@ function getDisplayProduitName(name) {
 
 async function loadCategories() {
   try {
-    allCategories = await getCategories();
+    AppState.allCategories = await getCategories();
+    allCategories = AppState.allCategories;
     populateCategorySelect();
     populateFilterCategorySelect();
     populateEditCategorySelect();
@@ -97,7 +102,8 @@ async function loadCategories() {
 
 async function loadTypes() {
   try {
-    allTypes = await getTypes();
+    AppState.allTypes = await getTypes();
+    allTypes = AppState.allTypes;
     populateTypeSelect();
     populateFilterTypeSelect();
     populateEditTypeSelect();
@@ -130,7 +136,8 @@ async function loadFranchises() {
       franchiseSelector.style.display = "block";
     }
 
-    allFranchises = await apiGet("/admin/franchises");
+    AppState.allFranchises = await apiGet("/admin/franchises");
+    allFranchises = AppState.allFranchises;
 
     populateFranchiseSelect();
 
@@ -286,7 +293,7 @@ function initViewToggle() {
   const viewTableBtn = document.getElementById("view-table");
 
   // Appliquer la vue sauvegardée
-  setViewMode(currentView);
+  setViewMode(AppState.currentView);
 
   viewCardsBtn.addEventListener("click", () => {
     setViewMode("cards");
@@ -297,7 +304,7 @@ function initViewToggle() {
   });
 
   function setViewMode(mode) {
-    currentView = mode;
+    AppState.currentView = mode;
     localStorage.setItem("produits_view", mode);
 
     const viewCardsBtn = document.getElementById("view-cards");
@@ -364,19 +371,19 @@ function sortProduits(produits, column, direction) {
 }
 
 function handleSort(column) {
-  if (sortColumn === column) {
-    sortDirection = sortDirection === "asc" ? "desc" : "asc";
+  if (AppState.sortColumn === column) {
+    AppState.sortDirection = AppState.sortDirection === "asc" ? "desc" : "asc";
   } else {
-    sortColumn = column;
-    sortDirection = "asc";
+    AppState.sortColumn = column;
+    AppState.sortDirection = "asc";
   }
 
   // Sauvegarder les préférences de tri
-  localStorage.setItem("produits_sort_column", sortColumn);
-  localStorage.setItem("produits_sort_direction", sortDirection);
+  localStorage.setItem("produits_sort_column", AppState.sortColumn);
+  localStorage.setItem("produits_sort_direction", AppState.sortDirection);
 
   // Réafficher les produits triés
-  displayProduits(currentFilteredProduits);
+  displayProduits(AppState.currentFilteredProduits);
 }
 
 // ===========================================
@@ -390,16 +397,16 @@ async function loadProduits() {
     let produits;
 
     if (
-      currentFranchiseFilter &&
+      AppState.currentFranchiseFilter &&
       currentUser &&
       isCatalogAdminRole(currentUser)
     ) {
       console.log(
-        `🔍 Chargement des produits pour la franchise ID ${currentFranchiseFilter}`,
+        `🔍 Chargement des produits pour la franchise ID ${AppState.currentFranchiseFilter}`,
       );
 
       produits = await apiGet(
-        `/admin/franchises/${currentFranchiseFilter}/produits`,
+        `/admin/franchises/${AppState.currentFranchiseFilter}/produits`,
       );
 
       produits = produits.filter((p) => p.active);
@@ -419,7 +426,7 @@ async function loadProduits() {
       });
 
       console.log(
-        `✅ ${produits.length} produits chargés pour la franchise ID ${currentFranchiseFilter}`,
+        `✅ ${produits.length} produits chargés pour la franchise ID ${AppState.currentFranchiseFilter}`,
       );
     } else {
       console.log("📦 Chargement de tous les produits");
@@ -440,9 +447,11 @@ async function loadProduits() {
       });
     }
 
-    allProduits = produits;
-    currentFilteredProduits = produits;
-    displayProduits(produits);
+    AppState.allProduits = produits;
+    allProduits = AppState.allProduits;
+    AppState.currentFilteredProduits = produits;
+    currentFilteredProduits = AppState.currentFilteredProduits;
+    displayProduits(AppState.currentFilteredProduits);
   } catch (error) {
     console.error("Erreur chargement produits:", error);
     alert("Erreur lors du chargement des produits.");
@@ -459,7 +468,7 @@ function displayProduits(produits) {
   const container = document.getElementById("products-list");
 
   if (!produits || produits.length === 0) {
-    if (currentView === "cards") {
+    if (AppState.currentView === "cards") {
       container.className = "products-list";
       container.innerHTML =
         '<p style="text-align: center; color: #999; padding: 2rem;">Aucun produit trouvé</p>';
@@ -489,9 +498,13 @@ function displayProduits(produits) {
   }
 
   // Trier les produits
-  const sortedProduits = sortProduits(produits, sortColumn, sortDirection);
+  const sortedProduits = sortProduits(
+    produits,
+    AppState.sortColumn,
+    AppState.sortDirection,
+  );
 
-  if (currentView === "cards") {
+  if (AppState.currentView === "cards") {
     displayProduitsCards(sortedProduits, container);
   } else {
     displayProduitsTable(sortedProduits, container);
@@ -622,8 +635,8 @@ function displayProduitsTable(produits, container) {
   const isTechAdmin = isCatalogAdminRole(currentUser);
 
   const getSortClass = (column) => {
-    if (sortColumn !== column) return "sortable";
-    return sortDirection === "asc" ? "sort-asc" : "sort-desc";
+    if (AppState.sortColumn !== column) return "sortable";
+    return AppState.sortDirection === "asc" ? "sort-asc" : "sort-desc";
   };
 
   container.innerHTML = `
@@ -950,9 +963,11 @@ async function handleDeleteProduit(produitId) {
   if (!confirm(message)) return;
   try {
     await deleteProduit(produitId);
-    allProduits = allProduits.filter((p) => p.id !== produitId);
-    currentFilteredProduits = allProduits;
-    displayProduits(allProduits);
+    AppState.allProduits = AppState.allProduits.filter(
+      (p) => p.id !== produitId,
+    );
+    AppState.currentFilteredProduits = AppState.allProduits;
+    displayProduits(AppState.currentFilteredProduits);
     alert(
       isTechAdmin
         ? "✅ Produit supprimé avec succès !"
@@ -973,7 +988,7 @@ async function handleDeleteProduit(produitId) {
 // ===========================================
 
 function openEditModal(produitId) {
-  const produit = allProduits.find((p) => p.id === produitId);
+  const produit = AppState.allProduits.find((p) => p.id === produitId);
   if (!produit) {
     console.error("Produit non trouvé.", produitId);
     return;
@@ -982,7 +997,7 @@ function openEditModal(produitId) {
 }
 
 function handleEditProduit(produit) {
-  currentEditingProduct = produit;
+  AppState.currentEditingProduct = produit;
 
   // Pré-remplir les champs de la modale
   document.getElementById("edit-product-name").value = getDisplayProduitName(
@@ -1002,7 +1017,7 @@ function handleEditProduit(produit) {
 
 function closeEditModal() {
   document.getElementById("edit-modal").style.display = "none";
-  currentEditingProduct = null;
+  AppState.currentEditingProduct = null;
 
   // Vider le formulaire
   document.getElementById("edit-product-name").value = "";
@@ -1013,7 +1028,7 @@ function closeEditModal() {
 async function handleUpdateProduit(event) {
   event.preventDefault();
 
-  if (!currentEditingProduct) return;
+  if (!AppState.currentEditingProduct) return;
 
   const name = document.getElementById("edit-product-name").value.trim();
   const categoryId = document.getElementById("edit-product-category").value;
@@ -1025,7 +1040,7 @@ async function handleUpdateProduit(event) {
   }
 
   try {
-    await updateProduit(currentEditingProduct.id, {
+    await updateProduit(AppState.currentEditingProduct.id, {
       name: name,
       categorie_id: categoryId ? parseInt(categoryId) : null,
       type_id: typeId ? parseInt(typeId) : null,
@@ -1048,13 +1063,14 @@ async function handleUpdateProduit(event) {
 // ===========================================
 
 function handleSearch(event) {
-  currentSearchTerm = event.target.value.toLowerCase();
+  AppState.currentSearchTerm = event.target.value.toLowerCase();
   applyFilters();
 }
 
 function handleFilterChange() {
-  currentCategoryFilter = document.getElementById("filter-category").value;
-  currentTypeFilter = document.getElementById("filter-type").value;
+  AppState.currentCategoryFilter =
+    document.getElementById("filter-category").value;
+  AppState.currentTypeFilter = document.getElementById("filter-type").value;
   applyFilters();
 }
 
@@ -1065,17 +1081,18 @@ function handleFranchiseChange() {
     return;
   }
 
-  currentFranchiseFilter = document.getElementById("filter-franchise").value;
+  AppState.currentFranchiseFilter =
+    document.getElementById("filter-franchise").value;
 
   // Recharger les produits avec le nouveau filtre
   loadProduits();
 }
 
 function handleResetFilters() {
-  currentSearchTerm = "";
-  currentCategoryFilter = "";
-  currentTypeFilter = "";
-  currentFranchiseFilter = "";
+  AppState.currentSearchTerm = "";
+  AppState.currentCategoryFilter = "";
+  AppState.currentTypeFilter = "";
+  AppState.currentFranchiseFilter = "";
 
   document.getElementById("search-input").value = "";
   document.getElementById("filter-category").value = "";
@@ -1085,7 +1102,7 @@ function handleResetFilters() {
     franchiseFilter.value = "";
   }
 
-  currentFilteredProduits = allProduits;
+  AppState.currentFilteredProduits = allProduits;
   displayProduits(allProduits);
 }
 
@@ -1093,28 +1110,29 @@ function applyFilters() {
   let filteredProduits = allProduits;
 
   // Filtre par recherche
-  if (currentSearchTerm) {
+  if (AppState.currentSearchTerm) {
     filteredProduits = filteredProduits.filter((produit) =>
-      produit.name.toLowerCase().includes(currentSearchTerm),
+      produit.name.toLowerCase().includes(AppState.currentSearchTerm),
     );
   }
 
   // Filtre par catégorie
-  if (currentCategoryFilter) {
+  if (AppState.currentCategoryFilter) {
     filteredProduits = filteredProduits.filter(
       (produit) =>
-        (produit.category_id || produit.categorie_id) == currentCategoryFilter,
+        (produit.category_id || produit.categorie_id) ==
+        AppState.currentCategoryFilter,
     );
   }
 
   // Filtre par type
-  if (currentTypeFilter) {
+  if (AppState.currentTypeFilter) {
     filteredProduits = filteredProduits.filter(
-      (produit) => produit.type_id == currentTypeFilter,
+      (produit) => produit.type_id == AppState.currentTypeFilter,
     );
   }
 
-  currentFilteredProduits = filteredProduits;
+  AppState.currentFilteredProduits = filteredProduits;
 
   displayProduits(filteredProduits);
 }
@@ -1162,7 +1180,8 @@ function initCategoriesSection() {
 async function loadCategoriesManagement() {
   try {
     const data = await getCategories();
-    allCategories = data;
+    AppState.allCategories = data;
+    allCategories = AppState.allCategories;
     displayCategoriesManagement();
   } catch (error) {
     console.error("Erreur chargement catégories:", error);
@@ -1175,7 +1194,7 @@ function displayCategoriesManagement() {
 
   if (!list) return;
 
-  if (allCategories.length === 0) {
+  if (AppState.allCategories.length === 0) {
     list.innerHTML = `
       <div style="
         text-align: center;
@@ -1193,7 +1212,7 @@ function displayCategoriesManagement() {
   const currentUser = getUser();
   const isTechAdmin = isCatalogAdminRole(currentUser);
 
-  list.innerHTML = allCategories
+  list.innerHTML = AppState.allCategories
     .sort((a, b) => a.name.localeCompare(b.name))
     .map(
       (cat) => `
@@ -1431,7 +1450,8 @@ function initTypesSection() {
 async function loadTypesManagement() {
   try {
     const data = await getTypes();
-    allTypes = data;
+    AppState.allTypes = data;
+    allTypes = AppState.allTypes;
     displayTypesManagement();
   } catch (error) {
     console.error("Erreur chargement types:", error);
