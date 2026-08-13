@@ -1,23 +1,42 @@
 // js/commandes.js
 
 // ===============================================
-// VARIABLES GLOBALES
+// APP STATE - point de vérité unique
 // ===============================================
 
-let allCommandes = []; // Tableau pour stocker toutes les commandes
-let currentSearchTerm = "";
-let currentDateFilter = "";
-let tempFormules = [];
-let tempProduits = [];
-let allFormules = [];
-let allProduits = [];
-let allUnites = [];
-let allFranchises = [];
-let currentEditingCommande = null;
-let editFormules = [];
-let editProduits = [];
-let currentTab = "active";
-let currentFranchiseFilter = "";
+const AppState = {
+  // Données chargées depuis l'API
+  allCommandes: [],
+  allFormules: [],
+  allProduits: [],
+  allUnites: [],
+  allFranchises: [],
+
+  // État de l'interface
+  currentTab: "active",
+  currentSearchTerm: "",
+  currentDateFilter: "",
+  currentFranchiseFilter: "",
+
+  // Édition / création en cours
+  currentEditingCommande: null,
+  tempFormules: [],
+  tempProduits: [],
+  editFormules: [],
+  editProduits: [],
+};
+
+// Aliases de compatibilité - évitent de tout réécrire en une fois
+// À supprimer progressivement au fur et à mesure du refactoring
+let allCommandes = AppState.allCommandes;
+let allFormules = AppState.allFormules;
+let allProduits = AppState.allProduits;
+let allUnites = AppState.allUnites;
+let allFranchises = AppState.allFranchises;
+let tempFormules = AppState.tempFormules;
+let tempProduits = AppState.tempProduits;
+let editFormules = AppState.editFormules;
+let editProduits = AppState.editProduits;
 
 // ===============================================
 // INITIALISATION AU CHARGEMENT DE LA PAGE
@@ -145,7 +164,7 @@ async function loadCommandes() {
     const commandesList = document.getElementById("commandes-list");
     commandesList.innerHTML = '<div class="loader"></div>';
 
-    if (currentTab === "active") {
+    if (AppState.currentTab === "active") {
       try {
         const result = await autoArchiveCommandes();
         if (result.count > 0) {
@@ -160,21 +179,21 @@ async function loadCommandes() {
     let response;
 
     if (
-      currentFranchiseFilter &&
+      AppState.currentFranchiseFilter &&
       currentUser &&
       currentUser.role === "TECH_ADMIN"
     ) {
-      if (currentTab === "active") {
+      if (AppState.currentTab === "active") {
         response = await apiGet(
-          `/admin/franchises/${currentFranchiseFilter}/commandes?archived=false`,
+          `/admin/franchises/${AppState.currentFranchiseFilter}/commandes?archived=false`,
         );
       } else {
         response = await apiGet(
-          `/admin/franchises/${currentFranchiseFilter}/commandes?archived=true`,
+          `/admin/franchises/${AppState.currentFranchiseFilter}/commandes?archived=true`,
         );
       }
     } else {
-      if (currentTab === "active") {
+      if (AppState.currentTab === "active") {
         response = await getCommandes();
       } else {
         response = await getArchivedCommandes();
@@ -215,7 +234,7 @@ function displayCommandes(commandes) {
   // SI ON EST DANS L'ONGLET ARCHIVÉ
   // ==============================================
 
-  if (currentTab === "archived") {
+  if (AppState.currentTab === "archived") {
     // Pour les commandes archivées, on affiche simplement par date décroissante
     commandesList.innerHTML = "";
 
@@ -914,12 +933,12 @@ function setupEventListeners() {
 // ===============================================
 
 function handleSearch(event) {
-  currentSearchTerm = event.target.value.toLowerCase();
+  AppState.currentSearchTerm = event.target.value.toLowerCase();
   applyFilters();
 }
 
 function handleDateFilter(event) {
-  currentDateFilter = document.getElementById("filter-date").value;
+  AppState.currentDateFilter = document.getElementById("filter-date").value;
   applyFilters();
 }
 
@@ -930,14 +949,15 @@ async function handleFranchiseChange() {
     return;
   }
 
-  currentFranchiseFilter = document.getElementById("filter-franchise").value;
+  AppState.currentFranchiseFilter =
+    document.getElementById("filter-franchise").value;
   loadCommandes();
 }
 
 function handleResetFilters() {
-  currentSearchTerm = "";
-  currentDateFilter = "";
-  currentFranchiseFilter = "";
+  AppState.currentSearchTerm = "";
+  AppState.currentDateFilter = "";
+  AppState.currentFranchiseFilter = "";
 
   const searchInput = document.getElementById("search-input");
   if (searchInput) searchInput.value = "";
@@ -949,6 +969,30 @@ function handleResetFilters() {
   if (filterFranchise) filterFranchise.value = "";
 
   loadCommandes();
+}
+
+function applyFilters() {
+  let filtered = AppState.allCommandes;
+
+  // Filtre par texte (nom du client)
+  if (AppState.currentSearchTerm) {
+    filtered = filtered.filter((c) =>
+      c.nom_client.toLowerCase().includes(AppState.currentSearchTerm),
+    );
+  }
+
+  // Filtre par date
+  if (AppState.currentDateFilter) {
+    filtered = filtered.filter((c) =>
+      c.delivery_date.startsWith(AppState.currentDateFilter),
+    );
+  }
+
+  displayCommandes(filtered);
+  const count = document.getElementById("commandes-count");
+  if (count) {
+    count.textContent = `${filtered.length} commande${filtered.length > 1 ? "s" : ""}`;
+  }
 }
 
 // ===============================================
@@ -1191,7 +1235,7 @@ function closeDetailModal() {
 async function handleEditCommande(commande) {
   try {
     // 1. Store the command being edited
-    currentEditingCommande = commande;
+    AppState.currentEditingCommande = commande;
 
     // 2. Load data for the selectors
     if (allFormules.length === 0 || allProduits.length === 0) {
@@ -1795,7 +1839,7 @@ async function handleSaveEditCommande() {
       notes: notes || null,
     };
 
-    await updateCommande(currentEditingCommande.id, commandeData);
+    await updateCommande(AppState.currentEditingCommande.id, commandeData);
 
     // ===============================================
     // STEP 4 : UPDATE EXISTING FORMULES EXCLUSIONS
@@ -1822,7 +1866,7 @@ async function handleSaveEditCommande() {
     if (newFormules.length > 0) {
       for (const formule of newFormules) {
         const formuleData = {
-          commande_id: currentEditingCommande.id,
+          commande_id: AppState.currentEditingCommande.id,
           formule_id: formule.formule_id,
           quantite_finale: formule.couverts,
           produits_exclus: formule.produits_exclus || [],
@@ -1836,7 +1880,7 @@ async function handleSaveEditCommande() {
     if (newProduits.length > 0) {
       for (const produit of newProduits) {
         const produitData = {
-          commande_id: currentEditingCommande.id,
+          commande_id: AppState.currentEditingCommande.id,
           produit_id: produit.produit_id,
           quantite: produit.quantite,
           unite: produit.unite,
@@ -1870,9 +1914,9 @@ function closeEditModal() {
   document.getElementById("edit-modal").style.display = "none";
 
   // Réinitialiser les données
-  currentEditingCommande = null;
-  editFormules = [];
-  editProduits = [];
+  AppState.currentEditingCommande = null;
+  AppState.editFormules = [];
+  AppState.editProduits = [];
 }
 
 async function handleDuplicateCommande(commande) {
@@ -1883,8 +1927,8 @@ async function handleDuplicateCommande(commande) {
     }
 
     // 2. Réinitialiser les listes temporaires
-    tempFormules = [];
-    tempProduits = [];
+    AppState.tempFormules = [];
+    AppState.tempProduits = [];
 
     // 3. Pré-remplir les champs du formulaire
     document.getElementById("create-nom-client").value =
@@ -1921,7 +1965,7 @@ async function handleDuplicateCommande(commande) {
       const exclusions = await getCommandeFormuleExclusions(f.id);
       const formuleData = allFormules.find((form) => form.id === f.formule_id);
       if (formuleData) {
-        tempFormules.push({
+        AppState.tempFormules.push({
           formule_id: f.formule_id,
           formule_name: formuleData.name,
           couverts: f.quantite_finale,
@@ -1935,7 +1979,7 @@ async function handleDuplicateCommande(commande) {
     const produits = await getCommandeProduits(commande.id);
     for (const p of produits) {
       const produitData = allProduits.find((prod) => prod.id === p.produit_id);
-      tempProduits.push({
+      AppState.tempProduits.push({
         produit_id: p.produit_id,
         produit_name: produitData ? produitData.name : "Produit Inconnu",
         quantite: p.quantite,
@@ -2713,7 +2757,7 @@ async function handleCreateCommande() {
 // ===============================================
 
 function handleTabActive() {
-  currentTab = "active";
+  AppState.currentTab = "active";
 
   // Mettre à jour les classes CSS
   document.getElementById("tab-active").classList.add("active");
@@ -2727,7 +2771,7 @@ function handleTabActive() {
 }
 
 function handleTabArchived() {
-  currentTab = "archived";
+  AppState.currentTab = "archived";
 
   // Mettre à jour les classes CSS
   document.getElementById("tab-active").classList.remove("active");
