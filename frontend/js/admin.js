@@ -47,10 +47,16 @@ displayUserInfo();
 // VARIABLES GLOBALES
 // ==============================================
 
-let franchises = [];
-let users = [];
-let currentFranchiseId = null; // Pour l'édition
-let currentUserId = null; // Pour l'édition
+const AppState = {
+  franchises: [],
+  users: [],
+  currentFranchiseId: null,
+  currentUserId: null,
+};
+
+// Aliases de compatibilité
+let franchises = AppState.franchises;
+let users = AppState.users;
 
 // ==============================================
 // INITIALISATION
@@ -143,7 +149,8 @@ async function loadFranchises() {
   try {
     console.log("📡 Chargement des franchises...");
     const data = await apiGet("/admin/franchises");
-    franchises = data;
+    AppState.franchises = data;
+    franchises = AppState.franchises;
 
     console.log(`✅ ${franchises.length} franchises chargées`);
 
@@ -240,7 +247,8 @@ async function loadUsers() {
   try {
     console.log("📡 Chargement des utilisateurs...");
     const data = await apiGet("/admin/users");
-    users = data;
+    AppState.users = data;
+    users = AppState.users;
 
     console.log(`✅ ${users.length} utilisateurs chargés`);
 
@@ -342,7 +350,7 @@ function openFranchiseModal(franchiseId = null) {
 
   // Reset form
   form.reset();
-  currentFranchiseId = franchiseId;
+  AppState.currentFranchiseId = franchiseId;
 
   if (franchiseId) {
     // MODE ÉDITION
@@ -366,7 +374,7 @@ function openFranchiseModal(franchiseId = null) {
 
 function closeFranchiseModal() {
   document.getElementById("franchise-modal").classList.remove("active");
-  currentFranchiseId = null;
+  AppState.currentFranchiseId = null;
 }
 
 async function saveFranchise() {
@@ -379,14 +387,17 @@ async function saveFranchise() {
   };
 
   try {
-    if (currentFranchiseId) {
+    if (AppState.currentFranchiseId) {
       // MODIFICATION
-      console.log("📝 Modification franchise:", currentFranchiseId);
-      await fetchWithAuth(`${API_URL}/admin/franchises/${currentFranchiseId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      console.log("📝 Modification franchise:", AppState.currentFranchiseId);
+      await fetchWithAuth(
+        `${API_URL}/admin/franchises/${AppState.currentFranchiseId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        },
+      );
       alert("✅ Franchise modifiée avec succès !");
     } else {
       // CRÉATION
@@ -445,7 +456,7 @@ function openUserModal(userId = null) {
 
   // Reset form
   form.reset();
-  currentUserId = userId;
+  AppState.currentUserId = userId;
 
   if (userId) {
     // MODE ÉDITION
@@ -479,7 +490,7 @@ function openUserModal(userId = null) {
 
 function closeUserModal() {
   document.getElementById("user-modal").classList.remove("active");
-  currentUserId = null;
+  AppState.currentUserId = null;
 }
 
 async function saveUser() {
@@ -499,15 +510,15 @@ async function saveUser() {
   };
 
   // Ajouter le mot de passe seulement en mode création
-  if (!currentUserId) {
+  if (!AppState.currentUserId) {
     data.password = document.getElementById("user-password").value;
   }
 
   try {
-    if (currentUserId) {
+    if (AppState.currentUserId) {
       // MODIFICATION
-      console.log("📝 Modification utilisateur:", currentUserId);
-      await fetchWithAuth(`${API_URL}/admin/users/${currentUserId}`, {
+      console.log("📝 Modification utilisateur:", AppState.currentUserId);
+      await fetchWithAuth(`${API_URL}/admin/users/${AppState.currentUserId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
