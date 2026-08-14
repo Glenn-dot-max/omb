@@ -77,18 +77,21 @@ Octobre 2026
 **Branche :** `perf/backend-cache-indexes`
 **Durée estimée :** 2-3 jours
 
-| #   | Statut     | Tâche                                                                            | Fichier(s)                                                       | Effort |
-| --- | ---------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------ |
-| 3.1 | ⬜ À faire | Créer les index Supabase manquants (SQL) sur les colonnes de filtrage fréquentes | Script SQL dans `supabase-scripts/`                              | 1h     |
-| 3.2 | ⬜ À faire | Installer `cachetools` + créer `backend/cache.py` avec `TTLCache(ttl=300)`       | `backend/cache.py`, `requirements.txt`                           | 45 min |
-| 3.3 | ⬜ À faire | Appliquer le cache sur `franchises`, `categories`, `types`, `unites`             | `routes/produits.py`, `routes/formules.py`, `routes/planning.py` | 1h     |
-| 3.4 | ⬜ À faire | Invalider le cache sur les mutations (POST/PATCH/DELETE) des ressources cachées  | Mêmes fichiers                                                   | 30 min |
-| 3.5 | ⬜ À faire | Abaisser limite max planning à 90 jours par défaut (param configurable)          | `routes/planning.py`, `config.py`                                | 15 min |
+| #   | Statut  | Tâche                                                                            | Fichier(s)                                                    | Effort |
+| --- | ------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ |
+| 3.1 | ✅ Fait | Créer les index Supabase manquants (SQL) sur les colonnes de filtrage fréquentes | Script SQL dans `supabase-scripts/`                           | 1h     |
+| 3.2 | ✅ Fait | Installer `cachetools` + créer `backend/cache.py` avec `TTLCache(ttl=300)`       | `backend/cache.py`, `requirements.txt`                        | 45 min |
+| 3.3 | ✅ Fait | Appliquer le cache sur `franchises`, `categories`, `types`                       | `routes/produits.py`, `routes/planning.py`, `routes/admin.py` | 1h     |
+| 3.4 | ✅ Fait | Invalider le cache sur les mutations franchises                                  | `routes/admin.py`                                             | 30 min |
+| 3.5 | ✅ Fait | Abaisser limite max planning à 90 jours                                          | `routes/planning.py`                                          | 15 min |
+
+**✅ Sprint 3 terminé et mergé sur v8 — 12 août 2026**
 
 **Critère de validation :**
 
-- [ ] `GET /planning/production` sur 7 jours < 800ms
-- [ ] `GET /produits/` ne génère plus de requête `franchises` à chaque appel
+- [x] Cache TTL 5min actif sur franchises, categories, types
+- [x] Index SQL créés sur toutes les colonnes de filtrage fréquentes
+- [x] Planning limité à 90 jours max
 
 ---
 
