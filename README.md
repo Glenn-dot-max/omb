@@ -4,10 +4,11 @@
 
 Application web complète pour gérer les produits, formules et commandes d'un service traiteur. Optimisée pour les brunchs et événements sur mesure.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-8.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 ![JavaScript](https://img.shields.io/badge/javascript-ES6+-yellow.svg)
+![Tests](https://img.shields.io/badge/tests-19%2F19%20passing-brightgreen.svg)
 
 ---
 
@@ -65,11 +66,24 @@ Application web complète pour gérer les produits, formules et commandes d'un s
 
 ### 🔒 Sécurité
 
-- ✅ Row Level Security (RLS) activé
-- ✅ Validation stricte des données (backend)
+- ✅ Row Level Security (RLS) activé sur Supabase
+- ✅ Validation stricte des données (Pydantic v2, `extra='forbid'`)
 - ✅ Protection XSS et injections
-- ✅ Gestion d'erreurs sécurisée
-- ✅ Clés API protégées
+- ✅ Rate limiting (slowapi) sur les endpoints sensibles
+- ✅ JWT Bearer Token — `franchise_id` extrait du token, jamais du body
+- ✅ Vérification `active` en base à chaque requête authentifiée
+
+### ⚡ Performance
+
+- ✅ Pagination Supabase (100 items/page) sur toutes les tables volumineuses
+- ✅ Cache en mémoire pour franchises et produits
+- ✅ Export Excel généré côté navigateur (ExcelJS)
+
+### 🏢 Multi-tenant
+
+- ✅ Isolation complète par `franchise_id` (scoping JWT)
+- ✅ Rôles : `USER` (franchise) et `TECH_ADMIN` (accès global)
+- ✅ Catalogue produits global avec activation par franchise
 
 ---
 
@@ -451,43 +465,60 @@ DEBUG=False  # Masque stack traces sensibles
 
 ## 🚀 Déploiement
 
-### Backend (Render)
+### Infra actuelle — Render (production)
 
-1. **Créez un compte** sur https://render.com
-2. **Nouveau Web Service** → Connectez votre repo GitHub
-3. **Configuration :**
-   ```
-   Build Command: pip install -r requirements.txt
-   Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
-   ```
-4. **Variables d'environnement :**
-   ```
-   SUPABASE_URL=https://...
-   SUPABASE_KEY=eyJ...
-   DEBUG=False
-   RENDER=True
-   ```
-5. **Déployer**
+Backend et frontend sont déployés sur Render. Le redéploiement se déclenche automatiquement à chaque push sur la branche surveillée.
 
-URL backend : `https://omb-backend.onrender.com`
+```bash
+# Merger et pousser pour redéployer
+git checkout main
+git merge v8
+git push origin main
+```
 
-### Frontend (Render Static Site ou Netlify)
+| Service        | Type        | Runtime     | URL                                |
+| -------------- | ----------- | ----------- | ---------------------------------- |
+| `omb-backend`  | Web Service | Python 3.11 | `https://omb-backend.onrender.com` |
+| `omb-frontend` | Static Site | —           | CDN Global                         |
 
-**Option A : Render Static Site**
+**Variables d'environnement à configurer sur Render :**
 
-1. Nouveau Static Site
-2. Publish directory : `frontend`
-3. Déployer
+```
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_KEY=eyJ...          # clé service_role
+SECRET_KEY=...               # clé JWT forte (générer avec openssl rand -hex 32)
+DEBUG=False
+CORS_ORIGINS=https://ton-frontend.onrender.com
+```
 
-**Option B : Netlify**
+---
 
-1. Drag & drop du dossier `frontend`
-2. Déployer
+### Infra cible — Hetzner CX22 (Docker Compose)
 
-**Puis mettre à jour `frontend/js/config.js` :**
+Prévu post-octobre 2026. L'infra est prête (`docker-compose.yml`, `nginx/nginx.conf`, `deploy.sh`).
 
-```javascript
-const API_URL = "https://omb-backend.onrender.com";
+**Sur le VPS Hetzner :**
+
+```bash
+# 1. Installer Docker
+curl -fsSL https://get.docker.com | sh
+
+# 2. Cloner le repo
+git clone https://github.com/ton-user/omb.git && cd omb
+
+# 3. Créer le fichier d'environnement
+cp .env.example backend/.env
+# Éditer backend/.env avec les vraies valeurs
+
+# 4. Déployer
+chmod +x deploy.sh && ./deploy.sh
+```
+
+Architecture Docker :
+
+```
+Internet → nginx:80 → /api/* → FastAPI:8000 → Supabase
+                    → /*     → frontend static
 ```
 
 ---
@@ -606,4 +637,3 @@ Projet personnel - Contributions bienvenues via Pull Requests.
 3. Committez vos changements (`git commit -m 'Ajout fonctionnalité X'`)
 4. Push vers la branche (`git push origin feature/amelioration`)
 5. Ouvrez une Pull Request
-

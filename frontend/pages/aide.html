@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aide - Oh My Brunch</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <style>
+      .aide-container {
+        max-width: 860px;
+        margin: 2rem auto;
+        padding: 0 1.5rem 4rem;
+      }
+      .aide-section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+      .aide-section h2 {
+        margin-top: 0;
+        font-size: 1.3rem;
+        color: #2c3e50;
+        border-bottom: 2px solid #f4a460;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.2rem;
+      }
+      .aide-section h3 {
+        font-size: 1rem;
+        color: #555;
+        margin-top: 1.2rem;
+        margin-bottom: 0.4rem;
+      }
+      .aide-section p,
+      .aide-section li {
+        color: #555;
+        line-height: 1.7;
+        margin: 0.3rem 0;
+      }
+      .aide-section ul {
+        padding-left: 1.4rem;
+      }
+      .badge-role {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      .badge-admin {
+        background: #fdebd0;
+        color: #e67e22;
+      }
+      .badge-user {
+        background: #d5f5e3;
+        color: #27ae60;
+      }
+      .step {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        align-items: flex-start;
+      }
+      .step-number {
+        min-width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f4a460;
+        color: #fff;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+      }
+      .step-content {
+        flex: 1;
+      }
+      .toc {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 2rem;
+      }
+      .toc a {
+        background: #fef9f5;
+        border: 1px solid #f4a460;
+        color: #c0392b;
+        text-decoration: none;
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+      }
+      .toc a:hover {
+        background: #f4a460;
+        color: #fff;
+      }
+      .tip {
+        background: #fef9f5;
+        border-left: 4px solid #f4a460;
+        padding: 0.7rem 1rem;
+        border-radius: 0 6px 6px 0;
+        margin: 0.8rem 0;
+        font-size: 0.9rem;
+        color: #555;
+      }
+      .admin-only {
+        background: #fef5e4;
+        border: 1px dashed #e67e22;
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin-top: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <h1>🥐 Oh My Brunch</h1>
+      <ul class="nav-links">
+        <li><a href="produits.html">Produits</a></li>
+        <li><a href="formules.html">Formules</a></li>
+        <li><a href="commandes.html">Commandes</a></li>
+        <li><a href="planning.html">Planning</a></li>
+        <li>
+          <a href="admin.html" id="admin-link" style="display: none"
+            >🔧 Admin</a
+          >
+        </li>
+        <li><a href="aide.html" class="active">❓ Aide</a></li>
+      </ul>
+    </nav>
+
+    <div class="aide-container">
+      <h1 style="color: #2c3e50; margin-bottom: 0.3rem">❓ Centre d'aide</h1>
+      <p style="color: #888; margin-bottom: 1.5rem">
+        Guide d'utilisation de l'application Oh My Brunch
+      </p>
+
+      <div class="toc">
+        <a href="#commandes">🛒 Commandes</a>
+        <a href="#produits">📦 Produits</a>
+        <a href="#formules">🍳 Formules</a>
+        <a href="#planning">📊 Planning</a>
+        <a href="#compte">👤 Mon compte</a>
+        <a href="#admin">🔧 Administration</a>
+      </div>
+
+      <!-- ============ COMMANDES ============ -->
+      <div class="aide-section" id="commandes">
+        <h2>🛒 Commandes</h2>
+        <p>
+          La page Commandes est le cœur de l'application. Elle liste toutes les
+          commandes de votre franchise.
+        </p>
+
+        <h3>Créer une commande</h3>
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            Cliquer sur <strong>➕ Nouvelle commande</strong>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            Renseigner le nom du client (min. 2 caractères)
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            Choisir la date et l'heure de livraison
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            Indiquer le nombre de couverts et le type de prestation
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            Valider — la commande apparaît dans la liste
+          </div>
+        </div>
+
+        <div class="tip">
+          💡 Une commande en doublon (même client, même date, même heure) est
+          automatiquement bloquée.
+        </div>
+
+        <h3>Filtres et recherche</h3>
+        <ul>
+          <li>Rechercher par nom de client via la barre de recherche</li>
+          <li>Filtrer par date : aujourd'hui, demain, cette semaine</li>
+          <li>
+            Basculer entre <strong>Commandes actives</strong> et
+            <strong>Commandes archivées</strong>
+          </li>
+        </ul>
+
+        <h3>Archiver une commande</h3>
+        <p>
+          Une commande archivée reste accessible dans l'onglet "Archivées" mais
+          ne figure plus dans le planning de production.
+        </p>
+      </div>
+
+      <!-- ============ PRODUITS ============ -->
+      <div class="aide-section" id="produits">
+        <h2>📦 Produits</h2>
+        <p>
+          Les produits constituent le catalogue de base. Ils sont ensuite
+          regroupés dans des formules.
+        </p>
+
+        <h3>
+          Ajouter un produit <span class="badge-role badge-user">Franchise</span
+          ><span class="badge-role badge-admin">Admin</span>
+        </h3>
+        <ul>
+          <li>Nom du produit (doit être unique dans votre franchise)</li>
+          <li>Catégorie (sucré, salé, boisson…)</li>
+          <li>Type (viennoiserie, fruit, fromage…)</li>
+        </ul>
+
+        <div class="tip">
+          💡 Si un produit a été désactivé par le passé, le recréer avec le même
+          nom le réactivera automatiquement.
+        </div>
+
+        <h3>
+          Catalogue global
+          <span class="badge-role badge-admin">Admin uniquement</span>
+        </h3>
+        <div class="admin-only">
+          <p>
+            Le TECH_ADMIN gère un catalogue global. Un produit créé par l'admin
+            peut être activé pour toutes les franchises ou seulement certaines.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============ FORMULES ============ -->
+      <div class="aide-section" id="formules">
+        <h2>🍳 Formules</h2>
+        <p>
+          Une formule regroupe des produits avec des quantités par couvert. Elle
+          est ensuite associée à une commande.
+        </p>
+
+        <h3>Créer une formule</h3>
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            Cliquer sur <strong>+ Créer une formule</strong>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            Nommer la formule et choisir son type (Brunch, Non-brunch, Mariage…)
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            Ajouter des produits et définir la quantité par couvert pour chacun
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">Valider</div>
+        </div>
+
+        <h3>Recherche et filtres</h3>
+        <ul>
+          <li>Recherche par nom de formule</li>
+          <li>Filtre par type de prestation</li>
+          <li>
+            Filtre par franchise
+            <span class="badge-role badge-admin">Admin</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- ============ PLANNING ============ -->
+      <div class="aide-section" id="planning">
+        <h2>📊 Planning de Production</h2>
+        <p>
+          Le planning agrège les commandes sur une période et calcule les
+          quantités totales à produire par produit.
+        </p>
+
+        <h3>Générer le planning</h3>
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            Choisir une <strong>date de début</strong> et une
+            <strong>date de fin</strong>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            Filtrer par type de prestation et/ou catégorie de produit si besoin
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            Cliquer sur <strong>🔄 Générer le planning</strong>
+          </div>
+        </div>
+
+        <h3>Exporter en Excel</h3>
+        <p>
+          Une fois le planning généré, le bouton
+          <strong>📥 Exporter en Excel</strong> apparaît. Le fichier Excel est
+          généré directement dans le navigateur (pas d'envoi au serveur) et
+          téléchargé automatiquement.
+        </p>
+
+        <div class="tip">
+          💡 Le planning est calculé en heure de Paris (Europe/Paris), quelle
+          que soit votre timezone.
+        </div>
+
+        <h3>
+          Filtre franchise
+          <span class="badge-role badge-admin">Admin uniquement</span>
+        </h3>
+        <div class="admin-only">
+          <p>
+            Le TECH_ADMIN peut générer un planning toutes franchises confondues
+            ou filtrer par franchise spécifique.
+          </p>
+        </div>
+      </div>
+
+      <!-- ============ COMPTE ============ -->
+      <div class="aide-section" id="compte">
+        <h2>👤 Mon compte</h2>
+        <ul>
+          <li>Accès via le menu utilisateur en haut à droite</li>
+          <li>Voir son email, franchise associée et rôle</li>
+          <li>
+            Changer son mot de passe via
+            <strong>Changer mon mot de passe</strong>
+          </li>
+        </ul>
+
+        <h3>Règles du mot de passe</h3>
+        <ul>
+          <li>Minimum 8 caractères</li>
+          <li>La confirmation doit correspondre</li>
+        </ul>
+      </div>
+
+      <!-- ============ ADMIN ============ -->
+      <div class="aide-section" id="admin">
+        <h2>
+          🔧 Administration
+          <span class="badge-role badge-admin">TECH_ADMIN uniquement</span>
+        </h2>
+        <p>
+          La page Admin est accessible uniquement aux comptes TECH_ADMIN. Elle
+          permet de gérer les franchises et les utilisateurs.
+        </p>
+
+        <h3>Franchises</h3>
+        <ul>
+          <li>Créer une nouvelle franchise (nom, ville, email, téléphone)</li>
+          <li>Modifier ou désactiver une franchise existante</li>
+        </ul>
+
+        <h3>Utilisateurs</h3>
+        <ul>
+          <li>Créer un compte utilisateur et l'associer à une franchise</li>
+          <li>
+            Définir le rôle : <strong>USER</strong> (accès franchise uniquement)
+            ou <strong>TECH_ADMIN</strong> (accès global)
+          </li>
+          <li>Activer / désactiver un compte</li>
+          <li>Réinitialiser le mot de passe d'un utilisateur</li>
+        </ul>
+
+        <div class="tip">
+          ⚠️ Un utilisateur désactivé ne peut plus se connecter même avec un
+          token JWT valide.
+        </div>
+      </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script>
+      // Afficher le lien Admin si TECH_ADMIN
+      document.addEventListener("DOMContentLoaded", () => {
+        const user = getUser();
+        if (user && user.role === "TECH_ADMIN") {
+          const adminLink = document.getElementById("admin-link");
+          if (adminLink) adminLink.style.display = "inline";
+        }
+      });
+    </script>
+  </body>
+</html>
