@@ -8,10 +8,15 @@
  * En production (Render): https://[votre-backend].onrender.com
  */
 
-const API_URL =
+const isLocalDev = (
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
-    ? "http://localhost:8000"
+) && window.location.port !== "";
+
+const API_URL = isLocalDev
+  ? "http://localhost:8000"
+  : window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "/api"
     : "https://omb-backend.onrender.com";
 
 // Logs de débogage
