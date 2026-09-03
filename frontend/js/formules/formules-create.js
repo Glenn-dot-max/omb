@@ -47,6 +47,56 @@ function closeCreateFormuleModal() {
   tempProduitsToCreate = [];
 }
 
+// ===========================================
+// DUPLICATION D'UNE FORMULE
+// ===========================================
+async function handleDuplicateFormule(formule) {
+  try {
+    // 1. Charger la liste des produits pour le select + les unités
+    await loadProduitsForCreateSelect();
+
+    if (allUnite.length === 0) {
+      await loadUnite();
+    } else {
+      populateUniteSelects();
+    }
+
+    // 2. Réinitialiser la liste temporaire
+    tempProduitsToCreate = [];
+
+    // 3. Pré-remplir les champs du formulaire
+    document.getElementById("create-formule-name").value =
+      `Copie - ${formule.name}`;
+    document.getElementById("create-formule-couverts").value =
+      formule.nombre_couverts;
+
+    // 4. Charger la composition de la formule source et la copier
+    const composition = await getFormuleProduits(formule.id);
+    for (const item of composition) {
+      tempProduitsToCreate.push({
+        produit_id: item.produit_id,
+        produit_name: item.produit_name || "Produit inconnu",
+        quantite: item.quantite,
+        unite: item.unite,
+      });
+    }
+
+    // 5. Afficher la liste des produits copiés
+    displayCreateProduitsList();
+
+    // 6. Ouvrir la modale de création
+    document.getElementById("create-modal").style.display = "block";
+
+    showToast(
+      '📋 Formule pré-remplie. Modifiez le nom puis cliquez "Créer".',
+      "info",
+    );
+  } catch (error) {
+    console.error("Erreur lors de la duplication de la formule :", error);
+    showToast("❌ Erreur lors de la préparation de la duplication.", "error");
+  }
+}
+
 async function loadProduitsForCreateSelect() {
   try {
     const produits = await getProduits();

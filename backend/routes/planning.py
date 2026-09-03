@@ -33,6 +33,11 @@ async def get_planning_production(
         print(f"   Type prestation: {type_prestation}")
         print(f"{'='*60}\n")
 
+        # Sélection multiple : type_prestation peut être "brunch,mariage" ou "toutes"
+        types_prestation = [t.strip() for t in type_prestation.split(",") if t.strip()]
+        if not types_prestation:
+            types_prestation = ["toutes"]
+
         # ==========================================
         # VALIDATION DES PARAMÈTRES
         # ==========================================
@@ -281,8 +286,8 @@ async def get_planning_production(
             commande_id = commande["id"]
             
             # Vérification du type de prestation
-            if type_prestation != "toutes":
-                if commande.get("type_prestation", "non-brunch") != type_prestation:
+            if "toutes" not in types_prestation:
+                if commande.get("type_prestation", "non-brunch") not in types_prestation:
                     continue
 
             
@@ -442,12 +447,6 @@ async def get_planning_production(
                 "commandes": data["commandes"],
                 "totaux": dict(data["totaux"])
             }
-        
-        print(f"\n{'='*60}")
-        print(f"✅ Planning généré avec succès!")
-        print(f"   {len(commandes_filtrees)} commandes")
-        print(f"   {len(planning_dict)} jours")
-        print(f"{'='*60}\n")
         
         return {
             "periode": {

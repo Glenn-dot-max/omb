@@ -122,6 +122,96 @@ function attachEventListeners() {
   document
     .getElementById("export-excel")
     .addEventListener("click", handleExportExcel);
+
+  // Sélecteur multiple "Type de prestation"
+  initTypeFormuleMultiSelect();
+}
+
+// =======================================================
+// SÉLECTEUR MULTIPLE "TYPE DE PRESTATION"
+// =======================================================
+function initTypeFormuleMultiSelect() {
+  const btn = document.getElementById("type-formule-btn");
+  const panel = document.getElementById("type-formule-panel");
+  const toutesCheckbox = document.getElementById("type-formule-toutes");
+  const optionCheckboxes = document.querySelectorAll(".type-formule-option");
+
+  // Ouvrir/fermer le panneau
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    panel.classList.toggle("open");
+    btn.classList.toggle("open");
+  });
+
+  // Fermer le panneau si on clique en dehors
+  document.addEventListener("click", (e) => {
+    if (!panel.contains(e.target) && e.target !== btn) {
+      panel.classList.remove("open");
+      btn.classList.remove("open");
+    }
+  });
+
+  // Coche "Toutes" -> décoche les autres options
+  toutesCheckbox.addEventListener("change", () => {
+    if (toutesCheckbox.checked) {
+      optionCheckboxes.forEach((cb) => (cb.checked = false));
+    }
+    updateTypeFormuleLabel();
+  });
+
+  // Coche une option spécifique -> décoche "Toutes"
+  optionCheckboxes.forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const auMoinsUneCoche = Array.from(optionCheckboxes).some(
+        (c) => c.checked,
+      );
+      toutesCheckbox.checked = !auMoinsUneCoche;
+      updateTypeFormuleLabel();
+    });
+  });
+
+  updateTypeFormuleLabel();
+}
+
+// Met à jour le texte affiché sur le bouton du sélecteur
+function updateTypeFormuleLabel() {
+  const btn = document.getElementById("type-formule-btn");
+  const selected = getSelectedTypesPrestation();
+
+  if (selected.includes("toutes")) {
+    btn.textContent = "Toutes";
+    return;
+  }
+
+  const labels = {
+    brunch: "Brunch",
+    "non-brunch": "Non Brunch",
+    "pause petit déjeuner": "Pause petit déjeuner",
+    mariage: "Mariage",
+    NC: "Non Classé",
+  };
+
+  if (selected.length === 1) {
+    btn.textContent = labels[selected[0]] || selected[0];
+  } else {
+    btn.textContent = `${selected.length} types sélectionnés`;
+  }
+}
+
+// Retourne le tableau des types de prestation sélectionnés
+function getSelectedTypesPrestation() {
+  const toutesCheckbox = document.getElementById("type-formule-toutes");
+  const optionCheckboxes = document.querySelectorAll(".type-formule-option");
+
+  const selected = Array.from(optionCheckboxes)
+    .filter((cb) => cb.checked)
+    .map((cb) => cb.value);
+
+  if (toutesCheckbox.checked || selected.length === 0) {
+    return ["toutes"];
+  }
+
+  return selected;
 }
 
 // =======================================================
@@ -133,7 +223,7 @@ async function handleGeneratePlanning() {
   //1. Récupérer les valeurs des filtres
   const dateDebut = document.getElementById("date-debut").value;
   const dateFin = document.getElementById("date-fin").value;
-  const typeFormule = document.getElementById("type-formule").value; // filtre type_prestation
+  const typesPrestation = getSelectedTypesPrestation(); // filtre type_prestation (sélection multiple)
   const categorieProduit = document.getElementById("categorie-produit").value;
   const afficherTotaux = document.getElementById("afficher-totaux").checked;
 
@@ -159,7 +249,7 @@ async function handleGeneratePlanning() {
   container.innerHTML = '<p style="text-align:center;">⏳ Chargement...</p>';
 
   try {
-    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_prestation=${typeFormule}&categorie=${categorieProduit}&franchise=${franchiseFilter}`;
+    const endpoint = `/planning/production?date_debut=${dateDebut}&date_fin=${dateFin}&type_prestation=${encodeURIComponent(typesPrestation.join(","))}&categorie=${categorieProduit}&franchise=${franchiseFilter}`;
     console.log("🌐 Appel API:", endpoint);
 
     const data = await apiGet(endpoint);

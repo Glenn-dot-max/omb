@@ -317,6 +317,7 @@ function displayFormulesCards(formules, container) {
               ? `<button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>`
               : `<button class="edit-btn" onclick="handleEditFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">✏️ Modifier</button>`
           }
+            <button class="edit-btn" onclick="handleDuplicateFormule(${JSON.stringify(formule).replace(/"/g, "&quot;")})">📄 Dupliquer</button>
             ${manageFranchisesButton}
             <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">
                 ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}</button>
@@ -439,6 +440,7 @@ function displayFormulesTable(formules, container) {
                         ? `<button class="edit-btn" onclick="handleEditFormule(${formuleJson})">✏️ Modifier</button>`
                         : `<button class="edit-btn" onclick="handleEditFormule(${formuleJson})">✏️ Modifier</button>`
                     }
+                      <button class="edit-btn" onclick="handleDuplicateFormule(${formuleJson})">📄 Dupliquer</button>
                       ${manageFranchisesButton}
                       <button class="delete-btn" onclick="handleDeleteFormule('${formule.id}')">
                           ${isTechAdmin ? "🗑️ Supprimer" : "🚫 Désactiver"}

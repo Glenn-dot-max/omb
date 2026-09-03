@@ -25,7 +25,7 @@
     </nav>
 
     <!-- Contenu principal -->
-
+    <main class="container">
       <!-- Barre d'actions -->
       <div class="actions-bar">
         <button id="generate-planning" class="btn btn-primary">
@@ -53,20 +53,69 @@
         </div>
 
         <div class="form-group">
-          <label for="type-formule">Type de prestation</label>
-          <select id="type-formule" class="filter-select">
-            <option value="toutes">Toutes</option>
-            <option value="brunch">Brunch</option>
-            <option value="non-brunch">Non-Brunch</option>
-            <option value="pause petit déjeuner">Pause petit déjeuner</option>
-            <option value="mariage">Mariage</option>
-            <option value="NC">Non Classé</option>
-          </select>
+          <label for="type-formule-btn">Type de prestation</label>
+          <div class="multi-select" id="type-formule-multi-select">
+            <button
+              type="button"
+              id="type-formule-btn"
+              class="filter-select multi-select-btn"
+            >
+              Toutes
+            </button>
+            <div class="multi-select-panel" id="type-formule-panel">
+              <label class="multi-select-option">
+                <input
+                  type="checkbox"
+                  id="type-formule-toutes"
+                  value="toutes"
+                  checked
+                />
+                Toutes
+              </label>
+              <hr class="multi-select-separator" />
+              <label class="multi-select-option">
+                <input
+                  type="checkbox"
+                  class="type-formule-option"
+                  value="brunch"
+                />
+                Brunch
+              </label>
+              <label class="multi-select-option">
+                <input
+                  type="checkbox"
+                  class="type-formule-option"
+                  value="non-brunch"
+                />
+                Non-Brunch
+              </label>
+              <label class="multi-select-option">
+                <input
+                  type="checkbox"
+                  class="type-formule-option"
+                  value="pause petit déjeuner"
+                />
+                Pause petit déjeuner
+              </label>
+              <label class="multi-select-option">
+                <input
+                  type="checkbox"
+                  class="type-formule-option"
+                  value="mariage"
+                />
+                Mariage
+              </label>
+              <label class="multi-select-option">
+                <input type="checkbox" class="type-formule-option" value="NC" />
+                Non Classé
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- Filtre catégorie produits -->
         <div class="form-group">
-          <label for="categorie-produit">Catégorie produit :</label>
+          <label for="categorie-produit">Catégorie produit</label>
           <select id="categorie-produit" class="filter-select">
             <option value="tous">Tous les produits</option>
             <option value="sucré">Produits sucrés</option>
@@ -79,7 +128,7 @@
           id="franchise-filter-container"
           style="display: none"
         >
-          <label for="filter-franchise-planning">Franchise :</label>
+          <label for="filter-franchise-planning">Franchise</label>
           <select id="filter-franchise-planning" class="filter-select">
             <option value="toutes">Toutes les franchises</option>
           </select>

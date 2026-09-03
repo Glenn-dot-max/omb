@@ -709,6 +709,8 @@ body {
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1rem;
+  font-family: inherit;
+  width: 220px;
   background: white;
   cursor: pointer;
   transition: border-color 0.3s;
@@ -717,6 +719,86 @@ body {
 .filter-select:focus {
   outline: none;
   border-color: #f5c05c;
+}
+
+/* Réinitialiser l'apparence native des <select> pour un alignement identique
+   au bouton "Type de prestation" (largeur/flèche uniformes sur tous navigateurs) */
+select.filter-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 2.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%23999999' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  background-size: 10px 6px;
+}
+
+/* Sélecteur multiple "Type de prestation" (planning) */
+.multi-select {
+  position: relative;
+}
+
+.multi-select-btn {
+  width: 220px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.multi-select-btn::after {
+  content: "▼";
+  font-size: 0.5rem;
+  color: #999;
+  margin-left: 0.9rem;
+}
+
+.multi-select-btn.open::after {
+  content: "▲";
+}
+
+.multi-select-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 220px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+}
+
+.multi-select-panel.open {
+  display: block;
+}
+
+.multi-select-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: normal;
+  font-size: 0.95rem;
+}
+
+.multi-select-option:hover {
+  background: #f5f5f5;
+}
+
+.multi-select-option input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.multi-select-separator {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 0.4rem 0;
 }
 
 /* Badges service */
@@ -855,6 +937,8 @@ body {
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 1rem;
+  font-family: inherit;
+  width: 220px;
   background: white;
   cursor: pointer;
   transition: border-color 0.3s;
