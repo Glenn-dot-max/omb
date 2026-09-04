@@ -78,22 +78,31 @@
 
         <div class="modal-body">
           <p>
-            <strong>Pour réinitialiser votre mot de passe :</strong>
+            Entrez votre adresse email. Si un compte existe, vous recevrez un
+            lien pour réinitialiser votre mot de passe (valable 1 heure).
           </p>
-          <p>
-            Contactez votre administrateur à l'adresse :
-            <br />
-            <strong>admin@ohmybrunch.fr</strong>
-          </p>
-          <p style="font-size: 13px; color: #999; margin-top: 20px">
-            Vous recevrez un nouveau mot de passe par email sous 24h.
-          </p>
+
+          <div id="forgotErrorMessage" class="error-message"></div>
+          <div id="forgotSuccessMessage" class="success-message"></div>
+
+          <form id="forgotPasswordForm">
+            <div class="form-group">
+              <label for="forgotEmail">📧 Email</label>
+              <input
+                type="email"
+                id="forgotEmail"
+                placeholder="votre@email.com"
+                required
+                autocomplete="email"
+              />
+            </div>
+          </form>
         </div>
 
         <div class="modal-footer">
           <button class="btn-secondary" id="closeModalBtn">Fermer</button>
-          <button class="btn-primary" id="contactAdminBtn">
-            📧 Contacter l'admin
+          <button class="btn-primary" id="submitForgotBtn">
+            📧 Envoyer le lien
           </button>
         </div>
       </div>
@@ -118,7 +127,53 @@
       );
       const closeModal = document.getElementById("closeModal");
       const closeModalBtn = document.getElementById("closeModalBtn");
-      const contactAdminBtn = document.getElementById("contactAdminBtn");
+      const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+      const submitForgotBtn = document.getElementById("submitForgotBtn");
+      const forgotErrorMessage = document.getElementById("forgotErrorMessage");
+      const forgotSuccessMessage = document.getElementById(
+        "forgotSuccessMessage",
+      );
+
+      submitForgotBtn.addEventListener("click", async () => {
+        const email = document.getElementById("forgotEmail").value.trim();
+
+        forgotErrorMessage.classList.remove("show");
+        forgotSuccessMessage.classList.remove("show");
+
+        if (!email) {
+          forgotErrorMessage.textContent = "Veuillez entrer votre email.";
+          forgotErrorMessage.classList.add("show");
+          return;
+        }
+
+        submitForgotBtn.disabled = true;
+        submitForgotBtn.textContent = "⏳ Envoi en cours...";
+
+        try {
+          const response = await fetch(`${API_URL}/auth/forgot-password`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email }),
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || "Une erreur est survenue.");
+          }
+
+          forgotSuccessMessage.textContent = data.message;
+          forgotSuccessMessage.classList.add("show");
+          forgotPasswordForm.reset();
+        } catch (error) {
+          forgotErrorMessage.textContent = error.message;
+          forgotErrorMessage.classList.add("show");
+        } finally {
+          submitForgotBtn.disabled = false;
+          submitForgotBtn.textContent = "📧 Envoyer le lien";
+        }
+      });
 
       // Gérer la soumission du formulaire
       loginForm.addEventListener("submit", async (e) => {
@@ -178,12 +233,6 @@
         if (e.target === forgotPasswordModal) {
           forgotPasswordModal.style.display = "none";
         }
-      });
-
-      // Bouton "Contacter l'admin"
-      contactAdminBtn.addEventListener("click", () => {
-        window.location.href =
-          "mailto:admin@ohmybrunch.fr?subject=Réinitialisation de mot de passe&body=Bonjour,%0D%0A%0D%0AJe souhaite réinitialiser mon mot de passe pour mon compte Oh My Brunch.%0D%0A%0D%0AMerci.";
       });
     </script>
   </body>

@@ -30,3 +30,8 @@ if env_origins:
     CORS_ORIGINS = list(dict.fromkeys(default_local_origins + production_origins + parsed_env_origins))
 else:
     CORS_ORIGINS = list(dict.fromkeys(default_local_origins + production_origins))
+
+# Configuration email (Resend)
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://omb-frontend.onrender.com")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev")

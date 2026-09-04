@@ -50,6 +50,29 @@ function closeCreateFormuleModal() {
 // ===========================================
 // DUPLICATION D'UNE FORMULE
 // ===========================================
+/**
+ * Génère un nom de formule unique en se basant sur les formules déjà
+ * chargées en mémoire (allFormules), pour éviter le 409 "nom déjà utilisé"
+ * quand on duplique plusieurs fois la même formule.
+ */
+function generateUniqueFormuleName(baseName) {
+  const existingNames = new Set(
+    (typeof allFormules !== "undefined" ? allFormules : []).map((f) =>
+      f.name.trim().toLowerCase(),
+    ),
+  );
+
+  let candidate = `Copie - ${baseName}`;
+  let counter = 2;
+
+  while (existingNames.has(candidate.trim().toLowerCase())) {
+    candidate = `Copie - ${baseName} (${counter})`;
+    counter++;
+  }
+
+  return candidate;
+}
+
 async function handleDuplicateFormule(formule) {
   try {
     // 1. Charger la liste des produits pour le select + les unités
@@ -65,8 +88,8 @@ async function handleDuplicateFormule(formule) {
     tempProduitsToCreate = [];
 
     // 3. Pré-remplir les champs du formulaire
-    document.getElementById("create-formule-name").value =
-      `Copie - ${formule.name}`;
+    const nameInput = document.getElementById("create-formule-name");
+    nameInput.value = generateUniqueFormuleName(formule.name);
     document.getElementById("create-formule-couverts").value =
       formule.nombre_couverts;
 
@@ -87,8 +110,16 @@ async function handleDuplicateFormule(formule) {
     // 6. Ouvrir la modale de création
     document.getElementById("create-modal").style.display = "block";
 
+    // 7. Mettre le focus sur le nom et sélectionner le texte pour inviter
+    // l'utilisateur à personnaliser avant de valider
+
+    setTimeout(() => {
+      nameInput.focus();
+      nameInput.select();
+    }, 50);
+
     showToast(
-      '📋 Formule pré-remplie. Modifiez le nom puis cliquez "Créer".',
+      '📋 Formule pré-remplie avec un nom unique. Modifiez-le si besoin puis cliquez "Créer".',
       "info",
     );
   } catch (error) {

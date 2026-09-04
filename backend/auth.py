@@ -2,6 +2,8 @@
 
 import os
 import bcrypt 
+import secrets
+import hashlib
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -50,6 +52,22 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     except Exception as e:
         print(f"❌ Erreur verify_password: {e}")
         return False
+
+# ===============================================
+# FONCTIONS RESET PASSWORD
+# ===============================================
+
+def generate_reset_token() -> str:
+    """Génère un token de réinitialisation à haute entropie (256 bits)"""
+    return secrets.token_urlsafe(32)
+
+def hash_reset_token(token: str) -> str:
+    """
+    Hash le token avant stockage en BDD.
+    le token en clair n'est jamais stocké (uniquement envoyé par email),
+    seul son empreinte SHA-256 est comparée lors de la réinitialisation.
+    """
+    return hashlib.sha256(token.encode('utf-8')).hexdigest()
 
 # ===============================================
 # FONCTIONS JWT (reste identique)

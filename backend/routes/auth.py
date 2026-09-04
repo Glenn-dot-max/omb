@@ -1,10 +1,19 @@
 # backend/routes/auth.py
 
 from fastapi import APIRouter, HTTPException, Depends, Request
+from datetime import datetime, timezone, timedelta
 from limiter import limiter
 from database import get_supabase_client
-from models import LoginRequest, LoginResponse, UserInfo, ChangePasswordRequest
-from auth import verify_password, create_access_token, get_current_user
+from models import (
+    LoginRequest, LoginResponse, UserInfo, ChangePasswordRequest,
+    ForgotPasswordRequest, ResetPasswordRequest
+)
+from auth import (
+    verify_password, create_access_token, get_current_user,
+    hash_password, generate_reset_token, hash_reset_token
+)
+from email_service import send_password_reset_email
+from config import FRONTEND_URL
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 supabase = get_supabase_client()
@@ -136,3 +145,82 @@ async def change_password(
 
     return {"message": "Mot de passe changé avec succès"}
 
+# ===============================================
+# FORGOT PASSWORD - DEMANDE ET RÉINITIALISATION
+# ===============================================
+
+@router.post("/forgot-password")
+@limiter.limit("3/minute")
+async def forgot_password(request: Request, payload: ForgotPasswordRequest):
+    """
+    Envoie un email de réinitialisation si un compte actif existe pour cet email.
+    Renvoie toujours le même message générique, que le compte existe ou non,
+    pour ne pas permettre à un attaquant de devenir quels emails sont enregistrés.
+    """
+    generic_response = {
+        "message": "Si un compte existe avec cet email, un lien de réinitialisation vient de vous être envoyé."
+    }
+
+    response = supabase.table("users")\
+        .select("id, email, active")\
+        .eq("email", payload.email)\
+        .execute()
+
+    if not response.data or not response.data[0].get("active", False):
+        return generic_response
+
+    user = response.data[0]
+
+    raw_token = generate_reset_token()
+    token_hash = hash_reset_token(raw_token)
+    expries_at = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    supabase.table("users").update({
+        "reset_token_hash": token_hash,
+        "reset_token_expires_at": expries_at.isoformat()
+    }).eq("id", user["id"]).execute()
+
+    reset_link = f"{FRONTEND_URL}/pages/reset-password.html?token={raw_token}"
+    send_password_reset_email(user["email"], reset_link)
+
+    return generic_response
+
+# ===============================================
+# RESET PASSWORD - APPLICATION DU NOUVEAU MOT DE PASSE
+# ===============================================
+
+@router.post("/reset-password")
+@limiter.limit("5/minute")
+async def reset_password(request: Request, payload: ResetPasswordRequest):
+    """Réinitialise le mot de passe à partir du token reçu par email"""
+
+    token_hash = hash_reset_token(payload.token)
+
+    response = supabase.table("users")\
+        .select("id, reset_token_expires_at")\
+        .eq("reset_token_hash", token_hash)\
+        .execute()
+
+    if not response.data:
+        raise HTTPException(status_code=400, detail="Lien invalide ou expiré")
+
+    user = response.data[0]
+
+    expires_at = datetime.fromisoformat(user["reset_token_expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if datetime.now(timezone.utc) > expires_at:
+        raise HTTPException(status_code=400, detail="Lien invalide ou expiré")
+
+    new_password_hash = hash_password(payload.new_password)
+
+    supabase.table("users").update({
+        "password_hash": new_password_hash,
+        "must_change_password": False,
+        "password_changed_at": datetime.now(timezone.utc).isoformat(),
+        "reset_token_hash": None,
+        "reset_token_expires_at": None
+    }).eq("id", user["id"]).execute()
+
+    return {"message": "Mot de passe réinitialisé avec succès."}

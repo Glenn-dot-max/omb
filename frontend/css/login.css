@@ -121,6 +121,24 @@ body::before {
   display: block;
 }
 
+.success-message {
+  background: linear-gradient(135deg, #27ae60, #229954);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  display: none;
+  animation: shake 0.5s;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.success-message.show {
+  display: block;
+}
+
 @keyframes shake {
   0%,
   100% {

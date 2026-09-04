@@ -300,6 +300,24 @@ class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: constr(min_length=10, max_length=200)
+    new_password: constr(min_length=8, max_length=100)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v):
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Le mot de passe doit contenir au moins une majuscule')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Le mot de passe doit contenir au moins une minuscule')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Le mot de passe doit contenir au moins un chiffre')
+        return v
+
 class ResetPasswordRequest(BaseModel):
     new_password: str
 
