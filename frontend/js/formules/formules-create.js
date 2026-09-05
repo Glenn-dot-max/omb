@@ -287,6 +287,7 @@ async function handleCreateFormuleWithProduits() {
 
     allFormules.push(nouvelleFormule);
 
+    
     displayFormules(allFormules);
     closeCreateFormuleModal();
 
