@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from auth import get_current_user
+from auth import get_current_user, CATALOG_ADMIN_ROLES
 from fastapi.encoders import jsonable_encoder
 from database import get_supabase_client
 from models import FormuleProduitCreate, FormuleProduitUpdate
@@ -18,7 +18,7 @@ async def get_produits_by_formule(formule_id: str, current_user: dict = Depends(
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
     
-    if current_user.get("role") != "TECH_ADMIN":
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
         franchise_access = supabase.table("franchise_formules")\
             .select("formule_id")\
             .eq("formule_id", formule_id)\
@@ -56,7 +56,7 @@ async def create_formule_produit(formule_produit: FormuleProduitCreate, current_
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
 
-    if current_user.get("role") != "TECH_ADMIN":
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
         franchise_formule_access = supabase.table("franchise_formules")\
             .select("formule_id")\
             .eq("formule_id", str(formule_produit.formule_id))\
@@ -75,7 +75,7 @@ async def create_formule_produit(formule_produit: FormuleProduitCreate, current_
     if not produit_check.data:
         raise HTTPException(status_code=404, detail="Produit not found")
     
-    if current_user.get("role") != "TECH_ADMIN":
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
         franchise_produit_access = supabase.table("franchise_produits")\
             .select("produit_id")\
             .eq("produit_id", str(formule_produit.produit_id))\
@@ -139,7 +139,7 @@ async def update_formule_produit(formule_produit_id: int, formule_produit: Formu
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
     
-    if current_user.get("role") != "TECH_ADMIN":
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
         franchise_access = supabase.table("franchise_formules")\
             .select("formule_id")\
             .eq("formule_id", existing.data[0]['formule_id'])\
@@ -175,7 +175,7 @@ async def delete_formule_produit(formule_produit_id: int, current_user: dict = D
     if not formule_check.data:
         raise HTTPException(status_code=404, detail="Formule not found")
     
-    if current_user.get("role") != "TECH_ADMIN":
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
         franchise_access = supabase.table("franchise_formules")\
             .select("formule_id")\
             .eq("formule_id", existing.data[0]['formule_id'])\

@@ -55,11 +55,20 @@ function closeCreateFormuleModal() {
  * chargées en mémoire (allFormules), pour éviter le 409 "nom déjà utilisé"
  * quand on duplique plusieurs fois la même formule.
  */
-function generateUniqueFormuleName(baseName) {
+async function generateUniqueFormuleName(baseName) {
+  let formulesForCheck;
+  try {
+    formulesForCheck = await getFormules();
+  } catch (error) {
+    console.warn(
+      "Impossible de recharger les formules pour vérifier l'unicité du nom, utilisation de la liste en mémoire.",
+      error,
+    );
+    formulesForCheck = typeof allFormules !== "undefined" ? allFormules : [];
+  }
+
   const existingNames = new Set(
-    (typeof allFormules !== "undefined" ? allFormules : []).map((f) =>
-      f.name.trim().toLowerCase(),
-    ),
+    formulesForCheck.map((f) => f.name.trim().toLowerCase()),
   );
 
   let candidate = `Copie - ${baseName}`;
@@ -89,7 +98,7 @@ async function handleDuplicateFormule(formule) {
 
     // 3. Pré-remplir les champs du formulaire
     const nameInput = document.getElementById("create-formule-name");
-    nameInput.value = generateUniqueFormuleName(formule.name);
+    nameInput.value = await generateUniqueFormuleName(formule.name);
     document.getElementById("create-formule-couverts").value =
       formule.nombre_couverts;
 
