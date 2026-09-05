@@ -274,16 +274,19 @@ async function handleCreateFormuleWithProduits() {
 
     const nouvelleFormule = await createFormule(formuleData);
 
-    for (const produit of tempProduitsToCreate) {
-      await createFormuleProduit({
-        formule_id: nouvelleFormule.id,
-        produit_id: produit.produit_id,
-        quantite: produit.quantite,
-        unite: produit.unite,
-      });
-    }
+    await Promise.all(
+      tempProduitsToCreate.map((produit) =>
+        createFormuleProduit({
+          formule_id: nouvelleFormule.id,
+          produit_id: produit.produit_id,
+          quantite: produit.quantite,
+          unite: produit.unite,
+        }),
+      ),
+    );
 
     allFormules.push(nouvelleFormule);
+
     displayFormules(allFormules);
     closeCreateFormuleModal();
 

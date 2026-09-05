@@ -301,18 +301,22 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
         print(f"✅ FRANCHISE : Ajout uniquement à la franchise de l'utilisateur ({franchise_id})")
 
     liens_crees = 0
-    for franchise_id in franchise_ids:
-        try:
-            supabase.table("franchise_formules").insert({
+    if franchise_ids:
+        liens_data = [
+            {
                 "franchise_id": franchise_id,
                 "formule_id": nouvelle_formule["id"],
                 "active": True
-            }).execute()
-            liens_crees += 1
+            }
+            for franchise_id in franchise_ids
+        ]
+        try:
+            liens_response = supabase.table("franchise_formules").insert(liens_data).execute()
+            liens_crees = len(liens_response.data) if liens_response.data else 0
         except Exception as e:
-            print(f"⚠️ Erreur ajout franchise {franchise_id}: {str(e)}")
+            print(f"⚠️ Erreur création liens franchise_formules: {str(e)}")
 
-    print(f"✅ Formule créée et activée pour {liens_crees} franchise(s)")
+    print (f"✅ Formule créée et activée pour {liens_crees} franchise(s)")
 
     return jsonable_encoder(nouvelle_formule)
 
