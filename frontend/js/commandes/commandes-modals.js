@@ -957,13 +957,13 @@ async function handleDuplicateCommande(commande) {
     document.getElementById("create-ponderation-group").style.display =
       typePrestation === "mariage" ? "block" : "none";
 
-    // Couverts effectifs pour les champs formule/produit
-    const couvertsEffectifs =
-      typePrestation === "mariage"
-        ? Math.round(commande.nombre_couverts * coeff * 100) / 100
-        : commande.nombre_couverts;
-    document.getElementById("formule-couverts").value = couvertsEffectifs;
-    document.getElementById("produit-quantite").value = couvertsEffectifs;
+    // Valeur brute : le coefficient est appliqué une seule fois, côté backend
+    // (planning.py), jamais stocké pré-multiplié dans quantite_finale/quantite.
+
+    document.getElementById("formule-couverts").value =
+      commande.nombre_couverts;
+    document.getElementById("produit-quantite").value =
+      commande.nombre_couverts;
 
     // 4. Charger les formules avec leurs exclusions
     const formules = await getCommandeFormules(commande.id);

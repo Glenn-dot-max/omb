@@ -156,10 +156,6 @@ function setupEventListeners() {
   }
 
   function getCouverts(nbCouverts, coeffFieldId, typePrestationFieldId) {
-    const type = document.getElementById(typePrestationFieldId)?.value;
-    const coeff =
-      parseFloat(document.getElementById(coeffFieldId)?.value) || 1.0;
-    if (type === "mariage") return Math.ceil(nbCouverts * coeff);
     return nbCouverts;
   }
 
