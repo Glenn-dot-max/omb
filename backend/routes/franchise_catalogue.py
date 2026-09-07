@@ -3,8 +3,7 @@ from typing import List
 from uuid import UUID
 from database import get_supabase_client
 from models import FranchiseProduitResponse, FranchiseFormuleResponse
-from routes.auth import get_current_user
-
+from auth import get_current_user, is_catalog_admin
 router = APIRouter(prefix="/admin/franchises", tags=["Franchise Catalogue"])
 
 # ===========================================
@@ -14,7 +13,7 @@ router = APIRouter(prefix="/admin/franchises", tags=["Franchise Catalogue"])
 @router.get("/{franchise_id}/produits", response_model=List[FranchiseProduitResponse])
 async def get_franchise_produits(
     franchise_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(is_catalog_admin)
 ):
     """
     Récupère tous les produits avec leur status (actif/inactif)
@@ -65,7 +64,7 @@ async def get_franchise_produits(
 @router.get("/{franchise_id}/formules", response_model=List[FranchiseFormuleResponse])
 async def get_franchise_formules(
     franchise_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(is_catalog_admin)
 ):
     """
     Récupère toutes les formules avec leur status (actif/inactif)

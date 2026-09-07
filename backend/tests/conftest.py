@@ -66,3 +66,22 @@ def auth_headers(user_token):
 @pytest.fixture
 def admin_headers(admin_token):
     return {"Authorization": f"Bearer {admin_token}"}
+
+@pytest.fixture
+def admin_headers(admin_token):
+    return {"Authorization": f"Bearer {admin_token}"}
+
+@pytest.fixture
+def catalog_admin_token():
+    """Token JWT valide pour un CATALOG_ADMIN"""
+    from auth import create_access_token
+    return create_access_token({
+        "user_id": "catalog-admin-789",
+        "email": "catalogadmin@test.com",
+        "franchise_id": None,
+        "role": "CATALOG_ADMIN"
+    })
+
+@pytest.fixture
+def catalog_admin_headers(catalog_admin_token):
+    return {"Authorization": f"Bearer {catalog_admin_token}"}

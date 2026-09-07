@@ -28,10 +28,10 @@ async def get_planning_production(
     """
     
     try:
-        print(f"\n{'='*60}")
-        print(f"🚀 Génération du planning: {date_debut} → {date_fin}")
-        print(f"   Type prestation: {type_prestation}")
-        print(f"{'='*60}\n")
+        logger.info(f"\n{'='*60}")
+        logger.info(f"🚀 Génération du planning: {date_debut} → {date_fin}")
+        logger.info(f"   Type prestation: {type_prestation}")
+        logger.info(f"{'='*60}\n")
 
         # Sélection multiple : type_prestation peut être "brunch,mariage" ou "toutes"
         types_prestation = [t.strip() for t in type_prestation.split(",") if t.strip()]
@@ -64,14 +64,14 @@ async def get_planning_production(
                 detail="La période ne peut pas dépasser 90 jours."
             )
         
-        print(f"✅ Paramètres validés: {delta+1} jours à traiter")
+        logger.info(f"✅ Paramètres validés: {delta+1} jours à traiter")
         
 
         # =========================================
         # ÉTAPE 1: RÉCUPÉRER LES COMMANDES
         # =========================================
         
-        print("📦 Étape 1: Récupération des commandes...")
+        logger.info("📦 Étape 1: Récupération des commandes...")
         
         # ✅ CONSTRUIRE LA REQUÊTE DE BASE
         query = supabase.table("carnet_commande")\
@@ -85,9 +85,9 @@ async def get_planning_production(
             # TECH_ADMIN : filtrer par franchise si spécifiée
             if franchise_id:
                 query = query.eq("franchise_id", franchise_id)
-                print(f"    🔒 TECH_ADMIN - Filtrage par franchise: {franchise_id}")
+                logger.info(f"    🔒 TECH_ADMIN - Filtrage par franchise: {franchise_id}")
             else:
-                print(f"    🔓 TECH_ADMIN - Accès à TOUTES les franchises")
+                logger.info(f"    🔓 TECH_ADMIN - Accès à TOUTES les franchises")
         else:
             # Utilisateur franchisé : filtrer par SA franchise
             if not current_user.get("franchise_id"):
@@ -98,7 +98,7 @@ async def get_planning_production(
             query = query.eq("franchise_id", current_user["franchise_id"])
             if franchise_id and franchise_id != current_user["franchise_id"]:
                 logger.warning(f"franchise_is query param ignoré pour user {current_user['email']} (rôle USER)")
-            print(f"    🔒 Filtrage par franchise utilisateur: {current_user['franchise_id']}")
+            logger.info(f"    🔒 Filtrage par franchise utilisateur: {current_user['franchise_id']}")
         
         all_commandes_response = query.execute()
         all_commandes = all_commandes_response.data
@@ -106,8 +106,8 @@ async def get_planning_production(
         commandes_non_validees = [c for c in all_commandes if c.get("validated") is False]
         commandes = [c for c in all_commandes if c.get("validated") is not False]
 
-        print(f"   ✅ {len(commandes)} commandes validées")
-        print(f"   ⚠️ {len(commandes_non_validees)} commandes NON validées (exclues)")
+        logger.info(f"   ✅ {len(commandes)} commandes validées")
+        logger.warning(f"   ⚠️ {len(commandes_non_validees)} commandes NON validées (exclues)")
         
         if not commandes:
             return {
@@ -122,10 +122,10 @@ async def get_planning_production(
         # ÉTAPE 2: PRÉ-CHARGER LES RELATIONS
         # =========================================
         
-        print("\n📦 Étape 2: Pré-chargement des relations...")
+        logger.info("\n📦 Étape 2: Pré-chargement des relations...")
         
         # 2.1 Commande → Formules
-        print("   🔗 Récupération commande_formules...")
+        logger.info("   🔗 Récupération commande_formules...")
         commande_formules_response = supabase.table("commande_formules")\
             .select("*")\
             .in_("commande_id", commande_ids)\
@@ -138,25 +138,25 @@ async def get_planning_production(
             commande_formules_map[cf["commande_id"]].append(cf)
             formule_ids.add(cf["formule_id"])
         
-        print(f"      ✅ {len(commande_formules_response.data)} relations | {len(formule_ids)} formules uniques")
+        logger.info(f"      ✅ {len(commande_formules_response.data)} relations | {len(formule_ids)} formules uniques")
         
         # 2.1.b Récupérer les produits exclus par commande_formule
         commande_formule_ids = [cf["id"] for cf in commande_formules_response.data]
         exclusions_by_commande_formule = defaultdict(set)
         if commande_formule_ids:
-            print("   🔗 Récupération commande_formule_exclusions...")
+            logger.info("   🔗 Récupération commande_formule_exclusions...")
             exclusions_response = supabase.table("commande_formule_exclusions")\
                 .select("commande_formule_id, produit_id")\
                 .in_("commande_formule_id", commande_formule_ids)\
                 .execute()
             for exclusion in exclusions_response.data:
                 exclusions_by_commande_formule[exclusion["commande_formule_id"]].add(str(exclusion["produit_id"]))
-            print(f"      ✅ {len(exclusions_response.data)} exclusion(s) chargée(s)")
+            logger.info(f"      ✅ {len(exclusions_response.data)} exclusion(s) chargée(s)")
 
         # 2.2 Récupérer les infos des formules
         formules_info_map = {}
         if formule_ids:
-            print("   🔗 Récupération des formules...")
+            logger.info("   🔗 Récupération des formules...")
             formules_response = supabase.table("formules")\
                 .select("id, name")\
                 .in_("id", list(formule_ids))\
@@ -165,10 +165,10 @@ async def get_planning_production(
             for f in formules_response.data:
                 formules_info_map[f["id"]] = f
             
-            print(f"      ✅ {len(formules_info_map)} formules")
+            logger.info(f"      ✅ {len(formules_info_map)} formules")
         
         # 2.3 Commande → Produits directs
-        print("   🔗 Récupération commande_produits...")
+        logger.info("   🔗 Récupération commande_produits...")
         commande_produits_response = supabase.table("commande_produits")\
             .select("*")\
             .in_("commande_id", commande_ids)\
@@ -181,12 +181,12 @@ async def get_planning_production(
             commande_produits_map[cp["commande_id"]].append(cp)
             produit_ids.add(cp["produit_id"])
         
-        print(f"      ✅ {len(commande_produits_response.data)} produits directs")
+        logger.info(f"      ✅ {len(commande_produits_response.data)} produits directs")
         
         # 2.4 Formule → Produits
         formule_produits_map = defaultdict(list)
         if formule_ids:
-            print("   🔗 Récupération formule_produits...")
+            logger.info("   🔗 Récupération formule_produits...")
             formule_produits_response = supabase.table("formule_produits")\
                 .select("*")\
                 .in_("formule_id", list(formule_ids))\
@@ -196,24 +196,24 @@ async def get_planning_production(
                 formule_produits_map[fp["formule_id"]].append(fp)
                 produit_ids.add(fp["produit_id"])
             
-            print(f"      ✅ {len(formule_produits_response.data)} produits de formules")
+            logger.info(f"      ✅ {len(formule_produits_response.data)} produits de formules")
         
         # =========================================
         # ÉTAPE 3: PRÉ-CHARGER LES PRODUITS
         # =========================================
         
-        print(f"\n📦 Étape 3: Pré-chargement des produits ({len(produit_ids)} uniques)...")
+        logger.info(f"\n📦 Étape 3: Pré-chargement des produits ({len(produit_ids)} uniques)...")
         produits_infos = {}
         
         if produit_ids:
             # 3.1 Récupérer TOUS les produits EN UNE FOIS
-            print("   🔗 Récupération des produits...")
+            logger.info("   🔗 Récupération des produits...")
             produits_response = supabase.table("produits")\
                 .select("id, name, categorie_id, type_id")\
                 .in_("id", list(produit_ids))\
                 .execute()
             
-            print(f"      ✅ {len(produits_response.data)} produits")
+            logger.info(f"      ✅ {len(produits_response.data)} produits")
             
             # 3.2 Extraire les IDs de catégories et types
             categorie_ids = set()
@@ -228,7 +228,7 @@ async def get_planning_production(
             # 3.3 Récupérer TOUTES les catégories EN UNE FOIS
             categories_map = {}
             if categorie_ids:
-                print(f"   🔗 Récupération de {len(categorie_ids)} catégories...")
+                logger.info(f"   🔗 Récupération de {len(categorie_ids)} catégories...")
                 cached_categories = get_cached("categories_all")
                 if cached_categories is None:
                     cat_resp = supabase.table("categories").select("id, name").execute()
@@ -236,12 +236,12 @@ async def get_planning_production(
                     set_cached("categories_all", cached_categories)
                 categories_map = {k: v for k, v in cached_categories.items() if k in categorie_ids}
                 
-                print(f"      ✅ {len(categories_map)} catégories")
+                logger.info(f"      ✅ {len(categories_map)} catégories")
             
             # 3.4 Récupérer TOUS les types EN UNE FOIS
             types_map = {}
             if type_ids:
-                print(f"   🔗 Récupération de {len(type_ids)} types...")
+                logger.info(f"   🔗 Récupération de {len(type_ids)} types...")
                 cached_types = get_cached("types_all")
                 if cached_types is None:
                     type_resp = supabase.table("types").select("id, name").execute()
@@ -249,10 +249,10 @@ async def get_planning_production(
                     set_cached("types_all", cached_types)
                 types_map = {k: v for k, v in cached_types.items() if k in type_ids}
 
-                print(f"      ✅ {len(types_map)} types")
+                logger.info(f"      ✅ {len(types_map)} types")
             
             # 3.5 JOINDRE EN MÉMOIRE (très rapide)
-            print("   🔧 Jointure en mémoire...")
+            logger.info("   🔧 Jointure en mémoire...")
             for prod in produits_response.data:
                 produits_infos[prod["id"]] = {
                     "name": prod["name"],
@@ -260,13 +260,13 @@ async def get_planning_production(
                     "type": types_map.get(prod.get("type_id"), "Autre")
                 }
             
-            print(f"      ✅ {len(produits_infos)} produits enrichis")
+            logger.info(f"      ✅ {len(produits_infos)} produits enrichis")
         
         # =========================================
         # ÉTAPE 4: CONSTRUCTION DU PLANNING
         # =========================================
         
-        print("\n📦 Étape 4: Construction du planning...")
+        logger.info("\n📦 Étape 4: Construction du planning...")
         
         planning = defaultdict(lambda: {
             "commandes": [],
@@ -293,13 +293,13 @@ async def get_planning_production(
             
             commandes_filtrees.append(commande)
         
-        print(f"   ✅ {len(commandes_filtrees)} commandes après filtrage")
+        logger.info(f"   ✅ {len(commandes_filtrees)} commandes après filtrage")
         
         # =========================================
         # ÉTAPE 5: TRAITER CHAQUE COMMANDE
         # =========================================
         
-        print("\n📦 Étape 5: Traitement des commandes...")
+        logger.info("\n📦 Étape 5: Traitement des commandes...")
         
         rounded_commandes = set()
 
@@ -335,7 +335,7 @@ async def get_planning_production(
                 
                 prod_info = produits_infos.get(produit_id)
                 if not prod_info:
-                    print(f"      ⚠️ Produit {produit_id} non trouvé")
+                    logger.warning(f"      ⚠️ Produit {produit_id} non trouvé")
                     continue
 
                 if categorie != "tous":
@@ -393,7 +393,7 @@ async def get_planning_production(
                     
                     prod_info = produits_infos.get(produit_id)
                     if not prod_info:
-                        print(f"      ⚠️ Produit {produit_id} non trouvé")
+                        logger.warning(f"      ⚠️ Produit {produit_id} non trouvé")
                         continue
 
                     if categorie != "tous":
@@ -434,7 +434,7 @@ async def get_planning_production(
         # ÉTAPE 6: FINALISATION
         # =========================================
         
-        print("\n📦 Étape 6: Finalisation...")
+        logger.info("\n📦 Étape 6: Finalisation...")
         
         # Trier les commandes par heure
         for date_key in planning:
@@ -470,8 +470,8 @@ async def get_planning_production(
         }
     
     except ValueError as e:
-        print(f"\n❌ ERREUR DE VALIDATION:")
-        print(f"   {str(e)}")
+        logger.error(f"\n❌ ERREUR DE VALIDATION:")
+        logger.info(f"   {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
             detail=f"Erreur de validation: {str(e)}"
@@ -481,12 +481,12 @@ async def get_planning_production(
         raise
 
     except Exception as e:
-        print(f"\n❌ ERREUR PLANNING INTERNE:")
-        print(f"   Type: {type(e).__name__}")
-        print(f"   Message: {str(e)}")
-        print(f"\n📋 Traceback:")
+        logger.error(f"\n❌ ERREUR PLANNING INTERNE:")
+        logger.info(f"   Type: {type(e).__name__}")
+        logger.info(f"   Message: {str(e)}")
+        logger.info(f"\n📋 Traceback:")
         traceback.print_exc()
-        print(f"{'='*60}\n")
+        logger.info(f"{'='*60}\n")
         
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 

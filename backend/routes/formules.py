@@ -5,6 +5,9 @@ from models import FormuleCreate, FormuleUpdate, ToggleFranchisesRequest
 from fastapi.encoders import jsonable_encoder
 from typing import List
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/formules", tags=["formules"])
 supabase = get_supabase_client()
@@ -194,7 +197,7 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
 
     formule_data = formule.model_dump(exclude={"franchise_ids"})
 
-    print(f"🆕 Creating Formule: {formule_data}")
+    logger.info(f"🆕 Creating Formule: {formule_data}")
 
     if current_user.get("role") in CATALOG_ADMIN_ROLES:
         # TECH_ADMIN : on garde un nom globalement unique
@@ -216,9 +219,9 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
         if not franchise_ids:
             franchises = supabase.table("franchises").select("id").execute()
             franchise_ids = [f["id"] for f in franchises.data]
-            print(f"✅ TECH_ADMIN : Ajout à TOUTES les franchises ({len(franchise_ids)})")
+            logger.info(f"✅ TECH_ADMIN : Ajout à TOUTES les franchises ({len(franchise_ids)})")
         else:
-            print(f"✅ TECH_ADMIN : Ajout aux franchises spécifiées ({len(franchise_ids)})")
+            logger.info(f"✅ TECH_ADMIN : Ajout aux franchises spécifiées ({len(franchise_ids)})")
     
     else:
         # FRANCHISE : autoriser la recréation d'un nom déjà désactivé pour cette franchise
@@ -276,7 +279,7 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
                 .eq("franchise_id", franchise_id)\
                 .execute()
 
-            print(f"✅ FRANCHISE : Formule réactivée et réinitialisée ({reusable_formule_id})")
+            logger.info(f"✅ FRANCHISE : Formule réactivée et réinitialisée ({reusable_formule_id})")
 
             return jsonable_encoder(updated.data[0] if updated.data else {
                 "id": reusable_formule_id,
@@ -298,7 +301,7 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
 
         nouvelle_formule = response.data[0]
         franchise_ids = [franchise_id]
-        print(f"✅ FRANCHISE : Ajout uniquement à la franchise de l'utilisateur ({franchise_id})")
+        logger.info(f"✅ FRANCHISE : Ajout uniquement à la franchise de l'utilisateur ({franchise_id})")
 
     liens_crees = 0
     if franchise_ids:
@@ -314,7 +317,7 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
             liens_response = supabase.table("franchise_formules").insert(liens_data).execute()
             liens_crees = len(liens_response.data) if liens_response.data else 0
         except Exception as e:
-            print(f"⚠️ Erreur création liens franchise_formules: {str(e)}")
+            logger.warning(f"⚠️ Erreur création liens franchise_formules: {str(e)}")
 
     print (f"✅ Formule créée et activée pour {liens_crees} franchise(s)")
 
@@ -328,7 +331,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
     - FRANCHISE: désactive la formule uniquement pour sa franchise (active = FALSE)
     """
 
-    print(f"🗑️ DELETE REQUEST - Formule ID: {formule_id}")
+    logger.info(f"🗑️ DELETE REQUEST - Formule ID: {formule_id}")
 
     # Vérifier que la formule existe
     existing = supabase.table("formules")\
@@ -341,7 +344,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
     
     # 🔓 TECH_ADMIN : suppression complète
     if current_user.get("role") in CATALOG_ADMIN_ROLES:
-        print(f"✅ TECH_ADMIN : Suppression complète de la formule {formule_id}")
+        logger.info(f"✅ TECH_ADMIN : Suppression complète de la formule {formule_id}")
         
         try:
             # Supprimer les liens franchise_formules d'abord
@@ -356,7 +359,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
                 .eq("id", formule_id)\
                 .execute()
             
-            print(f"✅ Formule supprimée complètement : {formule_id}")
+            logger.info(f"✅ Formule supprimée complètement : {formule_id}")
 
             return {
                 "success": True,
@@ -365,7 +368,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
             }
         
         except Exception as e:
-            print(f"❌ Delete error: {str(e)}")
+            logger.error(f"❌ Delete error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")
     
     # 🔒 FRANCHISE : désactivation uniquement pour sa franchise
@@ -411,7 +414,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
                     .eq("id", formule_id)\
                     .execute()
 
-                print(f"✅ FRANCHISE : Copie formule supprimée définitivement {formule_id}")
+                logger.info(f"✅ FRANCHISE : Copie formule supprimée définitivement {formule_id}")
 
                 return {
                     "success": True,
@@ -427,7 +430,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
                 .eq("franchise_id", franchise_id)\
                 .execute()
 
-            print(f"✅ FRANCHISE : Formule désactivée pour la franchise {franchise_id}")
+            logger.info(f"✅ FRANCHISE : Formule désactivée pour la franchise {franchise_id}")
 
             return {
                 "success": True,
@@ -437,7 +440,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
             }
         
         except Exception as e:
-            print(f"❌ Deactivate error: {str(e)}")
+            logger.error(f"❌ Deactivate error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Erreur lors de la désactivation: {str(e)}")
 
 @router.patch("/{formule_id}/franchises")
@@ -461,7 +464,7 @@ async def toggle_formule_franchises(formule_id: str, request: ToggleFranchisesRe
     if not existing.data:
         raise HTTPException(status_code=404, detail="Formule not found")
     
-    print(f"🔄 TECH_ADMIN : {'Activation' if request.active else 'Désactivation'} de la formule {formule_id} pour les franchises {request.franchise_ids}")
+    logger.info(f"🔄 TECH_ADMIN : {'Activation' if request.active else 'Désactivation'} de la formule {formule_id} pour les franchises {request.franchise_ids}")
 
     modifications = 0
     creations = 0
@@ -482,7 +485,7 @@ async def toggle_formule_franchises(formule_id: str, request: ToggleFranchisesRe
                     .eq("franchise_id", franchise_id)\
                     .execute()
                 modifications += 1
-                print(f"✅ Modifié franchise {franchise_id}")
+                logger.info(f"✅ Modifié franchise {franchise_id}")
             else:
                 if request.active:
                     supabase.table("franchise_formules").insert({
@@ -491,13 +494,13 @@ async def toggle_formule_franchises(formule_id: str, request: ToggleFranchisesRe
                         "active": True
                     }).execute()
                     creations += 1
-                    print(f"✅ Créé lien pour franchise {franchise_id}")
+                    logger.info(f"✅ Créé lien pour franchise {franchise_id}")
                 else:
-                    print(f"⚠️ Aucun lien à désactiver pour la franchise {franchise_id}")
+                    logger.warning(f"⚠️ Aucun lien à désactiver pour la franchise {franchise_id}")
 
         except Exception as e:
             erreurs.append(f"Franchise {franchise_id}: {str(e)}")
-            print(f"❌ Erreur pour franchise {franchise_id} - {str(e)}")
+            logger.error(f"❌ Erreur pour franchise {franchise_id} - {str(e)}")
 
     return {
         "success": True,
@@ -655,7 +658,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
     - FRANCHISE: peut modifier. Si formule partagée, crée une copie exclusive avec copie des produits
     """
 
-    print(f"✏️ UPDATE REQUEST - Formule ID: {formule_id}")
+    logger.info(f"✏️ UPDATE REQUEST - Formule ID: {formule_id}")
 
     # Vérifier que la formule existe
     existing = supabase.table("formules")\
@@ -667,7 +670,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
         raise HTTPException(status_code=404, detail="Formule not found")
     
     if current_user.get("role") in CATALOG_ADMIN_ROLES:
-        print(f"✅ TECH_ADMIN : Modification globale autorisée")
+        logger.info(f"✅ TECH_ADMIN : Modification globale autorisée")
         
         response = supabase.table("formules")\
             .update(formule.model_dump(exclude_unset=True))\
@@ -677,7 +680,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
         if not response.data:
             raise HTTPException(status_code=404, detail="Formule not found")
         
-        print(f"✅ Formule modifiée : {formule_id}")
+        logger.info(f"✅ Formule modifiée : {formule_id}")
         return response.data[0]
 
     else:
@@ -699,7 +702,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
         
         # Si formule partagée (plusieurs franchises), créer une copie exclusive
         if len(liens.data) > 1:
-            print(f"⚠️ FRANCHISE : Formule partagée - Création d'une copie exclusive")
+            logger.warning(f"⚠️ FRANCHISE : Formule partagée - Création d'une copie exclusive")
             
             # Créer la nouvelle formule, en gérant les conflits de nom
             base_name = formule.name or existing.data[0]["name"]
@@ -720,7 +723,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
                 raise HTTPException(status_code=500, detail="Erreur lors de la création de la copie")
             
             new_formule_id = new_formule_response.data[0]["id"]
-            print(f"✅ Nouvelle formule créée : {new_formule_id}")
+            logger.info(f"✅ Nouvelle formule créée : {new_formule_id}")
             
             # Copier les produits de l'ancienne formule vers la nouvelle
             old_formule_produits = supabase.table("formule_produits")\
@@ -738,9 +741,9 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
                             "unite": produit.get("unite", "")
                         }).execute()
                     except Exception as e:
-                        print(f"⚠️ Erreur copie produit {produit['produit_id']}: {str(e)}")
+                        logger.warning(f"⚠️ Erreur copie produit {produit['produit_id']}: {str(e)}")
             
-            print(f"✅ {len(old_formule_produits.data)} produit(s) copiés")
+            logger.info(f"✅ {len(old_formule_produits.data)} produit(s) copiés")
             
             # Désactiver l'ancienne formule pour cette franchise
             supabase.table("franchise_formules")\
@@ -749,7 +752,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
                 .eq("franchise_id", franchise_id)\
                 .execute()
             
-            print(f"✅ Ancienne formule désactivée pour la franchise")
+            logger.info(f"✅ Ancienne formule désactivée pour la franchise")
             
             # Activer la nouvelle formule pour cette franchise
             supabase.table("franchise_formules").insert({
@@ -758,7 +761,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
                 "active": True
             }).execute()
             
-            print(f"✅ FRANCHISE : Copie exclusive créée et activée")
+            logger.info(f"✅ FRANCHISE : Copie exclusive créée et activée")
             
             return {
                 **new_formule_response.data[0],
@@ -768,7 +771,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
         
         else:
             # Modification simple si exclusive
-            print(f"✅ FRANCHISE : Modification autorisée (formule exclusive)")
+            logger.info(f"✅ FRANCHISE : Modification autorisée (formule exclusive)")
             
             response = supabase.table("formules")\
                 .update(formule.model_dump(exclude_unset=True))\
@@ -778,7 +781,7 @@ async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: 
             if not response.data:
                 raise HTTPException(status_code=404, detail="Formule not found")
             
-            print(f"✅ Formule modifiée : {formule_id}")
+            logger.info(f"✅ Formule modifiée : {formule_id}")
             
             return {
                 **response.data[0],

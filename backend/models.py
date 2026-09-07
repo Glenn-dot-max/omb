@@ -183,6 +183,13 @@ class CommandeFormuleUpdate(BaseModel):
     class Config:
         extra = 'forbid'
 
+class CommandeFormuleExclusionsUpdate(BaseModel):
+    produits_exclus: list[str] = Field(default_factory=list)
+    quantite_finale: Optional[float] = Field(None, ge=0, le=10000)
+
+    class Config:
+        extra = 'forbid'
+
 
 # ================ COMMANDE_PRODUITS MODELS ================
 

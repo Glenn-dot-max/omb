@@ -475,5 +475,5 @@ async def duplicate_commande(commande_id: str, current_user: dict = Depends(get_
         new_cp_data["commande_id"] = new_commande_id
         supabase.table("commande_produits").insert(new_cp_data).execute()
 
-    print(f"[COMMANDES] Duplication: {commande_id} → {new_commande_id}")
+    logger.info(f"[COMMANDES] Duplication: {commande_id} → {new_commande_id}")
     return serialize_commande(new_commande)

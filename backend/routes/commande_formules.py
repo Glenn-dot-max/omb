@@ -1,9 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user
 from database import get_supabase_client
-from models import CommandeFormuleCreate, CommandeFormuleUpdate
+from models import CommandeFormuleCreate, CommandeFormuleUpdate, CommandeFormuleExclusionsUpdate
 from datetime import date, datetime, time
 from uuid import UUID
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/commande-formules", tags=["commande-formules"])
 supabase = get_supabase_client()
@@ -151,15 +154,37 @@ async def get_formule_exclusions(commande_formule_id: int, current_user: dict = 
     return [row["produit_id"] for row in response.data]
 
 @router.patch("/{commande_formule_id}")
-async def update_commande_formule_exclusions(commande_formule_id: int, update_data: dict):
+async def update_commande_formule_exclusions(
+    commande_formule_id: int,
+    update_data: CommandeFormuleExclusionsUpdate,
+    current_user: dict = Depends(get_current_user)
+):
     """Update exclusions for a commande-formule"""
-    produits_exclus = update_data.get("produits_exclus", [])
-    quantite_finale = update_data.get("quantite_finale")
+    existing = supabase.table("commande_formules")\
+        .select("commande_id")\
+        .eq("id", commande_formule_id)\
+        .execute()
+
+    if not existing.data:
+        raise HTTPException(status_code=404, detail="Commande-Formule not found")
+
+    query = supabase.table("carnet_commande").select("id").eq("id", existing.data[0]['commande_id'])
     
-    print(f"📝 Mise à jour exclusions pour commande_formule {commande_formule_id}")
-    print(f"🚫 Nouveaux produits exclus : {produits_exclus}")
+    if current_user.get("role") != "TECH_ADMIN":
+        query = query.eq("franchise_id", current_user["franchise_id"])
+    
+    commande_check = query.execute()
+    
+    if not commande_check.data:
+        raise HTTPException(status_code=404, detail="Commande not found")
+    
+    produits_exclus = update_data.produits_exclus
+    quantite_finale = update_data.quantite_finale
+    
+    logger.info(f"📝 Mise à jour exclusions pour commande_formule {commande_formule_id}")
+    logger.info(f"🚫 Nouveaux produits exclus : {produits_exclus}")
     if quantite_finale is not None:
-        print(f"🔢 Nouvelle quantité finale : {quantite_finale}")
+        logger.info(f"🔢 Nouvelle quantité finale : {quantite_finale}")
     
     # 1. Mettre à jour quantite_finale si fournie
     if quantite_finale is not None:
@@ -184,9 +209,9 @@ async def update_commande_formule_exclusions(commande_formule_id: int, update_da
             for produit_id in produits_exclus
         ]
         supabase.table("commande_formule_exclusions").insert(exclusions_data).execute()
-        print(f"✅ {len(produits_exclus)} exclusion(s) ajoutée(s)")
+        logger.info(f"✅ {len(produits_exclus)} exclusion(s) ajoutée(s)")
     else:
-        print("✅ Toutes les exclusions ont été supprimées")
+        logger.info("✅ Toutes les exclusions ont été supprimées")
     
     return {
         "message": "Exclusions mises à jour avec succès", 

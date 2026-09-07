@@ -135,8 +135,6 @@ app.include_router(unite.router)
 app.include_router(planning.router)
 app.include_router(admin.router)
 app.include_router(auth.router)
-app.include_router(franchise_catalogue.router)
-
 
 # ============================================
 # ROUTES
