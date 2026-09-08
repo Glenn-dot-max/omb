@@ -50,7 +50,7 @@ async def get_commandes(current_user: dict = Depends(get_current_user)):
         paris_now = datetime.now(paris_tz)
 
         return {
-            "commandes": [serialize_commande(commande) for commande in response.data],
+            "commandes": response.data,
             "paris_date": paris_now.date().isoformat(),
             "paris_datetime": paris_now.isoformat()
         }
@@ -85,7 +85,7 @@ async def get_archived_commandes(current_user: dict = Depends(get_current_user))
             .order("delivery_date", desc=True)\
             .execute()
         
-        return [serialize_commande(commande) for commande in response.data]
+        return response.data
     except Exception as e:
         logger.error(f"Error loading archived commandes: {e}", exc_info=True)
         raise HTTPException(
@@ -112,7 +112,7 @@ async def get_commande(commande_id: str, current_user: dict = Depends(get_curren
 
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
-    return serialize_commande(response.data[0])
+    return response.data[0]
 
 @router.post("/")
 async def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
@@ -183,7 +183,7 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
         )
 
     response = supabase.table("carnet_commande").insert(commande_data).execute()
-    return serialize_commande(response.data[0])
+    return response.data[0]
 
 @router.post("/auto-archive")
 async def auto_archive_old_commandes(current_user: dict = Depends(get_current_user)):
@@ -278,7 +278,7 @@ async def archive_commande(commande_id: str, current_user: dict = Depends(get_cu
 
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
-    return serialize_commande(response.data[0])
+    return response.data[0]
 
 @router.put("/{commande_id}")
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
@@ -328,7 +328,7 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
 
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
-    return serialize_commande(response.data[0])
+    return response.data[0]
 
 @router.delete("/{commande_id}")
 async def delete_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
@@ -476,4 +476,4 @@ async def duplicate_commande(commande_id: str, current_user: dict = Depends(get_
         supabase.table("commande_produits").insert(new_cp_data).execute()
 
     logger.info(f"[COMMANDES] Duplication: {commande_id} → {new_commande_id}")
-    return serialize_commande(new_commande)
+    return new_commande

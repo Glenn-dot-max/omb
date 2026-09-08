@@ -1,27 +1,16 @@
 from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user, is_catalog_admin, CATALOG_ADMIN_ROLES
 from database import get_supabase_client
+from utils import fetch_all_paginated, normalize_name
 from models import FormuleCreate, FormuleUpdate, ToggleFranchisesRequest
 from fastapi.encoders import jsonable_encoder
 from typing import List
-import re
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/formules", tags=["formules"])
 supabase = get_supabase_client()
-
-
-def normalize_formule_name(name: str) -> str:
-    if not name:
-        return ""
-    return re.sub(
-        r"\s*\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)\s*$",
-        "",
-        name,
-        flags=re.IGNORECASE,
-    ).strip()
 
 @router.get("/")
 async def get_formules(current_user: dict = Depends(get_current_user)):
@@ -47,22 +36,12 @@ async def get_formules(current_user: dict = Depends(get_current_user)):
         page_size = 1000
         offset = 0
 
-        while True:
-            liens_page = supabase.table("franchise_formules")\
-                .select("formule_id, franchise_id")\
-                .eq("active", True)\
-                .range(offset, offset + page_size - 1)\
-                .execute()
-
-            if not liens_page.data:
-                break
-
-            all_liens_data.extend(liens_page.data)
-
-            if len(liens_page.data) < page_size:
-                break
-
-            offset += page_size
+        all_liens_data = fetch_all_paginated(
+            supabase,
+            table="franchise_formules",
+            select="formule_id, franchise_id",
+            filters={"active": True}
+        )
 
         from collections import defaultdict
         liens_par_formule = defaultdict(list)
@@ -544,7 +523,7 @@ async def restore_shared_original_formule(formule_id: str, current_user: dict = 
     if not current_formule.data:
         raise HTTPException(status_code=404, detail="Formule actuelle introuvable")
 
-    current_base_name = normalize_formule_name(current_formule.data[0].get("name", ""))
+    current_base_name = normalize_name(current_formule.data[0].get("name", ""))
 
     # Chercher les anciennes formules inactives pour cette franchise
     inactive_links = supabase.table("franchise_formules")\
@@ -573,7 +552,7 @@ async def restore_shared_original_formule(formule_id: str, current_user: dict = 
 
     for candidate in inactive_formules.data:
         candidate_id = candidate["id"]
-        candidate_base_name = normalize_formule_name(candidate.get("name", ""))
+        candidate_base_name = normalize_name(candidate.get("name", ""))
         name_match = 1 if candidate_base_name == current_base_name else 0
 
         active_count_resp = supabase.table("franchise_formules")\

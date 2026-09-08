@@ -1,28 +1,17 @@
 from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user, CATALOG_ADMIN_ROLES
-from database import get_supabase_client 
+from database import get_supabase_client
+from utils import fetch_all_paginated, get_or_404, verify_commande_ownership, normalize_name
 from models import ProduitCreate, ProduitUpdate, ToggleFranchisesRequest
 from fastapi.encoders import jsonable_encoder
 from typing import List
 from cache import get_cached, set_cached
-import re
 
 import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/produits", tags=["produits"])
 supabase = get_supabase_client()
-
-
-def normalize_produit_name(name: str) -> str:
-    if not name:
-        return ""
-    return re.sub(
-        r"\s*\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)\s*$",
-        "",
-        name,
-        flags=re.IGNORECASE,
-    ).strip()
 
 @router.get("/")
 async def get_produits(current_user: dict = Depends(get_current_user)):
@@ -57,22 +46,13 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
         page_size = 1000
         offset = 0
 
-        while True:
-            liens_page = supabase.table("franchise_produits")\
-                .select("produit_id, franchise_id")\
-                .eq("active", True)\
-                .range(offset, offset + page_size - 1)\
-                .execute()
-            
-            if not liens_page.data:
-                break
-            
-            all_liens_data.extend(liens_page.data)
-            
-            if len(liens_page.data) < page_size:
-                break
-            
-            offset += page_size
+
+        all_liens_data = fetch_all_paginated(
+            supabase,
+            table="franchise_produits",
+            select="produit_id, franchise_id",
+            filters={"active": True}
+        )
 
         # 4️⃣ Regrouper les liens par produit_id
         liens_par_produit = defaultdict(list)
@@ -269,7 +249,7 @@ async def create_produit(produit: ProduitCreate, current_user: dict = Depends(ge
         try:
             response = supabase.table("produits").insert(produit_data).execute()
         except Exception:
-            safe_name = f"{normalize_produit_name(produit_data['name'])} ({franchise_id})"
+            safe_name = f"{normalize_name(produit_data['name'])} ({franchise_id})"
             response = supabase.table("produits").insert({
                 **produit_data,
                 "name": safe_name,
@@ -550,7 +530,7 @@ async def update_produit(produit_id: str, produit: ProduitUpdate, current_user: 
         try:
             new_produit_response = supabase.table("produits").insert(new_produit_data).execute()
         except Exception:
-            fallback_name = f"{normalize_produit_name(base_name)} ({franchise_id})"
+            fallback_name = f"{normalize_name(base_name)} ({franchise_id})"
             new_produit_data["name"] = fallback_name
             new_produit_response = supabase.table("produits").insert(new_produit_data).execute()
 
