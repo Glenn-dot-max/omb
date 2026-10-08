@@ -98,3 +98,50 @@ def test_protected_route_without_token(client):
     """Accéder à une route protégée sans token -> 403"""
     response = client.get("/produits/")
     assert response.status_code in (401, 403)
+
+# ============================================================
+# TESTS - Réinitialisation du mot de passe (mot de passe oublié)
+# ============================================================
+
+def test_reset_password_invalid_token(client):
+    """Token inconnu -> 400 (et pas 500)"""
+    mock_response = MagicMock()
+    mock_response.data = []
+
+    with patch("routes.auth.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.post("/auth/reset-password", json={
+            "token": "token-inconnu-1234567890",
+            "new_password": "NouveauMdp1"
+        })
+
+    assert response.status_code == 400
+
+def test_reset_password_weak_password(client):
+    """Mot de passe sans majuscule ni chiffre -> 422 (refusé par la validation)"""
+    response = client.post("/auth/reset-password", json={
+        "token": "token-valide-1234567890",
+        "new_password": "motdepassefaible"
+    })
+
+    assert response.status_code == 422
+
+def test_reset_password_success(client):
+    """Token valide et non expiré -> 200 et le mot de passe est mis à jour"""
+    from datetime import datetime, timedelta, timezone
+
+    mock_response = MagicMock()
+    mock_response.data = [{
+        "id": "user-123",
+        "reset_token_expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    }]
+
+    with patch("routes.auth.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.post("/auth/reset-password", json={
+            "token": "token-valide-1234567890",
+            "new_password": "NouveauMdp1"
+        })
+
+    assert response.status_code == 200
+    mock_db.table.return_value.update.assert_called_once()

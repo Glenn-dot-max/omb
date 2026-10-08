@@ -325,8 +325,6 @@ class ResetPasswordRequest(BaseModel):
             raise ValueError('Le mot de passe doit contenir au moins un chiffre')
         return v
 
-class ResetPasswordRequest(BaseModel):
-    new_password: str
 
 # ===========================================
 # GESTION MULTI-FRANCH

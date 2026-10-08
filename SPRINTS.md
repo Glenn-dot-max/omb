@@ -31,9 +31,10 @@
 ## 🧭 Vision produit (décidée le 2026-10-07)
 
 Développé d'abord pour **Oh My Brunch et ses franchises**, puis **commercialisé à d'autres traiteurs**.
-Principe : *construire pour OMB, concevoir pour plusieurs clients*. Pas de dette qui bloque la commercialisation.
+Principe : _construire pour OMB, concevoir pour plusieurs clients_. Pas de dette qui bloque la commercialisation.
 
 Modèle cible :
+
 ```
 Plateforme (super-admin)
  └── Organisation (le client : OMB, Traiteur X…)
@@ -46,6 +47,7 @@ Plateforme (super-admin)
 ```
 
 Les 5 règles :
+
 1. Rien de spécifique à OMB dans le code → tout dans les paramètres de l'organisation.
 2. Chaque donnée a un `organisation_id`, le filtrage est **automatique** (jamais à la main par route) + RLS en filet.
 3. Personnaliser par site **sans dupliquer** les produits (fin du suffixe UUID dans les noms).
@@ -71,7 +73,7 @@ Les 5 règles :
 
 > Nuance retenue (avis GPT) : la clé `anon` est faite pour être publique ; le vrai risque, ce sont les permissions (RLS). La clé `service_role` actuelle n'a jamais été committée.
 
-- [ ] **0.1** Vérifier RLS sur **toutes** les tables (Table Editor → chaque table → RLS activé ; Policies : aucune policy qui ouvre l'accès au rôle `anon`). Priorité : `users`, `carnet_commande`, `franchises`.
+- [x] **0.1** Vérifier RLS sur **toutes** les tables (Table Editor → chaque table → RLS activé ; Policies : aucune policy qui ouvre l'accès au rôle `anon`). Priorité : `users`, `carnet_commande`, `franchises`.
 - [ ] **0.2** Comptes présents en clair dans `backend/scripts/` (`catalog.admin@ohmybrunch.com` / `ChangeMe123!`, `paris@test.com` / `Paris1234`, mot de passe `Admin2026!` dans `generate_password.py`) : s'ils existent encore, **réinitialiser leur mot de passe depuis l'admin** (ne pas tester les identifiants), désactiver les comptes de test inutiles.
 - [ ] **0.3** Rotation des clés **seulement après 0.1**. ⚠️ Avec les clés legacy, régénérer change aussi la `service_role` → mettre à jour `SUPABASE_KEY` sur Render immédiatement après, sinon le backend tombe.
 - [ ] **0.4** Ancien projet `vaevkhnkfjpfqqcbslvi` : vérifier s'il existe et ce qu'il contient. Désactiver/révoquer les accès plutôt que supprimer à l'aveugle.
@@ -168,7 +170,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - [ ] **9.2** Fuseau horaire (`Europe/Paris` ×6), types de prestation et règle « mariage → coefficient » (`commandes-modals.js`) en paramètres.
 - [ ] **9.3** `main.py` (titre API), `config.py` (URL `omb-frontend.onrender.com`) → neutres / configurables.
 
-## Sprint T — Theming (marque blanche) — *peut démarrer à tout moment, indépendant du reste*
+## Sprint T — Theming (marque blanche) — _peut démarrer à tout moment, indépendant du reste_
 
 État actuel : 0 variable CSS, ~385 couleurs en dur dans le CSS, ~92 dans les pages HTML, ~100 dans le JS, « Oh My Brunch » en dur dans 11 fichiers.
 
