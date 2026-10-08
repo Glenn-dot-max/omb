@@ -7,9 +7,9 @@
 
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
-- **Production** : Render déploie la branche `v8` (commit `cae6824`). Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
-- **Branche de travail** : `sprint/1-nettoyage-backend` = `v8` + 1 commit de nettoyage (`c593fd8`). 43 tests verts.
-- **Prochaine tâche** : Sprint 0 → tâche 0.1 (vérifier RLS dans Supabase).
+- **Production** : Render déploie la branche `v8` (commit `cae6824`), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
+- **Branche de travail** : `sprint/1-nettoyage-backend` — Sprint 0 fait (sauf 0.5), tâches 1.1 → 1.4 faites et poussées. 56 tests verts.
+- **Prochaine tâche** : 1.5 (instructions déjà données le 2026-10-08, fichier `backend/tests/test_formules.py` créé mais pas commité). Puis les **Hotfix H1 + H2** (commande affichée vide en modification, duplication incomplète — une seule branche hotfix, voir plus bas).
 - **En attente d'une réponse de Glenn** : voir « Questions ouvertes » (Q1 bloque la tâche 2.1).
 
 ---
@@ -95,13 +95,52 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - utiliser `role` et `franchise_id` **de la base**, pas du token (aujourd'hui un changement de rôle/franchise met jusqu'à 7 jours à s'appliquer) ;
   - refuser un token dont la date d'émission (`iat`, à ajouter dans `create_access_token`) est antérieure à `password_changed_at`.
   - Tests : token émis avant changement de mot de passe → 401 ; rôle modifié en base → pris en compte immédiatement.
-- [ ] **1.5 `FormuleCreate` sans validation** — `models.py` : `class FormuleCreate(FormuleBase)` en gardant `franchise_ids`.
-  - Test : nom vide, `nombre_couverts=-5`, nom avec `<b>` → 422.
+- [~] **1.5 `FormuleCreate` sans validation** — `models.py` : `class FormuleCreate(FormuleBase)` en gardant `franchise_ids`.
+  - Ajustements décidés le 2026-10-08 : `FormuleUpdate` a le même trou (renommer une formule contourne la validation) → fonction commune `check_formule_name()` utilisée par les deux ; **autoriser l'apostrophe** (« Formule d'été »), n'interdire que `<` et `>` (la vraie protection XSS = échapper à l'affichage, Sprint 3).
+  - Frontend : `getErrorMessage()` dans `frontend/js/auth.js` pour afficher lisiblement les erreurs 422 (liste) au lieu de `[object Object]`, utilisée dans les 4 helpers `apiPost`/`apiPatch`/…
+  - Tests : `backend/tests/test_formules.py` (tests unitaires de modèle + `parametrize`) : nom vide, espaces, `<img …>`, couverts -5 / 0, nom > 200 car. → refusés ; apostrophe acceptée ; `FormuleUpdate` partiel OK ; `POST /formules/` avec HTML → 422.
+- [ ] **1.5b Même correction pour les produits** — `models.py` : `ProduitBase` interdit l'apostrophe (à autoriser, n'interdire que `<` `>`) et `ProduitUpdate` n'a aucun validateur de nom. ⚠️ Avant d'autoriser l'apostrophe : `produits-catalogue.js` injecte des noms (catégories/types) dans des `onclick="…'${name}'…"` → vérifier que les noms de produits ne le sont pas.
 - [ ] **1.6 Bug latent `delivery_hour`** — `backend/routes/commandes.py`, `create_commande` et `update_commande` : écrire explicitement `commande_data['delivery_hour'] = delivery_hour_str` (aujourd'hui ça marche uniquement par effet de bord de `serialize_commande`).
   - Test : la commande créée a un `delivery_hour` au format `HH:MM`.
 - [ ] **1.7 Code mort** — supprimer `routes/franchise_catalogue.py` + son import dans `main.py` ; supprimer les `import re` inutilisés dans `produits.py` et `formules.py` ; supprimer la fixture `admin_headers` en double dans `tests/conftest.py`.
   - Test : suite verte.
-- [ ] **1.8** Fusionner la branche dans `v8` → déploiement Render → vérifier en prod le parcours « mot de passe oublié ».
+- [ ] **1.8** Fusionner la branche dans `v8` → déploiement Render → vérifier en prod le parcours « mot de passe oublié ». ⚠️ Prévenir les franchises : les utilisateurs ayant déjà changé leur mot de passe devront se reconnecter une fois (anciens tokens sans `iat`, cf. 1.4).
+- [ ] **1.9 Erreur `[Errno 11] Resource temporarily unavailable`** — 2026-10-08 à 16:24:59, 2 GET simultanés (`/commande-formules/commande/…` et `/commande-produits/commande/…`) en 500. Erreur réseau passagère backend → Supabase. Piste : connexion HTTP/2 partagée du client Supabase quand plusieurs requêtes partent en même temps. Enquêter (reproduire, voir si elle revient dans les logs Render, options : désactiver HTTP/2, réessai automatique). Le Hotfix H1 empêche déjà qu'elle fausse les données.
+
+## 🚑 Hotfix H1 — Commande affichée vide en modification → doublons (incident du 2026-10-08)
+
+**Statut** : diagnostiqué, **reporté** (contournement utilisateur suffisant pour l'instant). À faire sur une branche `hotfix/commande-formule-doublon` créée **depuis `v8`**, fusionnée dans `v8` (→ déploiement), puis `v8` fusionnée dans la branche de sprint.
+
+**Incident** (commande `f4efe8e8…`, logs Render) : à l'ouverture de la modification, le chargement des formules et des produits a échoué (`[Errno 11]`, cf. 1.9). `getCommandeFormules` / `getCommandeProduits` (`frontend/js/api.js`) avalent l'erreur (`return []`) → la commande s'affiche **vide** → l'utilisateur ressaisit formule et produits → la base refuse les doublons (contraintes d'unicité, code `23505`) → le backend répond **500**.
+
+**Contournement à donner à l'utilisateur** : si une commande s'ouvre vide en modification, **fermer, recharger la page (F5), rouvrir**. Ne pas ressaisir. Après l'incident, vérifier la commande ligne par ligne (les produits déjà présents ont gardé leur ancienne quantité ; pour changer une quantité : retirer la ligne puis la rajouter).
+
+- [ ] **H1.a Backend : doublon → 409 au lieu de 500** — `backend/main.py` : `from postgrest.exceptions import APIError` + un `@app.exception_handler(APIError)` placé avant le handler `Exception` : si `exc.code == "23505"` → 409 « Cet élément existe déjà (doublon). Rechargez la page… » ; sinon log + 500 générique.
+  - Test : `backend/tests/test_errors.py` — `mock.insert().execute.side_effect = APIError({... "code": "23505" ...})` sur `POST /commande-produits/` et `POST /commande-formules/` → 409. (Vérifié sur une copie de `v8` : 2 échecs avant, 27 tests verts après.)
+- [ ] **H1.b Frontend : ne plus masquer les erreurs de chargement** (le vrai correctif) — `frontend/js/api.js`, `getCommandeFormules` et `getCommandeProduits` : `return [];` → `throw error;`. Les 3 appelants (détail, modification, duplication dans `commandes-modals.js`) ont déjà un `try/catch` qui affiche un message. Corrige aussi la duplication, qui aurait créé une copie vide sans prévenir.
+- [ ] **H1.c Frontend : enregistrement protégé** — `frontend/js/commandes/commandes-modals.js` :
+  - renommer `handleSaveEditCommande` → `saveEditCommande`, et ajouter au-dessus un nouveau `handleSaveEditCommande` qui désactive le bouton `#save-edit-commande` pendant l'enregistrement (`try { await saveEditCommande(); } finally { saveBtn.disabled = false; }`) → plus de double clic ;
+  - STEP 5 : mémoriser l'`id` renvoyé après chaque création (`formule.id = created.id`, `produit.id = created.id`) → un nouvel essai après un échec partiel ne renvoie pas ce qui est déjà enregistré ;
+  - `catch` final : `showToast(error.message || "Erreur lors de la sauvegarde de la commande.", "error")`.
+- [ ] **H1.d Déploiement** (à faire **après H2**, les deux dans la même branche hotfix) — commit sur la branche hotfix, `git push -u origin hotfix/commande-formule-doublon`, puis `git switch v8 && git merge hotfix/commande-formule-doublon && git push` → tester en prod → `git switch sprint/1-nettoyage-backend && git merge v8`.
+
+## 🚑 Hotfix H2 — La duplication d'une commande donne une copie incomplète (signalé le 2026-10-08)
+
+**Statut** : diagnostiqué (lecture du code de `v8`), **à faire dans la même branche hotfix que H1**, avant H1.d.
+
+**Cause** (`frontend/js/commandes/commandes-modals.js`, `handleDuplicateCommande`, ligne ~928) : bug de **références JavaScript** sur les « alias de compatibilité » de `frontend/js/commandes.js` (lignes ~34-40) :
+- au chargement, `let tempFormules = AppState.tempFormules;` → les deux noms désignent **le même tableau** ;
+- mais le reste du code **réaffecte** la variable (`tempFormules = [];` à l'ouverture/fermeture de la modale de création) → `tempFormules` pointe désormais vers un **autre** tableau que `AppState.tempFormules` ;
+- la duplication fait `AppState.tempFormules = [];` puis `AppState.tempFormules.push(...)`, alors que l'affichage (`displayTempFormules`) et la création (`handleCreateCommande`) lisent `tempFormules` → les formules et produits copiés **ne sont ni affichés ni créés** (ou on voit des restes d'une saisie précédente). Même chose pour `tempProduits`.
+
+**Causes secondaires** :
+- une formule de la commande d'origine qui n'est plus dans `allFormules` (ex. désactivée depuis pour la franchise) est **ignorée sans prévenir** (`if (formuleData) { … }`) ;
+- `getCommandeFormules` / `getCommandeProduits` renvoient `[]` en cas d'erreur (corrigé par H1.b).
+
+- [ ] **H2.a** Dans `handleDuplicateCommande` : remplacer `AppState.tempFormules = []; AppState.tempProduits = [];` par `tempFormules = []; tempProduits = [];`, et `AppState.tempFormules.push(` / `AppState.tempProduits.push(` par `tempFormules.push(` / `tempProduits.push(` → une seule variable utilisée partout, comme dans le reste du fichier.
+- [ ] **H2.b** Formule introuvable : au lieu de l'ignorer, compter les formules non reprises et afficher un avertissement (`showToast("⚠️ N formule(s) de la commande d'origine ne sont plus disponibles et n'ont pas été copiées.", "warning")`).
+- [ ] **H2.c Test manuel** (pas de tests frontend automatisés pour l'instant) : dupliquer une commande avec ≥ 2 formules (dont une avec exclusions) et ≥ 2 produits → la modale affiche tout → « Créer » → la nouvelle commande contient bien tout, avec les mêmes quantités et exclusions. Refaire le test **après** avoir ouvert puis fermé une fois la modale « Nouvelle commande » (c'est ce qui casse l'alias).
+- [ ] **H2.d (Sprint 4 / 10, pas dans le hotfix)** Supprimer les « alias de compatibilité » de `commandes.js` (`allFormules`, `editFormules`, etc. ont le même risque) : n'utiliser qu'`AppState.xxx` partout. Noter aussi : la route backend `POST /commandes/{id}/duplicate` et `duplicateCommande()` (`api.js`) ne sont appelées nulle part → code mort, à supprimer ou à réutiliser (dupliquer côté serveur serait plus fiable).
 
 ## Sprint 2 — Isolation entre franchises et perte de données
 
@@ -126,7 +165,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 
 - [ ] **4.1** Scripts `backend/scripts/` : lire email/mot de passe via `input()`/`getpass` ou variable d'environnement, plus rien en dur.
 - [ ] **4.2** `requirements-dev.txt` pour `pytest` (garder `httpx` en prod : dépendance de Supabase).
-- [ ] **4.3** Recréer le venv local en **Python 3.11** (aujourd'hui 3.9, alors que Render tourne en 3.11).
+- [ ] **4.3** Aligner le venv local sur la production : Render tourne en réalité en **Python 3.13** (vu dans les logs du 2026-10-08), alors que `render.yaml` demande 3.11 et que le venv local est en 3.9. Choisir une version, la fixer dans `render.yaml` (vérifier pourquoi elle n'est pas respectée) et recréer le venv local avec la même.
 - [ ] **4.4** Renommer `backend/routes/_init_.py` → `__init__.py`.
 - [ ] **4.5** CSS dupliqué dans `frontend/css/style.css` (`.actions-bar`, `.filters-section`, `.filter-select`, `.loader`, `.toast`) — peut se faire avec le Sprint T.
 - [ ] **4.6** `render.yaml` : déclarer les secrets avec `sync: false`.
@@ -218,3 +257,4 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - **2026-09-06** — Audit complet + recoupement avec une revue Copilot. Plan de sprints défini.
 - **2026-09-08** — Vérification des clés Supabase leakées (`service_role` actuelle jamais committée). Création de `sprint/1-nettoyage-backend`. Sprint 1bis réalisé et commité (`c593fd8`).
 - **2026-10-07** — Revérification complète sur `v8` (version en prod). Nouveaux points : mots de passe en clair dans les scripts, archivage destructif, sessions non révoquées (rôle/franchise lus depuis le token, validité 7 jours). Avis GPT intégré (nuances sur la clé `anon`, rotation legacy, XSS, `httpx`, Dockerfile, divergence `main`/`v8`). Vision produit multi-traiteurs décidée → ajout des Phases B et C et du Sprint T (theming). Plan refondu dans ce fichier.
+- **2026-10-08** — Sprint 0 fait (sauf 0.5). Tâches 1.1 (reset mot de passe : doublon de modèle + nom de champ `newPassword` côté frontend), 1.2, 1.3, 1.4 (rôle/franchise relus en base, tokens invalidés après changement de mot de passe, nouveau token renvoyé) faites, 56 tests verts. 1.5 préparée (ajustements : `FormuleUpdate`, apostrophe autorisée, `getErrorMessage`) + ajout 1.5b. **Incident prod** sur la commande `f4efe8e8…` : chargement en erreur masqué → commande affichée vide → doublons → 500. Diagnostic fait, Hotfix H1 planifié et reporté (contournement : recharger la page). Ajout 1.9 (`Errno 11`) ; découverte que Render tourne en Python 3.13 (4.3 mise à jour). Signalement « duplication de commande incomplète » → cause trouvée (alias `tempFormules` / `AppState.tempFormules` désynchronisés), Hotfix H2 planifié.
