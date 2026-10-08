@@ -12,6 +12,9 @@ from datetime import datetime, timezone
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 supabase = get_supabase_client()
+# Colonnes de la table users qu'on a le droit de renvoyer au naviguateur.
+# Ne JAMAIS y ajouter passord_hash ni rest_token_hash.
+USER_PUBLIC_COLUMNS = "id, email, full_name, role, franchise_id, active, must_change_password, created_at, franchises(nom)"
 
 # ======================================
 # FRANCHISE - CRUD
@@ -77,7 +80,7 @@ async def get_users(
     current_user: dict = Depends(is_tech_admin)
 ):
     """Liste tous les utilisateurs, avec filtre optionnel par franchise"""
-    query = supabase.table("users").select("*, franchises(nom)")
+    query = supabase.table("users").select(USER_PUBLIC_COLUMNS)
 
     if franchise_id:
         query = query.eq("franchise_id", franchise_id)
@@ -87,7 +90,7 @@ async def get_users(
 @router.get("/users/{user_id}")
 async def get_user(user_id: str, current_user: dict = Depends(is_tech_admin)):
     """Récupère un utilisateur par son ID (TECH ADMIN UNIQUEMENT)"""
-    response = supabase.table("users").select("*, franchises(nom)").eq("id", user_id).execute()
+    response = supabase.table("users").select(USER_PUBLIC_COLUMNS).eq("id", user_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
     return response.data[0]

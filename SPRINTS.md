@@ -74,7 +74,7 @@ Les 5 règles :
 > Nuance retenue (avis GPT) : la clé `anon` est faite pour être publique ; le vrai risque, ce sont les permissions (RLS). La clé `service_role` actuelle n'a jamais été committée.
 
 - [x] **0.1** Vérifier RLS sur **toutes** les tables (Table Editor → chaque table → RLS activé ; Policies : aucune policy qui ouvre l'accès au rôle `anon`). Priorité : `users`, `carnet_commande`, `franchises`.
-- [ ] **0.2** Comptes présents en clair dans `backend/scripts/` (`catalog.admin@ohmybrunch.com` / `ChangeMe123!`, `paris@test.com` / `Paris1234`, mot de passe `Admin2026!` dans `generate_password.py`) : s'ils existent encore, **réinitialiser leur mot de passe depuis l'admin** (ne pas tester les identifiants), désactiver les comptes de test inutiles.
+- [x] **0.2** Comptes présents en clair dans `backend/scripts/` (`catalog.admin@ohmybrunch.com` / `ChangeMe123!`, `paris@test.com` / `Paris1234`, mot de passe `Admin2026!` dans `generate_password.py`) : s'ils existent encore, **réinitialiser leur mot de passe depuis l'admin** (ne pas tester les identifiants), désactiver les comptes de test inutiles.
 - [ ] **0.3** Rotation des clés **seulement après 0.1**. ⚠️ Avec les clés legacy, régénérer change aussi la `service_role` → mettre à jour `SUPABASE_KEY` sur Render immédiatement après, sinon le backend tombe.
 - [ ] **0.4** Ancien projet `vaevkhnkfjpfqqcbslvi` : vérifier s'il existe et ce qu'il contient. Désactiver/révoquer les accès plutôt que supprimer à l'aveugle.
 - [ ] **0.5** Répondre à Q3 (public/privé). Passer en privé limite les nouvelles consultations mais ne répare pas l'exposition passée.
