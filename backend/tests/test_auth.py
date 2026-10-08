@@ -145,3 +145,47 @@ def test_reset_password_success(client):
 
     assert response.status_code == 200
     mock_db.table.return_value.update.assert_called_once()
+
+# =========================================================
+# TESTS - get_current_user lit l'utilisateur en base
+# =========================================================
+
+def test_role_is_read_from_database_not_token(client):
+    """Token qui prétend être TECH_ADMIN mais l'utilisateur en base est USER -> 403"""
+    token = create_access_token({
+        "user_id": "user-123",
+        "email": "user@test.com",
+        "franchise_id": "franchise-abc",
+        "role": "TECH_ADMIN"
+    })
+
+    with patch("routes.admin.supabase"):
+        response = client.get("/admin/users", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 403
+
+def test_disables_account_is_rejected(client):
+    """Compte désactivé en base -> 401"""
+    token = create_access_token({
+        "user_id": "disabled-999",
+        "email": "disabled@test.com",
+        "franchise_id": "franchise-abc",
+        "role": "USER"
+    })
+
+    response = client.get("/produits/", headers={"Authorization": f"Bearer {token}"})
+    
+    assert response.status_code == 401
+
+def test_unknown_user_is_rejected(client):
+    """Token valide mais utilisateur supprimé de la base -> 401"""
+    token = create_access_token({
+        "user_id": "supprime-000",
+        "email": "supprime@test.com",
+        "franchise_id": "franchise-abc",
+        "role": "USER"
+    })
+
+    response = client.get("/produits/", headers={"Authorization": f"Bearer {token}"})
+    
+    assert response.status_code == 401

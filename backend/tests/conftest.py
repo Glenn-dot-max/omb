@@ -15,14 +15,26 @@ os.environ.setdefault("SUPABASE_KEY", "fake-key")
 
 from main import app
 
+# Fausse table "users" utilisée par get_current_user (auth.py)
+# Les clés sont les user_id des tokens de tests définis plus bas.
+FAKE_USERS = {
+    "user-123": {"active": True, "role": "USER", "franchise_id": "franchise-abc"},
+    "admin-456": {"active": True, "role": "TECH_ADMIN", "franchise_id": None},
+    "catalog-admin-789": {"active": True, "role": "CATALOG_ADMIN", "franchise_id": None},
+    "disabled-999": {"active": False, "role": "USER", "franchise_id": "franchise-abc"},
+}
+
 @pytest.fixture(autouse=True)
 def mock_supabase_auth():
-    """Mock le client Supabase dans auth.py pour éviter les vraies requêtes DB"""
-    mock_db_user = MagicMock()
-    mock_db_user.data = [{"active": True}]
+    """Mock le client Supabase dans auth.py : répons selon le user_id demandé"""
+    def fake_eq(column, user_id):
+        query = MagicMock()
+        user = FAKE_USERS.get(user_id)
+        query.execute.return_value.data = [user] if user else []
+        return query
 
     mock_client = MagicMock()
-    mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_db_user
+    mock_client.table.return_value.select.return_value.eq.side_effect = fake_eq
 
     with patch("auth.get_supabase_client", return_value=mock_client):
         yield

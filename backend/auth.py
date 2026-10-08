@@ -97,43 +97,50 @@ def decode_access_token(token: str) -> dict:
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     token = credentials.credentials
     payload = decode_access_token(token)
-    
+
     user_id = payload.get("user_id")
     email = payload.get("email")
-    franchise_id = payload.get("franchise_id")
-    role = payload.get("role", "USER")
-    
+
     if user_id is None or email is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token invalide",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
+    # Le token prouve qui est l'utilisateur. Ses droits (rôle, franchise, compte actif)
+    # sont relus en base à chaque requête : un changement est pris en compte immédiatement.
+    supabase = get_supabase_client()
+    db_user = supabase.table("users")\
+        .select("active, role, franchise_id")\
+        .eq("id", user_id)\
+        .execute()
+
+    if not db_user.data or not db_user.data[0]["active"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Utilisateur non actif ou introuvable",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user = db_user.data[0]
+    role = user.get("role") or ROLE_USER
+    franchise_id = user.get("franchise_id")
+
     if role not in CATALOG_ADMIN_ROLES and franchise_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalide: franchise_id manquant",
+            detail="Utilisateur sans franchise associée",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Vérifier que le compte est toujours actif en BDD
-    supabase = get_supabase_client()
-    db_user = supabase.table("users").select("active").eq("id", user_id).execute()
-
-    if not db_user.data or not db_user.data[0].get("active", False):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Compte désactivé",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
     return {
         "user_id": user_id,
         "email": email,
         "franchise_id": franchise_id,
         "role": role
     }
+
 
 def is_tech_admin(current_user: dict = Depends(get_current_user)):
     """Vérifie que l'utilisateur est TECH_ADMIN"""
