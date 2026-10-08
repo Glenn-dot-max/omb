@@ -178,6 +178,15 @@ async function fetchWithAuth(url, options = {}) {
 // ==============================================
 // HELPERS API
 // ==============================================
+// Transforme la réponse d'erreur de l'API en message lisible.
+// FastAPI renvoie "detail" soit sous forme de texte, soit sous forme de
+// liste d'erreurs (erreur 422 de validation).
+function getErrorMessage(error) {
+  if (Array.isArray(error.detail)) {
+    return error.detail.map((err) => err.msg).join(" ");
+  }
+  return error.detail || "Erreur API";
+}
 
 async function apiGet(endpoint) {
   const response = await fetchWithAuth(`${API_URL}${endpoint}`);
@@ -196,7 +205,7 @@ async function apiPost(endpoint, data) {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || "Erreur API");
+    throw new Error(getErrorMessage(error));
   }
 
   return response.json();
@@ -211,7 +220,7 @@ async function apiPatch(endpoint, data) {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || "Erreur API");
+    throw new Error(getErrorMessage(error));
   }
 
   return response.json();
@@ -226,7 +235,7 @@ async function apiPut(endpoint, data) {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || "Erreur API");
+    throw new Error(getErrorMessage(error));
   }
 
   return response.json();
@@ -249,7 +258,7 @@ async function apiDelete(endpoint) {
       error = { detail: "Erreur de suppression" };
     }
     console.error("❌ DELETE Error:", error);
-    throw new Error(error.detail || "Erreur API");
+    throw new Error(getErrorMessage(error));
   }
 
   // Lire la réponse

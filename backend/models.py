@@ -53,31 +53,39 @@ class ToggleFranchisesRequest(BaseModel):
 
 # ================ FORMULES MODÈLE ================
 
+def check_formule_name(v: str) -> str:
+    """Règles communes au nom d'une formule (création ET modification)"""
+    if not v or not v.strip():
+        raise ValueError('Le nom ne peut pas être vide')
+    if re.search(r'[<>]', v):
+        raise ValueError('Les caractères < et > ne sont pas autorisés')
+    return v.strip()
+
 class FormuleBase(BaseModel):
     name: constr(min_length=1, max_length=200, strip_whitespace=True)
     nombre_couverts: int = Field(default=1, ge=1, le=10000)
-    
+
     @field_validator('name')
     @classmethod
     def validate_name(cls, v):
-        if not v or not v.strip():
-            raise ValueError('Le nom ne peut pas être vide')
-        if re.search(r'[<>"\']', v):
-            raise ValueError('Caractères non autorisés')
-        return v.strip()
+        return check_formule_name(v)
 
-class FormuleCreate(BaseModel):
-    name: str
-    nombre_couverts: int = 1
-    franchise_ids: Optional[List[str]] = None  
+class FormuleCreate(FormuleBase):
+    franchise_ids: Optional[List[str]] = None
 
 class FormuleUpdate(BaseModel):
     name: Optional[constr(min_length=1, max_length=200)] = None
     nombre_couverts: Optional[int] = Field(None, ge=1, le=10000)
-    
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v):
+        if v is None:
+            return v
+        return check_formule_name(v)
+
     class Config:
         extra = 'forbid'
-
 
 # ================ CARNET_COMMANDE MODELS ================
 

@@ -95,7 +95,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - utiliser `role` et `franchise_id` **de la base**, pas du token (aujourd'hui un changement de rôle/franchise met jusqu'à 7 jours à s'appliquer) ;
   - refuser un token dont la date d'émission (`iat`, à ajouter dans `create_access_token`) est antérieure à `password_changed_at`.
   - Tests : token émis avant changement de mot de passe → 401 ; rôle modifié en base → pris en compte immédiatement.
-- [~] **1.5 `FormuleCreate` sans validation** — `models.py` : `class FormuleCreate(FormuleBase)` en gardant `franchise_ids`.
+- [x] **1.5 `FormuleCreate` sans validation** — `models.py` : `class FormuleCreate(FormuleBase)` en gardant `franchise_ids`.
   - Ajustements décidés le 2026-10-08 : `FormuleUpdate` a le même trou (renommer une formule contourne la validation) → fonction commune `check_formule_name()` utilisée par les deux ; **autoriser l'apostrophe** (« Formule d'été »), n'interdire que `<` et `>` (la vraie protection XSS = échapper à l'affichage, Sprint 3).
   - Frontend : `getErrorMessage()` dans `frontend/js/auth.js` pour afficher lisiblement les erreurs 422 (liste) au lieu de `[object Object]`, utilisée dans les 4 helpers `apiPost`/`apiPatch`/…
   - Tests : `backend/tests/test_formules.py` (tests unitaires de modèle + `parametrize`) : nom vide, espaces, `<img …>`, couverts -5 / 0, nom > 200 car. → refusés ; apostrophe acceptée ; `FormuleUpdate` partiel OK ; `POST /formules/` avec HTML → 422.
@@ -129,11 +129,13 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 **Statut** : diagnostiqué (lecture du code de `v8`), **à faire dans la même branche hotfix que H1**, avant H1.d.
 
 **Cause** (`frontend/js/commandes/commandes-modals.js`, `handleDuplicateCommande`, ligne ~928) : bug de **références JavaScript** sur les « alias de compatibilité » de `frontend/js/commandes.js` (lignes ~34-40) :
+
 - au chargement, `let tempFormules = AppState.tempFormules;` → les deux noms désignent **le même tableau** ;
 - mais le reste du code **réaffecte** la variable (`tempFormules = [];` à l'ouverture/fermeture de la modale de création) → `tempFormules` pointe désormais vers un **autre** tableau que `AppState.tempFormules` ;
 - la duplication fait `AppState.tempFormules = [];` puis `AppState.tempFormules.push(...)`, alors que l'affichage (`displayTempFormules`) et la création (`handleCreateCommande`) lisent `tempFormules` → les formules et produits copiés **ne sont ni affichés ni créés** (ou on voit des restes d'une saisie précédente). Même chose pour `tempProduits`.
 
 **Causes secondaires** :
+
 - une formule de la commande d'origine qui n'est plus dans `allFormules` (ex. désactivée depuis pour la franchise) est **ignorée sans prévenir** (`if (formuleData) { … }`) ;
 - `getCommandeFormules` / `getCommandeProduits` renvoient `[]` en cas d'erreur (corrigé par H1.b).
 
