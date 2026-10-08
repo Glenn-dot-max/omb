@@ -179,7 +179,6 @@ async def reset_password(
     
     return {
         "message": "Mot de passe réinitialisé avec succès",
-        "new_password": reset.new_password
     }
 
 @router.delete("/users/{user_id}")
