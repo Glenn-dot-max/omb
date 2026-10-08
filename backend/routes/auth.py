@@ -143,7 +143,16 @@ async def change_password(
         "password_changed_at": datetime.now(timezone.utc).isoformat()
     }).eq("id", current_user["user_id"]).execute()
 
-    return {"message": "Mot de passe changé avec succès"}
+    # Le changement de mot de passse invalide tous les anciens tokens, y compris
+    # celui de l'utilisateur lui-même : on lui en renvoie un nouveau pour qu'il reste connecté.
+    new_token = create_access_token({
+        "user_id": current_user["user_id"],
+        "email": current_user["email"],
+        "franchise_id": current_user["franchise_id"],
+        "role": current_user["role"],
+    })
+
+    return {"message": "Mot de passe changé avec succès", "access_token": "new_token"}
 
 # ===============================================
 # FORGOT PASSWORD - DEMANDE ET RÉINITIALISATION

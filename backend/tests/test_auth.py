@@ -189,3 +189,54 @@ def test_unknown_user_is_rejected(client):
     response = client.get("/produits/", headers={"Authorization": f"Bearer {token}"})
     
     assert response.status_code == 401
+
+# =========================================================
+# TESTS - Tokens invalisés après un changement de mot de passe (1.4b)
+# =========================================================
+
+def test_token_issued_before_password_change_is_rejected(client, admin_headers):
+    """Le mot de passe a été changé APRÈS l'émission du token -> 401"""
+    from datetime import datetime, timedelta, timezone
+    changed_later = (datetime.now(timezone.utc) + timedelta(minutes=1)).isoformat()
+
+    with patch.dict("tests.conftest.FAKE_USERS", {"admin-456": {
+        "active": True, "role": "TECH_ADMIN", "franchise_id": None,
+        "password_changed_at": changed_later
+    }}), patch ("routes.admin.supabase"):
+        response = client.get("/admin/users", headers=admin_headers)
+
+    assert response.status_code == 401
+
+def test_token_issued_after_password_change_is_accepted(client, admin_headers):
+    """Le mot de passe a été changé AVANT l'émission du token -> accès normal"""
+    from datetime import datetime, timedelta, timezone
+    changed_before = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+
+    mock_response = MagicMock()
+    mock_response.data = []
+
+    with patch.dict("tests.conftest.FAKE_USERS", {"admin-456": {
+        "active": True, "role": "TECH_ADMIN", "franchise_id": None,
+        "password_changed_at": changed_before
+    }}), patch("routes.admin.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.order.return_value.execute.return_value = mock_response
+        response = client.get("/admin/users", headers=admin_headers)
+
+    assert response.status_code == 200
+
+def test_change_password_returns_new_token(client, auth_headers):
+    """Après un changement de mot de passe, l'utilisateur reçoit un nouveau token"""
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "user-123", "password_hash": hash_password("AncienMdp1")}]
+
+    with patch("routes.auth.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.post("/auth/change-password", headers=auth_headers, json={
+            "old_password": "AncienMdp1",
+            "new_password": "NouveauMdp1"
+        })
+
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+
+

@@ -199,6 +199,11 @@
             );
           }
 
+          // L'ancien token est invalidé par le changement de mot de passe :
+          // on enregistre le nouveau pour rester connecté.
+          const data = await response.json();
+          saveToken(data.access_token);
+
           // Succès
           showMessage("✅ Mot de passe changé avec succès !", "success");
           form.reset();

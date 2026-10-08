@@ -4,7 +4,7 @@ import os
 import bcrypt 
 import secrets
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
@@ -75,13 +75,10 @@ def hash_reset_token(token: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    now = datetime.now(timezone.utc)
+    expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire, "iat": now})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_access_token(token: str) -> dict:
     try:
@@ -112,7 +109,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     # sont relus en base à chaque requête : un changement est pris en compte immédiatement.
     supabase = get_supabase_client()
     db_user = supabase.table("users")\
-        .select("active, role, franchise_id")\
+        .select("active, role, franchise_id, password_changed_at")\
         .eq("id", user_id)\
         .execute()
 
@@ -126,6 +123,22 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     user = db_user.data[0]
     role = user.get("role") or ROLE_USER
     franchise_id = user.get("franchise_id")
+
+    # Un token émis AVANT le dernier changement de mot de passe n'est plus valable
+    # (ex: mot de passe volé puis changé -> la session du voleur est coupée).
+    password_changed_at = user.get("password_changed_at")
+    if password_changed_at:
+        changed_at = datetime.fromisoformat(password_changed_at.replace("Z", "+00:00"))
+        if changed_at.tzinfo is None:
+            changed_at = changed_at.replace(tzinfo=timezone.utc)
+        issued_at = payload.get("iat", 0)
+        if issued_at < int(changed_at.timestamp()):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Session expirée, veuillez vous reconnecter",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
 
     if role not in CATALOG_ADMIN_ROLES and franchise_id is None:
         raise HTTPException(
