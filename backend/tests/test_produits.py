@@ -68,4 +68,43 @@ def test_create_produits_as_admin(client, admin_headers):
         })
 
     assert response.status_code in (200, 201)
-    
+
+# ===============================================
+# TEST UNITAIRES - Validation des modèles de produit (1.5b)
+# ===============================================
+import pytest
+from pydantic import ValidationError
+from models import ProduitCreate, ProduitUpdate
+
+def test_produit_create_accepts_apostrophe():
+    """Une apostrophe est autorisée, et les espaces autour du nom sont retirés"""
+    produit = ProduitCreate(name="  Pain d'épices  ")
+    assert produit.name == "Pain d'épices"
+
+@pytest.mark.parametrize("payload", [
+    {"name": ""},
+    {"name": "   "},
+    {"name": "<img src=x onerror=alert(1)>"},
+    {"name": "x" * 201},
+    {"name": "Croissant", "categorie_id": 0},
+])
+
+def test_produit_create_rejects_invalid_data(payload):
+    """Données incalides -> la création est refusée"""
+    with pytest.raises(ValidationError):
+        ProduitCreate(**payload)
+
+def test_produit_update_rejects_html_in_name():
+    """Renomer un produit avec du HTML -> refusé"""
+    with pytest.raises(ValidationError):
+        ProduitUpdate(name="<b>Croissant</b>")
+
+def test_produit_update_accepts_apostrophe():
+    """Renomer un profuit avec une apostrophe -> accepté"""
+    produit = ProduitUpdate(name="Pain d'épices")
+    assert produit.name == "Pain d'épices"
+
+def test_produit_update_allows_partial_update():
+    """On peut modifier seulement la catégorie, sans renvoyer le nom"""
+    produit = ProduitUpdate(categorie_id=2)
+    assert produit.name is None

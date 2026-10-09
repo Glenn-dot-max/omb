@@ -12,6 +12,16 @@ class UUIDModel(BaseModel):
         }
         extra = 'forbid'
 
+# ================ VALIDATEURS COMMUNS ================
+
+def check_name(v: str) -> str:
+    """Règles communes aux noms (produits, formules), en création ET en modification"""
+    if not v or not v.strip():
+        raise ValueError('Le nom ne peut pas être vide')
+    if re.search(r'[<>]', v):
+        raise ValueError('Les caractères < et > ne sont pas autorisés')
+    return v.strip()
+
 
 # ================ PRODUIT MODÈLE ================
 
@@ -23,11 +33,7 @@ class ProduitBase(BaseModel):
     @field_validator('name')
     @classmethod
     def validate_name(cls, v):
-        if not v or not v.strip():
-            raise ValueError('Le nom ne peut pas être vide')
-        if re.search(r'[<>"\']', v):
-            raise ValueError('Caractères non autorisés dans le nom')
-        return v.strip()
+        return check_name(v)
     
     @field_validator('categorie_id', 'type_id')
     @classmethod
@@ -43,6 +49,13 @@ class ProduitUpdate(BaseModel):
     name: Optional[constr(min_length=1, max_length=200, strip_whitespace=True)] = None
     categorie_id: Optional[int] = None
     type_id: Optional[int] = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v):
+        if v is None:
+            return v
+        return check_name(v)
     
     class Config:
         extra = 'forbid'
@@ -68,7 +81,7 @@ class FormuleBase(BaseModel):
     @field_validator('name')
     @classmethod
     def validate_name(cls, v):
-        return check_formule_name(v)
+        return check_name(v)
 
 class FormuleCreate(FormuleBase):
     franchise_ids: Optional[List[str]] = None
@@ -82,7 +95,7 @@ class FormuleUpdate(BaseModel):
     def validate_name(cls, v):
         if v is None:
             return v
-        return check_formule_name(v)
+        return check_name(v)
 
     class Config:
         extra = 'forbid'

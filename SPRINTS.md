@@ -8,8 +8,8 @@
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
 - **Production** : Render déploie la branche `v8` (hotfix H1 + H2 déployé le 2026-10-09), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
-- **Branche de travail** : `sprint/1-nettoyage-backend` (v8 fusionnée dedans) — Sprint 0 fait (sauf 0.5), tâches 1.1 → 1.5 faites. 68 tests verts.
-- **Prochaine tâche** : 1.5b (même validation pour les produits).
+- **Branche de travail** : `sprint/1-nettoyage-backend` (v8 fusionnée dedans) — Sprint 0 fait (sauf 0.5), tâches 1.1 → 1.5 faites. 77 tests verts.
+- **Prochaine tâche** : 1.6 (même validation pour les produits).
 
 ---
 
@@ -98,7 +98,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - Ajustements décidés le 2026-10-08 : `FormuleUpdate` a le même trou (renommer une formule contourne la validation) → fonction commune `check_formule_name()` utilisée par les deux ; **autoriser l'apostrophe** (« Formule d'été »), n'interdire que `<` et `>` (la vraie protection XSS = échapper à l'affichage, Sprint 3).
   - Frontend : `getErrorMessage()` dans `frontend/js/auth.js` pour afficher lisiblement les erreurs 422 (liste) au lieu de `[object Object]`, utilisée dans les 4 helpers `apiPost`/`apiPatch`/…
   - Tests : `backend/tests/test_formules.py` (tests unitaires de modèle + `parametrize`) : nom vide, espaces, `<img …>`, couverts -5 / 0, nom > 200 car. → refusés ; apostrophe acceptée ; `FormuleUpdate` partiel OK ; `POST /formules/` avec HTML → 422.
-- [ ] **1.5b Même correction pour les produits** — `models.py` : `ProduitBase` interdit l'apostrophe (à autoriser, n'interdire que `<` `>`) et `ProduitUpdate` n'a aucun validateur de nom. ⚠️ Avant d'autoriser l'apostrophe : `produits-catalogue.js` injecte des noms (catégories/types) dans des `onclick="…'${name}'…"` → vérifier que les noms de produits ne le sont pas.
+- [x] **1.5b Même correction pour les produits** — `models.py` : `ProduitBase` interdit l'apostrophe (à autoriser, n'interdire que `<` `>`) et `ProduitUpdate` n'a aucun validateur de nom. ⚠️ Avant d'autoriser l'apostrophe : `produits-catalogue.js` injecte des noms (catégories/types) dans des `onclick="…'${name}'…"` → vérifier que les noms de produits ne le sont pas.
 - [ ] **1.6 Bug latent `delivery_hour`** — `backend/routes/commandes.py`, `create_commande` et `update_commande` : écrire explicitement `commande_data['delivery_hour'] = delivery_hour_str` (aujourd'hui ça marche uniquement par effet de bord de `serialize_commande`).
   - Test : la commande créée a un `delivery_hour` au format `HH:MM`.
 - [ ] **1.7 Code mort** — supprimer `routes/franchise_catalogue.py` + son import dans `main.py` ; supprimer les `import re` inutilisés dans `produits.py` et `formules.py` ; supprimer la fixture `admin_headers` en double dans `tests/conftest.py`.
