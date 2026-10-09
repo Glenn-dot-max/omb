@@ -9,7 +9,7 @@
 
 - **Production** : Render déploie la branche `v8` (hotfix H1 + H2 déployé le 2026-10-09), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
 - **Branche de travail** : `sprint/1-nettoyage-backend` (v8 fusionnée dedans) — Sprint 0 fait (sauf 0.5), tâches 1.1 → 1.5 faites. 79 tests verts.
-- **Prochaine tâche** : 1.7 (code mort).
+- **Prochaine tâche** : 1.8
 
 ---
 
