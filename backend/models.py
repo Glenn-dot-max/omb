@@ -66,14 +66,6 @@ class ToggleFranchisesRequest(BaseModel):
 
 # ================ FORMULES MODÈLE ================
 
-def check_formule_name(v: str) -> str:
-    """Règles communes au nom d'une formule (création ET modification)"""
-    if not v or not v.strip():
-        raise ValueError('Le nom ne peut pas être vide')
-    if re.search(r'[<>]', v):
-        raise ValueError('Les caractères < et > ne sont pas autorisés')
-    return v.strip()
-
 class FormuleBase(BaseModel):
     name: constr(min_length=1, max_length=200, strip_whitespace=True)
     nombre_couverts: int = Field(default=1, ge=1, le=10000)
