@@ -7,9 +7,10 @@
 
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
-- **Production** : Render déploie la branche `v8` (hotfix H1 + H2 déployé le 2026-10-09), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
-- **Branche de travail** : `sprint/1-nettoyage-backend` (v8 fusionnée dedans) — Sprint 0 fait (sauf 0.5), tâches 1.1 → 1.5 faites. 79 tests verts.
-- **Prochaine tâche** : 1.8
+- **Production** : Render déploie la branche `v8` — **Sprint 1 déployé le 2026-10-09** (+ hotfix H1/H2 + correctifs formules), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
+- **Branche de travail** : aucune en cours — `sprint/1-nettoyage-backend` = `v8` (terminée). 79 tests verts.
+- **Prochaine étape** : Sprint 2 (branche à créer depuis `v8`). Bloqué par **Q1** (archiver ou supprimer).
+- **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
 
 ---
 
@@ -104,7 +105,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - Test : la commande créée a un `delivery_hour` au format `HH:MM`.
 - [x] **1.7 Code mort** — supprimer `routes/franchise_catalogue.py` + son import dans `main.py` ; supprimer les `import re` inutilisés dans `produits.py` et `formules.py` ; supprimer la fixture `admin_headers` en double dans `tests/conftest.py`.
   - Test : suite verte.
-- [ ] **1.8** Fusionner la branche dans `v8` → déploiement Render → vérifier en prod le parcours « mot de passe oublié ». ⚠️ Prévenir les franchises : les utilisateurs ayant déjà changé leur mot de passe devront se reconnecter une fois (anciens tokens sans `iat`, cf. 1.4).
+- [x] **1.8** Fusion dans `v8` + déploiement Render + tests en prod (2026-10-09). Parcours « mot de passe oublié » reporté → `BACKLOG.md` B1. Bugs trouvés pendant les tests et corrigés : modification d'une formule impossible depuis le 15 juin (champ `detail-formule-type` supprimé du HTML mais encore lu en JS), badge « toutes les franchises » affiché à tort après modification (réponse incomplète du serveur → fusion des objets).
 - [ ] **1.9 Erreur `[Errno 11] Resource temporarily unavailable`** — 2026-10-08 à 16:24:59, 2 GET simultanés (`/commande-formules/commande/…` et `/commande-produits/commande/…`) en 500. Erreur réseau passagère backend → Supabase. Piste : connexion HTTP/2 partagée du client Supabase quand plusieurs requêtes partent en même temps. Enquêter (reproduire, voir si elle revient dans les logs Render, options : désactiver HTTP/2, réessai automatique). Le Hotfix H1 empêche déjà qu'elle fausse les données.
 
 ## 🚑 Hotfix H1 — Commande affichée vide en modification → doublons (incident du 2026-10-08)
@@ -261,3 +262,4 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - **2026-09-08** — Vérification des clés Supabase leakées (`service_role` actuelle jamais committée). Création de `sprint/1-nettoyage-backend`. Sprint 1bis réalisé et commité (`c593fd8`).
 - **2026-10-07** — Revérification complète sur `v8` (version en prod). Nouveaux points : mots de passe en clair dans les scripts, archivage destructif, sessions non révoquées (rôle/franchise lus depuis le token, validité 7 jours). Avis GPT intégré (nuances sur la clé `anon`, rotation legacy, XSS, `httpx`, Dockerfile, divergence `main`/`v8`). Vision produit multi-traiteurs décidée → ajout des Phases B et C et du Sprint T (theming). Plan refondu dans ce fichier.
 - **2026-10-08** — Sprint 0 fait (sauf 0.5). Tâches 1.1 (reset mot de passe : doublon de modèle + nom de champ `newPassword` côté frontend), 1.2, 1.3, 1.4 (rôle/franchise relus en base, tokens invalidés après changement de mot de passe, nouveau token renvoyé) faites, 56 tests verts. 1.5 préparée (ajustements : `FormuleUpdate`, apostrophe autorisée, `getErrorMessage`) + ajout 1.5b. **Incident prod** sur la commande `f4efe8e8…` : chargement en erreur masqué → commande affichée vide → doublons → 500. Diagnostic fait, Hotfix H1 planifié et reporté (contournement : recharger la page). Ajout 1.9 (`Errno 11`) ; découverte que Render tourne en Python 3.13 (4.3 mise à jour). Signalement « duplication de commande incomplète » → cause trouvée (alias `tempFormules` / `AppState.tempFormules` désynchronisés), Hotfix H2 planifié.
+- **2026-10-09** — Hotfix H1 + H2 déployés. Tâches 1.5b, 1.6, 1.7 faites. **Sprint 1 déployé en production** (fast-forward de `v8`). Tests en prod : 2 bugs anciens de la page Formules trouvés et corrigés. Création de `BACKLOG.md` (mot de passe oublié reporté).
