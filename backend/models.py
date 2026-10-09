@@ -340,34 +340,6 @@ class ResetPasswordRequest(BaseModel):
 
 
 # ===========================================
-# GESTION MULTI-FRANCH
-# ===========================================
-
-class FranchiseProduitResponse(BaseModel):
-    """Produit avec son statut actif/inactif pour une franchise"""
-    id: UUID
-    nom: str
-    categorie: str
-    type: str
-    active: bool
-
-    class Config:
-        from_attributes = True
-
-class FranchiseFormuleResponse(BaseModel):
-    """Formule avec son statut actif/inactif pour une franchise"""
-    id: UUID
-    nom: str
-    description: Optional[str] = None
-    nombre_couverts: int
-    type_formule: str
-    active: bool
-    produits_count: int = 0
-
-    class Config:
-        from_attributes = True
-
-# ===========================================
 # GESTION DES CATEGORIES ET TYPES
 # ===========================================
 

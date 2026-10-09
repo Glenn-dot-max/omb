@@ -80,10 +80,6 @@ def admin_headers(admin_token):
     return {"Authorization": f"Bearer {admin_token}"}
 
 @pytest.fixture
-def admin_headers(admin_token):
-    return {"Authorization": f"Bearer {admin_token}"}
-
-@pytest.fixture
 def catalog_admin_token():
     """Token JWT valide pour un CATALOG_ADMIN"""
     from auth import create_access_token

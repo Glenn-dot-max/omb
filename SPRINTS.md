@@ -102,7 +102,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - [x] **1.6 Bug latent `delivery_hour`** — `backend/routes/commandes.py`, `create_commande` et `update_commande` : écrire explicitement `commande_data['delivery_hour'] = delivery_hour_str` (aujourd'hui ça marche uniquement par effet de bord de `serialize_commande`).
 - Fait autrement que prévu : le bloc « heure de Paris » ne faisait rien (il recalculait la même date) → remplacé dans les 2 routes par `format_delivery_fields()` (conversion explicite date/heure → texte). Format de l'heure conservé : `HH:MM:SS`.
   - Test : la commande créée a un `delivery_hour` au format `HH:MM`.
-- [ ] **1.7 Code mort** — supprimer `routes/franchise_catalogue.py` + son import dans `main.py` ; supprimer les `import re` inutilisés dans `produits.py` et `formules.py` ; supprimer la fixture `admin_headers` en double dans `tests/conftest.py`.
+- [x] **1.7 Code mort** — supprimer `routes/franchise_catalogue.py` + son import dans `main.py` ; supprimer les `import re` inutilisés dans `produits.py` et `formules.py` ; supprimer la fixture `admin_headers` en double dans `tests/conftest.py`.
   - Test : suite verte.
 - [ ] **1.8** Fusionner la branche dans `v8` → déploiement Render → vérifier en prod le parcours « mot de passe oublié ». ⚠️ Prévenir les franchises : les utilisateurs ayant déjà changé leur mot de passe devront se reconnecter une fois (anciens tokens sans `iat`, cf. 1.4).
 - [ ] **1.9 Erreur `[Errno 11] Resource temporarily unavailable`** — 2026-10-08 à 16:24:59, 2 GET simultanés (`/commande-formules/commande/…` et `/commande-produits/commande/…`) en 500. Erreur réseau passagère backend → Supabase. Piste : connexion HTTP/2 partagée du client Supabase quand plusieurs requêtes partent en même temps. Enquêter (reproduire, voir si elle revient dans les logs Render, options : désactiver HTTP/2, réessai automatique). Le Hotfix H1 empêche déjà qu'elle fausse les données.
@@ -185,6 +185,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - [ ] **5.2** Base de test (projet Supabase séparé ou local via `supabase start`) recréée depuis les migrations.
 - [ ] **5.3** CI GitHub Actions : `pytest` à chaque push et sur chaque pull request vers `v8`.
 - [ ] **5.4** Tests manquants sur l'existant avant de toucher au modèle : `formules.py` (création, duplication, copie par franchise), `admin.py`, `planning.py`.
+- [ ] **5.5** Corriger `test_franchise_catalogue_produits_allowed_for_catalog_admin` (`test_multi_tenant_isolation.py`) : `liens_response.date` → `.data`, et `mock_db.return_value.table.side_effect` → `mock_db.table.side_effect` (sa fausse table n'est jamais utilisée, le test passe « par chance »).
 
 ## Sprint 6 — Organisations et sites
 

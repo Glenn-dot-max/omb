@@ -11,7 +11,7 @@ from config import CORS_ORIGINS
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from limiter import limiter
-from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning, auth, admin, franchise_catalogue
+from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning, auth, admin
 from datetime import date, datetime
 from postgrest.exceptions import APIError
 
