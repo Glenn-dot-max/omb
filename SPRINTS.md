@@ -7,10 +7,9 @@
 
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
-- **Production** : Render déploie la branche `v8` (commit `cae6824`), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
-- **Branche de travail** : `sprint/1-nettoyage-backend` — Sprint 0 fait (sauf 0.5), tâches 1.1 → 1.4 faites et poussées. 56 tests verts.
-- **Prochaine tâche** : 1.5 (instructions déjà données le 2026-10-08, fichier `backend/tests/test_formules.py` créé mais pas commité). Puis les **Hotfix H1 + H2** (commande affichée vide en modification, duplication incomplète — une seule branche hotfix, voir plus bas).
-- **En attente d'une réponse de Glenn** : voir « Questions ouvertes » (Q1 bloque la tâche 2.1).
+- **Production** : Render déploie la branche `v8` (hotfix H1 + H2 déployé le 2026-10-09), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
+- **Branche de travail** : `sprint/1-nettoyage-backend` (v8 fusionnée dedans) — Sprint 0 fait (sauf 0.5), tâches 1.1 → 1.5 faites. 68 tests verts.
+- **Prochaine tâche** : 1.5b (même validation pour les produits).
 
 ---
 
@@ -115,14 +114,14 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 
 **Contournement à donner à l'utilisateur** : si une commande s'ouvre vide en modification, **fermer, recharger la page (F5), rouvrir**. Ne pas ressaisir. Après l'incident, vérifier la commande ligne par ligne (les produits déjà présents ont gardé leur ancienne quantité ; pour changer une quantité : retirer la ligne puis la rajouter).
 
-- [ ] **H1.a Backend : doublon → 409 au lieu de 500** — `backend/main.py` : `from postgrest.exceptions import APIError` + un `@app.exception_handler(APIError)` placé avant le handler `Exception` : si `exc.code == "23505"` → 409 « Cet élément existe déjà (doublon). Rechargez la page… » ; sinon log + 500 générique.
+- [x] **H1.a Backend : doublon → 409 au lieu de 500** — `backend/main.py` : `from postgrest.exceptions import APIError` + un `@app.exception_handler(APIError)` placé avant le handler `Exception` : si `exc.code == "23505"` → 409 « Cet élément existe déjà (doublon). Rechargez la page… » ; sinon log + 500 générique.
   - Test : `backend/tests/test_errors.py` — `mock.insert().execute.side_effect = APIError({... "code": "23505" ...})` sur `POST /commande-produits/` et `POST /commande-formules/` → 409. (Vérifié sur une copie de `v8` : 2 échecs avant, 27 tests verts après.)
-- [ ] **H1.b Frontend : ne plus masquer les erreurs de chargement** (le vrai correctif) — `frontend/js/api.js`, `getCommandeFormules` et `getCommandeProduits` : `return [];` → `throw error;`. Les 3 appelants (détail, modification, duplication dans `commandes-modals.js`) ont déjà un `try/catch` qui affiche un message. Corrige aussi la duplication, qui aurait créé une copie vide sans prévenir.
-- [ ] **H1.c Frontend : enregistrement protégé** — `frontend/js/commandes/commandes-modals.js` :
+- [x] **H1.b Frontend : ne plus masquer les erreurs de chargement** (le vrai correctif) — `frontend/js/api.js`, `getCommandeFormules` et `getCommandeProduits` : `return [];` → `throw error;`. Les 3 appelants (détail, modification, duplication dans `commandes-modals.js`) ont déjà un `try/catch` qui affiche un message. Corrige aussi la duplication, qui aurait créé une copie vide sans prévenir.
+- [x] **H1.c Frontend : enregistrement protégé** — `frontend/js/commandes/commandes-modals.js` :
   - renommer `handleSaveEditCommande` → `saveEditCommande`, et ajouter au-dessus un nouveau `handleSaveEditCommande` qui désactive le bouton `#save-edit-commande` pendant l'enregistrement (`try { await saveEditCommande(); } finally { saveBtn.disabled = false; }`) → plus de double clic ;
   - STEP 5 : mémoriser l'`id` renvoyé après chaque création (`formule.id = created.id`, `produit.id = created.id`) → un nouvel essai après un échec partiel ne renvoie pas ce qui est déjà enregistré ;
   - `catch` final : `showToast(error.message || "Erreur lors de la sauvegarde de la commande.", "error")`.
-- [ ] **H1.d Déploiement** (à faire **après H2**, les deux dans la même branche hotfix) — commit sur la branche hotfix, `git push -u origin hotfix/commande-formule-doublon`, puis `git switch v8 && git merge hotfix/commande-formule-doublon && git push` → tester en prod → `git switch sprint/1-nettoyage-backend && git merge v8`.
+- [x] **H1.d Déploiement** (à faire **après H2**, les deux dans la même branche hotfix) — commit sur la branche hotfix, `git push -u origin hotfix/commande-formule-doublon`, puis `git switch v8 && git merge hotfix/commande-formule-doublon && git push` → tester en prod → `git switch sprint/1-nettoyage-backend && git merge v8`.
 
 ## 🚑 Hotfix H2 — La duplication d'une commande donne une copie incomplète (signalé le 2026-10-08)
 
@@ -139,10 +138,10 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - une formule de la commande d'origine qui n'est plus dans `allFormules` (ex. désactivée depuis pour la franchise) est **ignorée sans prévenir** (`if (formuleData) { … }`) ;
 - `getCommandeFormules` / `getCommandeProduits` renvoient `[]` en cas d'erreur (corrigé par H1.b).
 
-- [ ] **H2.a** Dans `handleDuplicateCommande` : remplacer `AppState.tempFormules = []; AppState.tempProduits = [];` par `tempFormules = []; tempProduits = [];`, et `AppState.tempFormules.push(` / `AppState.tempProduits.push(` par `tempFormules.push(` / `tempProduits.push(` → une seule variable utilisée partout, comme dans le reste du fichier.
-- [ ] **H2.b** Formule introuvable : au lieu de l'ignorer, compter les formules non reprises et afficher un avertissement (`showToast("⚠️ N formule(s) de la commande d'origine ne sont plus disponibles et n'ont pas été copiées.", "warning")`).
-- [ ] **H2.c Test manuel** (pas de tests frontend automatisés pour l'instant) : dupliquer une commande avec ≥ 2 formules (dont une avec exclusions) et ≥ 2 produits → la modale affiche tout → « Créer » → la nouvelle commande contient bien tout, avec les mêmes quantités et exclusions. Refaire le test **après** avoir ouvert puis fermé une fois la modale « Nouvelle commande » (c'est ce qui casse l'alias).
-- [ ] **H2.d (Sprint 4 / 10, pas dans le hotfix)** Supprimer les « alias de compatibilité » de `commandes.js` (`allFormules`, `editFormules`, etc. ont le même risque) : n'utiliser qu'`AppState.xxx` partout. Noter aussi : la route backend `POST /commandes/{id}/duplicate` et `duplicateCommande()` (`api.js`) ne sont appelées nulle part → code mort, à supprimer ou à réutiliser (dupliquer côté serveur serait plus fiable).
+- [x] **H2.a** Dans `handleDuplicateCommande` : remplacer `AppState.tempFormules = []; AppState.tempProduits = [];` par `tempFormules = []; tempProduits = [];`, et `AppState.tempFormules.push(` / `AppState.tempProduits.push(` par `tempFormules.push(` / `tempProduits.push(` → une seule variable utilisée partout, comme dans le reste du fichier.
+- [x] **H2.b** Formule introuvable : au lieu de l'ignorer, compter les formules non reprises et afficher un avertissement (`showToast("⚠️ N formule(s) de la commande d'origine ne sont plus disponibles et n'ont pas été copiées.", "warning")`).
+- [x] **H2.c Test manuel** (pas de tests frontend automatisés pour l'instant) : dupliquer une commande avec ≥ 2 formules (dont une avec exclusions) et ≥ 2 produits → la modale affiche tout → « Créer » → la nouvelle commande contient bien tout, avec les mêmes quantités et exclusions. Refaire le test **après** avoir ouvert puis fermé une fois la modale « Nouvelle commande » (c'est ce qui casse l'alias).
+- [x] **H2.d (Sprint 4 / 10, pas dans le hotfix)** Supprimer les « alias de compatibilité » de `commandes.js` (`allFormules`, `editFormules`, etc. ont le même risque) : n'utiliser qu'`AppState.xxx` partout. Noter aussi : la route backend `POST /commandes/{id}/duplicate` et `duplicateCommande()` (`api.js`) ne sont appelées nulle part → code mort, à supprimer ou à réutiliser (dupliquer côté serveur serait plus fiable).
 
 ## Sprint 2 — Isolation entre franchises et perte de données
 
