@@ -308,7 +308,6 @@ function closeDetailsModal() {
   // Vider les champs
   document.getElementById("detail-formule-name").value = "";
   document.getElementById("detail-formule-couverts").value = "1";
-  document.getElementById("detail-formule-type").value = "Brunch";
   document.getElementById("produits-list").innerHTML =
     '<p class="empty-state">Aucun produit dans cette formule.</p>';
 }
@@ -496,7 +495,6 @@ async function handleSaveFormuleDetails() {
 
   const name = document.getElementById("detail-formule-name").value.trim();
   const couverts = document.getElementById("detail-formule-couverts").value;
-  const type = document.getElementById("detail-formule-type").value;
 
   if (!name) {
     alert("Le nom de la formule est requis.");
@@ -548,7 +546,7 @@ async function handleSaveFormuleDetails() {
         (f) => f.id === currentEditingFormule.id,
       );
       if (index !== -1) {
-        allFormules[index] = formuleModifiee;
+        allFormules[index] = { ...allFormules[index], ...formuleModifiee };
       }
 
       displayFormules(allFormules);
@@ -571,7 +569,7 @@ async function handleSaveFormuleDetails() {
       await loadFormules();
     } else {
       alert(
-        `❌ ${error.message} || "Erreur lors de la modification de la formule."`,
+        `❌ ${error.message || "Erreur lors de la modification de la formule."}`,
       );
     }
   }
