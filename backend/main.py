@@ -13,6 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from limiter import limiter
 from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning, auth, admin, franchise_catalogue
 from datetime import date, datetime
+from postgrest.exceptions import APIError
 
 
 # ============================================
@@ -105,6 +106,25 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "errors": formatted_errors,
         }
     )
+
+@app.exception_handler(APIError)
+async def database_exception_handler(request: Request, exc: APIError):
+    """Erreurs renvoyées par la base (Supabase)"""
+    # 23505 = violation d'une contrainte d'unicité (l'élément existe déjà)
+    if exc.code == "23505":
+        logger.warning(f"Duplicate on {request.url}: {exc.details}")
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": "Cet élément existe déjà (doublon). Rechargez la page pour voir les données à jour."},
+        )
+
+    logger.error(f"Database error on {request.url}: {exc.message}", exc_info=True)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "Une erreur est survenue"},
+    )
+
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):

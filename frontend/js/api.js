@@ -209,7 +209,7 @@ async function getCommandeFormules(commandeId) {
     return await apiGet(`/commande-formules/commande/${commandeId}`); // ✅ Sans slash
   } catch (error) {
     console.error("Erreur API getCommandeFormules:", error);
-    return [];
+    throw error;
   }
 }
 
@@ -256,7 +256,7 @@ async function getCommandeProduits(commandeId) {
     return await apiGet(`/commande-produits/commande/${commandeId}`); // ✅ Sans slash
   } catch (error) {
     console.error("Erreur API getCommandeProduits:", error);
-    return [];
+    throw error;
   }
 }
 

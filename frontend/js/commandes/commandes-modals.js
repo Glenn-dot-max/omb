@@ -764,7 +764,21 @@ function handleAddEditProduit() {
   showToast("Produit ajouté.", "success");
 }
 
+// Désactive le bouton pendant l'enregistrement : un double clic
+// ne doit pas envoyer deux fois les mêmes formules/produits.
 async function handleSaveEditCommande() {
+  const saveBtn = document.getElementById("save-edit-commande");
+  if (saveBtn.disabled) return;
+
+  saveBtn.disabled = true;
+  try {
+    await saveEditCommande();
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+async function saveEditCommande() {
   try {
     // ===============================================
     // STEP 1 : Get form values
@@ -877,7 +891,8 @@ async function handleSaveEditCommande() {
           quantite_finale: formule.couverts,
           produits_exclus: formule.produits_exclus || [],
         };
-        await createCommandeFormule(formuleData);
+        const created = await createCommandeFormule(formuleData);
+        formule.id = created.id; // désormais "existante": ne sera plus renvoyée
       }
     }
 
@@ -891,7 +906,8 @@ async function handleSaveEditCommande() {
           quantite: produit.quantite,
           unite: produit.unite,
         };
-        await createCommandeProduit(produitData);
+        const created = await createCommandeProduit(produitData);
+        produit.id = created.id; // désormais "existant"; ne sera plus renvoyé
       }
     }
 
@@ -911,7 +927,10 @@ async function handleSaveEditCommande() {
     }
   } catch (error) {
     console.error("Erreur lors de la sauvegarde de la commande :", error);
-    showToast("Erreur lors de la sauvegarde de la commande.", "error");
+    showToast(
+      error.message || "Erreur lors de la sauvegarde de la commande.",
+      "error",
+    );
   }
 }
 
@@ -933,8 +952,8 @@ async function handleDuplicateCommande(commande) {
     }
 
     // 2. Réinitialiser les listes temporaires
-    AppState.tempFormules = [];
-    AppState.tempProduits = [];
+    tempFormules = [];
+    tempProduits = [];
 
     // 3. Pré-remplir les champs du formulaire
     document.getElementById("create-nom-client").value =
@@ -967,25 +986,29 @@ async function handleDuplicateCommande(commande) {
 
     // 4. Charger les formules avec leurs exclusions
     const formules = await getCommandeFormules(commande.id);
+    let formulesNonCopiees = 0;
     for (const f of formules) {
-      const exclusions = await getCommandeFormuleExclusions(f.id);
       const formuleData = allFormules.find((form) => form.id === f.formule_id);
-      if (formuleData) {
-        AppState.tempFormules.push({
-          formule_id: f.formule_id,
-          formule_name: formuleData.name,
-          couverts: f.quantite_finale,
-          produits_exclus: exclusions || [],
-          expanded: false,
-        });
+      if (!formuleData) {
+        // Formule plus displonible (ex. désactivée pour la franchise) : on la compte pour prévenir
+        formulesNonCopiees++;
+        continue;
       }
+      const exclusions = await getCommandeFormuleExclusions(f.id);
+      tempFormules.push({
+        formule_id: f.formule_id,
+        formule_name: formuleData.name,
+        couverts: f.quantite_finale,
+        produits_exclus: exclusions || [],
+        expanded: false,
+      });
     }
 
     // 5. Charger les produits directs
     const produits = await getCommandeProduits(commande.id);
     for (const p of produits) {
       const produitData = allProduits.find((prod) => prod.id === p.produit_id);
-      AppState.tempProduits.push({
+      tempProduits.push({
         produit_id: p.produit_id,
         produit_name: produitData ? produitData.name : "Produit Inconnu",
         quantite: p.quantite,
@@ -1004,6 +1027,13 @@ async function handleDuplicateCommande(commande) {
       '📋 Commande pré-remplie. Modifiez le nom puis cliquez "Créer".',
       "info",
     );
+
+    if (formulesNonCopiees > 0) {
+      showToast(
+        `⚠️ ${formulesNonCopiees} formule(s) de la commande d'origine ne sont plus disponibles et n'ont pas été copiées.`,
+        "warning",
+      );
+    }
   } catch (error) {
     console.error("Erreur lors de la duplication :", error);
     showToast("❌ Erreur lors de la préparation de la duplication.", "error");
