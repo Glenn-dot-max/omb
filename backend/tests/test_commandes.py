@@ -94,3 +94,42 @@ def test_create_commande_nom_client_too_short(client, auth_headers):
     })
 
     assert response.status_code == 422
+
+# ==============================================
+# TESTS - Format des dates envoyées à la base (1.6)
+# ==============================================
+
+def test_create_commande_sends_text_dates_to_db(client, auth_headers):
+    """À la création, date et heure partent en texte vers Supabase"""
+    tomorrow = date.today() + timedelta(days=1)
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "c-new"}]
+
+    with patch("routes.commandes.supabase") as mock_db:
+        mock_db.table.return_value.insert.return_value.execute.return_value = mock_response
+        response = client.post("/commandes/", headers=auth_headers, json={
+            "nom_client": "Martin",
+            "nombre_couverts": 10,
+            "delivery_date": tomorrow.isoformat(),
+            "delivery_hour": "10:30"
+        })
+        sent = mock_db.table.return_value.insert.call_args[0][0]
+
+    assert response.status_code == 200
+    assert sent["delivery_date"] == tomorrow.isoformat()
+    assert sent["delivery_hour"] == "10:30:00"
+
+def test_update_commande_hour_only_sends_text_to_db(client, admin_headers):
+    """Modifier seulement l'heure (sans la date) -> l'heure part quand même en texte"""
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "c-1"}]
+
+    with patch("routes.commandes.supabase") as mock_db:
+        mock_db.table.return_value.update.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.put("/commandes/c-1", headers=admin_headers, json={
+            "delivery_hour": "14:00"
+        })
+        sent = mock_db.table.return_value.update.call_args[0][0]
+
+    assert response.status_code == 200
+    assert sent == {"delivery_hour": "14:00:00"}

@@ -1,5 +1,4 @@
 from zoneinfo import ZoneInfo
-
 from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
@@ -26,6 +25,16 @@ def serialize_commande(commande):
                 result[key] = value
         return result
     return commande
+
+def format_delivery_fields(data: dict) -> dict:
+    """Convertit delivery_date (date) et delivery_hour (time) en texte pour Supabase.
+    Formats : "AAAA-MM-JJ" et "HH:MM:SS"
+    """
+    if isinstance(data.get("delivery_date"), date):
+        data["delivery_date"] = data["delivery_date"].isoformat()
+    if isinstance(data.get("delivery_hour"), time):
+        data["delivery_hour"] = data["delivery_hour"].isoformat()
+    return data
 
 @router.get("/")
 async def get_commandes(current_user: dict = Depends(get_current_user)):
@@ -118,40 +127,7 @@ async def get_commande(commande_id: str, current_user: dict = Depends(get_curren
 async def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
     """Create a new commande"""
 
-    commande_data = commande.model_dump()
-
-    # Forcer l'interprétation en heure de Paris
-    if 'delivery_date' in commande_data:
-        delivery_date_value = commande_data['delivery_date']
-        delivery_hour_value = commande_data.get('delivery_hour', '10:00')
-
-        if isinstance(delivery_hour_value, time):
-            delivery_hour_str = delivery_hour_value.strftime("%H:%M")
-        else:
-            delivery_hour_str = str(delivery_hour_value)
-
-        paris_tz = ZoneInfo("Europe/Paris")
-
-        if isinstance(delivery_date_value, str):
-            date_parts = delivery_date_value.split("-")
-            year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
-        else:
-            year, month, day = delivery_date_value.year, delivery_date_value.month, delivery_date_value.day
-
-        hour_parts = delivery_hour_str.split(":")
-
-        delivery_datetime_paris = datetime(
-            year=year,
-            month=month,
-            day=day,
-            hour=int(hour_parts[0]),
-            minute=int(hour_parts[1]),
-            tzinfo=paris_tz
-        )
-    
-        commande_data['delivery_date'] = delivery_datetime_paris.date().isoformat()
-    
-    commande_data = serialize_commande(commande_data)
+    commande_data = format_delivery_fields(commande.model_dump())
     commande_data["franchise_id"] = current_user["franchise_id"]
 
     # ==========================================
@@ -284,38 +260,7 @@ async def archive_commande(commande_id: str, current_user: dict = Depends(get_cu
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
     """Update an existing commande"""
     update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
-
-    if 'delivery_date' in update_data:
-        delivery_date_value = update_data['delivery_date']
-        delivery_hour_value = update_data.get('delivery_hour', '10:00')
-
-        if isinstance(delivery_hour_value, time):
-            delivery_hour_str = delivery_hour_value.strftime("%H:%M")
-        else:
-            delivery_hour_str = str(delivery_hour_value)
-
-        paris_tz = ZoneInfo("Europe/Paris")
-
-        if isinstance(delivery_date_value, str):
-            date_parts = delivery_date_value.split("-")
-            year, month, day = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
-        else:
-            year, month, day = delivery_date_value.year, delivery_date_value.month, delivery_date_value.day
-
-        hour_parts = delivery_hour_str.split(":")
-
-        delivery_datetime_paris = datetime(
-            year=year,
-            month=month,
-            day=day,
-            hour=int(hour_parts[0]),
-            minute=int(hour_parts[1]),
-            tzinfo=paris_tz
-        )
-    
-        update_data['delivery_date'] = delivery_datetime_paris.date().isoformat()
-
-    update_data = serialize_commande(update_data)
+    update_data = format_delivery_fields(update_data)
 
     query = supabase.table("carnet_commande").update(update_data).eq("id", commande_id)
 
