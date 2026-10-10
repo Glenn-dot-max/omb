@@ -64,6 +64,8 @@ async def get_commandes(current_user: dict = Depends(get_current_user)):
             "paris_datetime": paris_now.isoformat()
         }
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error loading commandes: {e}", exc_info=True)
         raise HTTPException(
@@ -95,6 +97,9 @@ async def get_archived_commandes(current_user: dict = Depends(get_current_user))
             .execute()
         
         return response.data
+    
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error loading archived commandes: {e}", exc_info=True)
         raise HTTPException(
@@ -220,7 +225,9 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
             "message": f"{len(commandes_a_archiver)} commande(s) archivée(s)",
             "cutoff_date": cutoff_date
         }
-    
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Erreur auto-archive: {e}", exc_info=True)
         raise HTTPException(
@@ -315,6 +322,8 @@ async def validate_commande(commande_id: str, current_user: dict = Depends(get_c
         
         return {"message": "Commande validée avec succès", "commande": serialize_commande(response.data[0])}
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Erreur validation commande {commande_id}: {e}", exc_info=True)
         raise HTTPException(

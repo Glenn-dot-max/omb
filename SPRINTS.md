@@ -153,7 +153,11 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - Test : `PATCH /commandes/{id}/archive` → 404, et aucune suppression.
 - [x] **2.2 IDOR produits/formules** — `routes/produits.py` (`get_produit`) et `routes/formules.py` (`get_formule`) : pour un non-admin, vérifier que l'ID est rattaché à sa franchise (`franchise_produits` / `franchise_formules`), sinon 404. Dépend de Q2.
   - Tests dans `tests/test_multi_tenant_isolation.py` : franchise A demande un produit/formule de B → 404.
-- [ ] **2.3** Passer en revue **toutes** les routes qui prennent un `{id}` et vérifier le filtre franchise (liste à établir, cocher route par route).
+- [~] **2.3** Revue de toutes les routes avec un `{id}` — audit fait le 2026-10-10 (38 routes, 11 fichiers) : **aucune fuite entre franchises restante**. 3 problèmes d'un autre type trouvés :
+  - [x] **2.3a** `commandes.py` : 4 `except Exception` transformaient les 400/404 volontaires en 500 → `except HTTPException: raise` ajouté avant. Tests : validate d'une autre franchise → 404, liste sans franchise → 400.
+  - [ ] **2.3b** Détail technique des erreurs renvoyé au navigateur (`detail=f"...: {str(e)}"`) : `formule_produits.py` (~l.114), `formules.py` (~l.361 et ~l.433) → message générique, détail dans les logs seulement.
+  - [ ] **2.3c** (Sprint 7) Uniformiser 403/404 pour une ressource d'une autre franchise → toujours 404 (`produits.py`/`formules.py` update, `formule_produits.py` : 403 aujourd'hui).
+
 - [ ] **2.4** Pagination de la liste des commandes — basse priorité tant que les volumes restent faibles.
 
 ## Sprint 3 — Frontend : XSS

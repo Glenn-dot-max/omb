@@ -148,3 +148,25 @@ def test_manual_archive_route_no_longer_exists(client, auth_headers):
 
     assert response.status_code == 404
 
+# ==============================================
+# TESTS - Les erreurs HTTP volontaires ne deviennent pas des 500 (2.3a)
+# ==============================================
+
+def test_validate_commande_of_other_franchise_returns_404(client, auth_headers):
+    """Valider la commande d'une autre franchise -> 404 (et pas 500)"""
+    mock_response = MagicMock()
+    mock_response.data = []
+
+    with patch("routes.commandes.supabase") as mock_db:
+        mock_db.table.return_value.update.return_value.eq.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.patch("/commandes/c-autre/validate", headers=auth_headers)
+
+    assert response.status_code == 404
+
+def test_get_commandes_without_franchise_returns_400(client, catalog_admin_headers):
+    """Un compte sans franchise (CATALOG_ADMIN) qui liste les commandes -> 400 (et pas 500)"""
+    with patch("routes.commandes.supabase") as mock_db:
+        response = client.get("/commandes/", headers=catalog_admin_headers)
+
+    assert response.status_code == 400
+    
