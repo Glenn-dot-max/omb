@@ -8,8 +8,8 @@
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
 - **Production** : Render déploie la branche `v8` — **Sprint 1 déployé le 2026-10-09** (+ hotfix H1/H2 + correctifs formules), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
-- **Branche de travail** : aucune en cours — `sprint/2-isolation-franchses` = `v8` (en cours). 79 tests verts.
-- **Prochaine étape** : Sprint 2 (branche à créer depuis `v8`). Bloqué par **Q1** (archiver ou supprimer).
+- **Branche de travail** : aucune en cours — `sprint/2-isolation-franchses` = `v8` (en cours). 90 tests verts.
+- **Prochaine étape** : Production = sprint 2 déployé ; prochaine étape = sprint 3 (le XSS dans le frontend) ;
 - **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -158,7 +158,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - [x] **2.3b** Détail technique des erreurs renvoyé au navigateur (`detail=f"...: {str(e)}"`) : `formule_produits.py` (~l.114), `formules.py` (~l.361 et ~l.433) → message générique, détail dans les logs seulement.
   - [x] **2.3c** (Sprint 7) Uniformiser 403/404 pour une ressource d'une autre franchise → toujours 404 (`produits.py`/`formules.py` update, `formule_produits.py` : 403 aujourd'hui).
 - [-] **2.4** Pagination — **reportée** (2026-10-10) : la liste principale (commandes non archivées) reste petite grâce à l'auto-archivage. Seul l'onglet « Archivées » grossit, avec un risque réel : **limite Supabase de 1 000 lignes par requête, liste coupée sans erreur**. Sera traité dans la page Historique (`BACKLOG.md` B6 : pagination / filtres par période côté serveur).
-- [ ] **2.5** Fusionner `sprint/2-isolation-franchises` dans `v8` → déploiement Render → tests en prod.
+- [x] **2.5** Fusionner `sprint/2-isolation-franchises` dans `v8` → déploiement Render → tests en prod.
 
 ## Sprint 3 — Frontend : XSS
 
@@ -269,3 +269,4 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - **2026-10-07** — Revérification complète sur `v8` (version en prod). Nouveaux points : mots de passe en clair dans les scripts, archivage destructif, sessions non révoquées (rôle/franchise lus depuis le token, validité 7 jours). Avis GPT intégré (nuances sur la clé `anon`, rotation legacy, XSS, `httpx`, Dockerfile, divergence `main`/`v8`). Vision produit multi-traiteurs décidée → ajout des Phases B et C et du Sprint T (theming). Plan refondu dans ce fichier.
 - **2026-10-08** — Sprint 0 fait (sauf 0.5). Tâches 1.1 (reset mot de passe : doublon de modèle + nom de champ `newPassword` côté frontend), 1.2, 1.3, 1.4 (rôle/franchise relus en base, tokens invalidés après changement de mot de passe, nouveau token renvoyé) faites, 56 tests verts. 1.5 préparée (ajustements : `FormuleUpdate`, apostrophe autorisée, `getErrorMessage`) + ajout 1.5b. **Incident prod** sur la commande `f4efe8e8…` : chargement en erreur masqué → commande affichée vide → doublons → 500. Diagnostic fait, Hotfix H1 planifié et reporté (contournement : recharger la page). Ajout 1.9 (`Errno 11`) ; découverte que Render tourne en Python 3.13 (4.3 mise à jour). Signalement « duplication de commande incomplète » → cause trouvée (alias `tempFormules` / `AppState.tempFormules` désynchronisés), Hotfix H2 planifié.
 - **2026-10-09** — Hotfix H1 + H2 déployés. Tâches 1.5b, 1.6, 1.7 faites. **Sprint 1 déployé en production** (fast-forward de `v8`). Tests en prod : 2 bugs anciens de la page Formules trouvés et corrigés. Création de `BACKLOG.md` (mot de passe oublié reporté).
+- **2026-10-10** - déploiement du sprint 2 et tests des nouvelles fonctionnalités directement sur Render.
