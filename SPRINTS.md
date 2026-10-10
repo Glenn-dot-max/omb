@@ -200,6 +200,13 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **P6 (à arbitrer) Mettre en cache la vérification de l'utilisateur** — `get_current_user` fait 1 requête à la base **à chaque appel**. Un cache de quelques secondes (ex. 10-30 s) économise cette requête.
   - ⚠️ Compromis avec la tâche 1.4 : un changement de rôle, une désactivation ou un changement de mot de passe mettrait jusqu'à la durée du cache à s'appliquer. À décider après P1-P5 selon le gain restant.
 - [ ] **P7 Déploiement** — fusion dans `v8` → Render → re-mesurer en production et comparer à P0. Noter les gains dans le journal.
+- [ ] **P8 Ménage Docker / Hetzner** — décision du 2026-10-10 : **on reste sur Render**, Hetzner est reporté sine die. On retire du dépôt ce qui ne sert qu'à Hetzner (git garde l'historique : on pourra tout retrouver le jour venu) :
+  - supprimer `docker-compose.yml`, `deploy.sh`, le dossier `nginx/` (dont `nginx/certbot/`) et `backend/Dockerfile` (Render utilise son runtime Python natif via `render.yaml`, pas Docker) ;
+  - `frontend/js/config.js` : retirer le cas `"/api"` (servi par Nginx en Docker sur `localhost` sans port) → ne garder que développement local (`http://localhost:8000`) et production (`https://omb-backend.onrender.com`) ;
+  - `README.md` : supprimer la section « Infra cible — Hetzner CX22 (Docker Compose) » (~ligne 496) et vérifier les mentions de `localhost:8080` ;
+  - `SPRINTS.md` : passer le **Sprint 11** en reporté (`[-]`), et la tâche **11.2** (Dockerfile non-root) devient sans objet ;
+  - avant de supprimer : `grep -rn "docker\|nginx\|deploy.sh\|8080" --exclude-dir=venv --exclude-dir=.git .` pour ne rien oublier ;
+  - tests : suite verte + application locale et production qui démarrent normalement (rien de tout ça n'est utilisé par Render).
 
 **Hors scope de ce sprint** (noté pour plus tard) : passer au client Supabase **asynchrone** (plus propre que P2 mais touche toutes les routes — à envisager avec la Phase B) ; pagination de l'onglet « Archivées » (→ `BACKLOG.md` B6).
 
