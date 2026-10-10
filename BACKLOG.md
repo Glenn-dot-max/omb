@@ -30,6 +30,24 @@
 - **Effet de bord à connaître** : tant que le lien est commenté, `forgotPasswordLink` vaut `null` et la ligne `forgotPasswordLink.addEventListener(...)` (~ligne 228 de `login.html`) provoque une erreur dans la console à chaque affichage de la page de connexion. Sans conséquence visible pour l'utilisateur, mais disparaîtra en réactivant le lien. (Alternative si le lien doit rester masqué longtemps : protéger la ligne avec `if (forgotPasswordLink) { … }`.)
 - **Lié à** : 1.1, 1.8 (`SPRINTS.md`), Sprint 9.1 (emails sans « Oh My Brunch » en dur).
 
+### B6 — Page « Historique et statistiques » (KPI + export Excel)
+
+- **Ajouté le** : 2026-10-10
+- **Pourquoi c'est reporté** : nouvelle fonctionnalité → après la sécurisation (Sprints 2-4) et les fondations multi-traiteurs (Phase B). Une page qui agrège des données de plusieurs franchises doit être construite **après** que le cloisonnement soit fiable (Sprint 2 / Sprint 7). Bon candidat pour le **premier écran en Vue** (Sprint 10) : page neuve, graphiques et filtres.
+- **Idée** : transformer l'onglet « Archivées » de la page Commandes (aujourd'hui une simple liste des commandes passées) en vraie page d'historique avec des indicateurs.
+- **Prérequis** : ne jamais supprimer une commande passée — l'historique se calcule sur les commandes archivées (décision Q1 du 2026-10-10 → tâche 2.1). L'archivage automatique existe déjà (`POST /commandes/auto-archive`, appelé à l'ouverture de la page Commandes : commandes validées dont la date de livraison est passée → `archived = true`).
+- **KPI calculables avec les données actuelles** :
+  - nombre de commandes par période (semaine / mois), avec évolution vs la période précédente ;
+  - couverts servis sur la période ;
+  - formules et produits les plus commandés (top 5 / top 10) ;
+  - répartition par type de prestation (brunch, mariage, …) ;
+  - jours de la semaine et heures de livraison les plus chargés ;
+  - (admin) comparaison entre franchises.
+- **Fonctions** : filtres (période, franchise, type de prestation) ; **export Excel** en réutilisant `ExcelJS`, déjà utilisé pour l'export du planning (`frontend/js/planning.js`).
+- **Limite actuelle** : aucun prix n'est stocké → pas de chiffre d'affaires ni de panier moyen en euros. À ajouter quand les prix existeront (Sprint 8 : `prix_personnalise` par site).
+- **À prévoir côté technique** : calculer les KPI **côté backend** (une route dédiée, filtrée par franchise/organisation) plutôt que de charger toutes les commandes dans le navigateur ; pagination / volumes (tâche 2.4).
+- **À décider le moment venu** : quels KPI sont vraiment utiles aux franchises (à leur demander).
+
 ---
 
 ## Qualité du code (petit ménage)
@@ -49,6 +67,13 @@
 - **Pourquoi c'est reporté** : sans effet sur le fonctionnement.
 - **État actuel** : `backend/routes/commandes.py`, route de validation d'une commande, fait `serialize_commande(response.data[0])` sur des données qui viennent déjà de Supabase (donc déjà du texte) → appel inutile. Les autres usages encore présents (`get_commandes`, archives…) sont à vérifier un par un.
 - **Ce qu'il faudra faire** : retirer les appels inutiles ; si plus aucun ne reste, supprimer la fonction (suite logique du Sprint 1bis et de la tâche 1.6).
+
+### B5 — Code mort dans `formules-modals.js` : `handleAddFormule`
+
+- **Ajouté le** : 2026-10-09
+- **Pourquoi c'est reporté** : sans effet, la fonction n'est jamais appelée.
+- **État actuel** : `handleAddFormule` (~ligne 140 de `frontend/js/formules/formules-modals.js`) est branchée sur `#add-formule-form`, qui n'existe plus dans `formules.html` ; elle lit aussi le champ fantôme `formule-type` (supprimé du HTML le 2026-06-15). La création de formule passe par `handleCreateFormuleWithProduits` (`formules-create.js`).
+- **Ce qu'il faudra faire** : supprimer `handleAddFormule` et le bloc `add-formule-form` de `setupEventListeners`. ⚠️ Ne pas confondre avec `handleAddFormule` de `commandes-modals.js` (même nom, autre page, utilisée).
 
 ---
 
