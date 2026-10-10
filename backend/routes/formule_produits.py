@@ -106,13 +106,7 @@ async def create_formule_produit(formule_produit: FormuleProduitCreate, current_
             detail="Ce produit est déjà présent dans la formule"
         )
 
-    try:
-        response = supabase.table("formule_produits").insert(data).execute()
-    except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Erreur lors de l'ajout du produit à la formule: {str(e)}"
-        )
+    response = supabase.table("formule_produits").insert(data).execute()
     
     if not response.data:
         raise HTTPException(status_code=400, detail="Failed to create Formule-Produit")

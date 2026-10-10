@@ -157,7 +157,6 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - [x] **2.3a** `commandes.py` : 4 `except Exception` transformaient les 400/404 volontaires en 500 → `except HTTPException: raise` ajouté avant. Tests : validate d'une autre franchise → 404, liste sans franchise → 400.
   - [ ] **2.3b** Détail technique des erreurs renvoyé au navigateur (`detail=f"...: {str(e)}"`) : `formule_produits.py` (~l.114), `formules.py` (~l.361 et ~l.433) → message générique, détail dans les logs seulement.
   - [ ] **2.3c** (Sprint 7) Uniformiser 403/404 pour une ressource d'une autre franchise → toujours 404 (`produits.py`/`formules.py` update, `formule_produits.py` : 403 aujourd'hui).
-
 - [ ] **2.4** Pagination de la liste des commandes — basse priorité tant que les volumes restent faibles.
 
 ## Sprint 3 — Frontend : XSS

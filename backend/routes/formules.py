@@ -357,8 +357,8 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
             }
         
         except Exception as e:
-            logger.error(f"❌ Delete error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression: {str(e)}")
+            logger.error(f"❌ Delete error: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression de la formule")
     
     # 🔒 FRANCHISE : désactivation uniquement pour sa franchise
     else:
@@ -429,8 +429,8 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
             }
         
         except Exception as e:
-            logger.error(f"❌ Deactivate error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Erreur lors de la désactivation: {str(e)}")
+            logger.error(f"❌ Deactivate error: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Erreur lors de la désactivation de la formule")
 
 @router.patch("/{formule_id}/franchises")
 async def toggle_formule_franchises(formule_id: str, request: ToggleFranchisesRequest, current_user: dict = Depends(is_catalog_admin)):
