@@ -155,9 +155,10 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - Tests dans `tests/test_multi_tenant_isolation.py` : franchise A demande un produit/formule de B → 404.
 - [~] **2.3** Revue de toutes les routes avec un `{id}` — audit fait le 2026-10-10 (38 routes, 11 fichiers) : **aucune fuite entre franchises restante**. 3 problèmes d'un autre type trouvés :
   - [x] **2.3a** `commandes.py` : 4 `except Exception` transformaient les 400/404 volontaires en 500 → `except HTTPException: raise` ajouté avant. Tests : validate d'une autre franchise → 404, liste sans franchise → 400.
-  - [ ] **2.3b** Détail technique des erreurs renvoyé au navigateur (`detail=f"...: {str(e)}"`) : `formule_produits.py` (~l.114), `formules.py` (~l.361 et ~l.433) → message générique, détail dans les logs seulement.
-  - [ ] **2.3c** (Sprint 7) Uniformiser 403/404 pour une ressource d'une autre franchise → toujours 404 (`produits.py`/`formules.py` update, `formule_produits.py` : 403 aujourd'hui).
-- [ ] **2.4** Pagination de la liste des commandes — basse priorité tant que les volumes restent faibles.
+  - [x] **2.3b** Détail technique des erreurs renvoyé au navigateur (`detail=f"...: {str(e)}"`) : `formule_produits.py` (~l.114), `formules.py` (~l.361 et ~l.433) → message générique, détail dans les logs seulement.
+  - [x] **2.3c** (Sprint 7) Uniformiser 403/404 pour une ressource d'une autre franchise → toujours 404 (`produits.py`/`formules.py` update, `formule_produits.py` : 403 aujourd'hui).
+- [-] **2.4** Pagination — **reportée** (2026-10-10) : la liste principale (commandes non archivées) reste petite grâce à l'auto-archivage. Seul l'onglet « Archivées » grossit, avec un risque réel : **limite Supabase de 1 000 lignes par requête, liste coupée sans erreur**. Sera traité dans la page Historique (`BACKLOG.md` B6 : pagination / filtres par période côté serveur).
+- [ ] **2.5** Fusionner `sprint/2-isolation-franchises` dans `v8` → déploiement Render → tests en prod.
 
 ## Sprint 3 — Frontend : XSS
 

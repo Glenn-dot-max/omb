@@ -45,7 +45,7 @@
   - (admin) comparaison entre franchises.
 - **Fonctions** : filtres (période, franchise, type de prestation) ; **export Excel** en réutilisant `ExcelJS`, déjà utilisé pour l'export du planning (`frontend/js/planning.js`).
 - **Limite actuelle** : aucun prix n'est stocké → pas de chiffre d'affaires ni de panier moyen en euros. À ajouter quand les prix existeront (Sprint 8 : `prix_personnalise` par site).
-- **À prévoir côté technique** : calculer les KPI **côté backend** (une route dédiée, filtrée par franchise/organisation) plutôt que de charger toutes les commandes dans le navigateur ; pagination / volumes (tâche 2.4).
+- **À prévoir côté technique** : calculer les KPI **côté backend** (une route dédiée, filtrée par franchise/organisation) plutôt que de charger toutes les commandes dans le navigateur ; pagination / volumes (tâche 2.4).⚠️ l'onglet « Archivées » actuel est coupé à 1 000 lignes (limite Supabase).
 - **À décider le moment venu** : quels KPI sont vraiment utiles aux franchises (à leur demander).
 
 ### B7 — Distinguer visuellement les produits/formules créés par l'admin et par une franchise
