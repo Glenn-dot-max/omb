@@ -285,10 +285,9 @@ async function handleCreateFormuleWithProduits() {
       ),
     );
 
-    allFormules.push(nouvelleFormule);
-
-    
-    displayFormules(allFormules);
+    // Recharger depuis le serveur : lui seul connaît les franchises liées
+    // (la répinse de création ne contient pas nb_franchises / is_limited).
+    await loadFormules();
     closeCreateFormuleModal();
 
     const allCheckboxes = document.querySelectorAll(".franchise-checkbox");

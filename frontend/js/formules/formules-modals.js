@@ -524,16 +524,8 @@ async function handleSaveFormuleDetails() {
 
     // ✅ Vérifier si une copie a été créée (réponse du backend avec is_new_copy)
     if (formuleModifiee.is_new_copy) {
-      // Retirer l'ancienne formule de la liste
-      allFormules = allFormules.filter(
-        (f) => f.id !== currentEditingFormule.id,
-      );
-
-      // Ajouter la nouvelle formule à la liste
-      allFormules.push(formuleModifiee);
-
-      displayFormules(allFormules);
       closeDetailsModal();
+      await loadFormules();
 
       alert(
         "✅ Une copie exclusive de la formule a été créée pour votre franchise !\n\n" +
@@ -542,15 +534,9 @@ async function handleSaveFormuleDetails() {
       );
     } else {
       // Modification simple (formule exclusive)
-      const index = allFormules.findIndex(
-        (f) => f.id === currentEditingFormule.id,
-      );
-      if (index !== -1) {
-        allFormules[index] = { ...allFormules[index], ...formuleModifiee };
-      }
-
-      displayFormules(allFormules);
       closeDetailsModal();
+      await loadFormules();
+
       alert("✅ Formule modifiée avec succès !");
     }
   } catch (error) {
