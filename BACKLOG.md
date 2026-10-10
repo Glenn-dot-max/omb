@@ -93,3 +93,9 @@
 - **Ajouté le** : 2026-10-09
 - **Pourquoi c'est reporté** : confort uniquement. Aujourd'hui l'authentification se fait avec un token GitHub (fine-grained, dépôt `omb`, permission _Contents : Read and write_) stocké dans le trousseau macOS, qui expire.
 - **Ce qu'il faudra faire** : `brew install gh` puis `gh auth login` → plus de token à recréer à la main à chaque expiration.
+
+### B8 — Tables inutilisées dans la base
+
+- **Ajouté le** : 2026-10-10
+- **Constat** : `workspaces`, `workspace_members`, `workspace_invitations`, `franchise_permissions` et la fonction `user_workspaces` ne sont utilisées nulle part dans le code (vérifié lors de la migration vers Francfort). Restes d'un essai ?
+- **À faire** : vérifier qu'aucun outil externe ne s'en sert, puis les supprimer (avec une migration, cf. Sprint 5).

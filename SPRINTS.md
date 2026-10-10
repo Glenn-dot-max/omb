@@ -9,7 +9,7 @@
 
 - **Production** : Render déploie la branche `v8` — **Sprint 1 déployé le 2026-10-09** (+ hotfix H1/H2 + correctifs formules), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
 - **Branche de travail** : aucune en cours — `sprint/2-isolation-franchses` = `v8` (en cours). 90 tests verts.
-- **Prochaine étape** : **Sprint P — Performance** (décidé le 2026-10-10, passe avant le Sprint 3), en commençant par **P0** (mesurer, sans code).
+- **Prochaine étape** : **Sprint P — Performance** (décidé le 2026-10-10, passe avant le Sprint 3), en commençant par **P0** (mesurer, sans code). A suivre = P2 à P4
 - **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -172,12 +172,12 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 >
 > **Méthode** : on **mesure avant et après** chaque étape (mêmes 3 scénarios chronométrés), pour savoir ce qui aide vraiment. Une étape = une mesure + un commit.
 
-- [ ] **P0 Mesurer (sans code, ~15 min)**
+- [x] **P0 Mesurer (sans code, ~15 min)**
   - Relever la **région** du service backend Render (Settings → Region) et du projet Supabase (Project Settings → General → Region).
   - Chronométrer en production, avec l'onglet **Network** (colonne _Time_, filtre _Fetch/XHR_) : ① ouverture de la page Commandes, ② création d'une commande avec 3 formules + 10 produits, ③ modification du nom d'une formule. Noter les temps ici :
     - ① … s · ② … s · ③ … s · Régions : Render … / Supabase …
   - Repérer dans les logs Render le temps entre deux lignes `HTTP Request: … supabase.co` (latence par requête).
-- [ ] **P1 Rapprocher le serveur de la base** (si P0 montre des régions éloignées) — gain attendu : **÷ 5 à 10 sur tout**, sans toucher au code.
+- [x] **P1 Rapprocher le serveur de la base** (si P0 montre des régions éloignées) — gain attendu : **÷ 5 à 10 sur tout**, sans toucher au code.
   - Option immédiate : recréer/déplacer le service Render dans la région la plus proche de Supabase (Render ne change pas la région d'un service existant : nouveau service + variables d'environnement + bascule de l'URL).
   - Option prévue : la migration vers **Hetzner** (Sprint 11, post-octobre 2026) → choisir l'Allemagne (Falkenstein/Nuremberg) avec Supabase à **Francfort** (`eu-central-1`).
   - Re-mesurer les 3 scénarios.
@@ -319,4 +319,4 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - **2026-10-07** — Revérification complète sur `v8` (version en prod). Nouveaux points : mots de passe en clair dans les scripts, archivage destructif, sessions non révoquées (rôle/franchise lus depuis le token, validité 7 jours). Avis GPT intégré (nuances sur la clé `anon`, rotation legacy, XSS, `httpx`, Dockerfile, divergence `main`/`v8`). Vision produit multi-traiteurs décidée → ajout des Phases B et C et du Sprint T (theming). Plan refondu dans ce fichier.
 - **2026-10-08** — Sprint 0 fait (sauf 0.5). Tâches 1.1 (reset mot de passe : doublon de modèle + nom de champ `newPassword` côté frontend), 1.2, 1.3, 1.4 (rôle/franchise relus en base, tokens invalidés après changement de mot de passe, nouveau token renvoyé) faites, 56 tests verts. 1.5 préparée (ajustements : `FormuleUpdate`, apostrophe autorisée, `getErrorMessage`) + ajout 1.5b. **Incident prod** sur la commande `f4efe8e8…` : chargement en erreur masqué → commande affichée vide → doublons → 500. Diagnostic fait, Hotfix H1 planifié et reporté (contournement : recharger la page). Ajout 1.9 (`Errno 11`) ; découverte que Render tourne en Python 3.13 (4.3 mise à jour). Signalement « duplication de commande incomplète » → cause trouvée (alias `tempFormules` / `AppState.tempFormules` désynchronisés), Hotfix H2 planifié.
 - **2026-10-09** — Hotfix H1 + H2 déployés. Tâches 1.5b, 1.6, 1.7 faites. **Sprint 1 déployé en production** (fast-forward de `v8`). Tests en prod : 2 bugs anciens de la page Formules trouvés et corrigés. Création de `BACKLOG.md` (mot de passe oublié reporté).
-- **2026-10-10** - déploiement du sprint 2 et tests des nouvelles fonctionnalités directement sur Render.
+- **2026-10-10** - déploiement du sprint 2 et tests des nouvelles fonctionnalités directement sur Render. Redéploiement de la base supabase, vers Frankfort depuis l'Oregon. Gain de temps sur l'interface presque par 5 sur chaque transaction.
