@@ -8,7 +8,7 @@
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
 - **Production** : Render déploie la branche `v8` — **Sprint 1 déployé le 2026-10-09** (+ hotfix H1/H2 + correctifs formules), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
-- **Branche de travail** : aucune en cours — `sprint/1-nettoyage-backend` = `v8` (terminée). 79 tests verts.
+- **Branche de travail** : aucune en cours — `sprint/2-isolation-franchses` = `v8` (en cours). 79 tests verts.
 - **Prochaine étape** : Sprint 2 (branche à créer depuis `v8`). Bloqué par **Q1** (archiver ou supprimer).
 - **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
 
@@ -61,6 +61,7 @@ Les 5 règles :
 ## ❓ Questions ouvertes
 
 - **Q1** — Quand une franchise clique « archiver » une commande : archivage (récupérable) ou suppression définitive ? Aujourd'hui : supprimée pour une franchise, archivée pour un admin (`commandes.py`, `PATCH /{id}/archive`).
+- ~~**Q1**~~ — Répondu le 2026-10-10 : **archiver, ne jamais supprimer une commande passée** (prérequis de l'historique / KPI, `BACKLOG.md` B6). Note : la route d'archivage manuel n'est appelée par aucun bouton de l'interface ; l'archivage réel est automatique (`auto-archive`).
 - **Q2** — Les produits/formules créés par une franchise doivent-ils rester invisibles aux autres franchises ? (Détermine la correction de la tâche 2.2.)
 - **Q3** — Le dépôt `Glenn-dot-max/omb` reste-t-il public ?
 - **Q4** — `main` a 6 commits absents de `v8` (`73386cf`, `01515f8`, `dbb9c3f`, `0224c67`, `fc3e66c`, `4f4b536`). Leur contenu semble déjà dans `v8` sous d'autres commits → à vérifier avant de réaligner `main` (tâche 4.7).
@@ -147,8 +148,8 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 
 ## Sprint 2 — Isolation entre franchises et perte de données
 
-- [ ] **2.1 Archivage destructif** (priorité haute) — `commandes.py`, `PATCH /{commande_id}/archive` : pour un non-admin, le code fait `.delete()`. Selon Q1 : remplacer par le même `update({"archived": True, "archived_at": …})` que pour l'admin (en gardant le filtre `franchise_id`).
-  - Test : après archivage par une franchise, la commande existe toujours avec `archived = True`.
+- [x] **2.1 Archivage destructif** — décision du 2026-10-10 : la route d'archivage **manuel** (`PATCH /commandes/{id}/archive`, qui supprimait pour les franchises) n'était appelée par aucun bouton → **supprimée** (backend + `archiveCommande()` dans `api.js`). L'archivage **automatique** (`auto-archive` + onglet « Archivées ») est conservé.
+  - Test : `PATCH /commandes/{id}/archive` → 404, et aucune suppression.
 - [ ] **2.2 IDOR produits/formules** — `routes/produits.py` (`get_produit`) et `routes/formules.py` (`get_formule`) : pour un non-admin, vérifier que l'ID est rattaché à sa franchise (`franchise_produits` / `franchise_formules`), sinon 404. Dépend de Q2.
   - Tests dans `tests/test_multi_tenant_isolation.py` : franchise A demande un produit/formule de B → 404.
 - [ ] **2.3** Passer en revue **toutes** les routes qui prennent un `{id}` et vérifier le filtre franchise (liste à établir, cocher route par route).

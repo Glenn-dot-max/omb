@@ -382,15 +382,6 @@ async function getArchivedCommandes() {
   }
 }
 
-async function archiveCommande(commandeId) {
-  try {
-    return await apiPatch(`/commandes/${commandeId}/archive`, {}); // ✅ Correct (route spéciale)
-  } catch (error) {
-    console.error("Erreur lors de l'archivage de la commande:", error);
-    throw error;
-  }
-}
-
 async function autoArchiveCommandes() {
   try {
     return await apiPost("/commandes/auto-archive", {});

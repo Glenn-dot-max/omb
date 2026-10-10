@@ -133,3 +133,18 @@ def test_update_commande_hour_only_sends_text_to_db(client, admin_headers):
 
     assert response.status_code == 200
     assert sent == {"delivery_hour": "14:00:00"}
+
+# ==============================================
+# TESTS - Archivage d'une commande (2.1)
+# ==============================================
+
+def test_manual_archive_route_no_longer_exists(client, auth_headers):
+    """L'archivage manuel a été supprimé : la route ne doit plus exister,
+    et surtout ne plus jamais supprimer une commande."""
+    with patch("routes.commandes.supabase") as mock_db:
+        response = client.patch("/commandes/c-1/archive", headers=auth_headers)
+
+        mock_db.table.return_value.delete.assert_not_called()
+
+    assert response.status_code == 404
+

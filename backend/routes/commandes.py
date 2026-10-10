@@ -227,34 +227,7 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erreur lors de l'archivage automatique des commandes"
         )
-    
 
-@router.patch("/{commande_id}/archive")
-async def archive_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
-    """Archive une commande manuellement"""
-    if current_user["role"] != "TECH_ADMIN":
-        if not current_user.get("franchise_id"):
-            raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
-
-        response = supabase.table("carnet_commande")\
-            .delete()\
-            .eq("id", commande_id)\
-            .eq("franchise_id", current_user["franchise_id"])\
-            .execute()
-
-        if not response.data:
-            raise HTTPException(status_code=404, detail="Commande not found")
-
-        return {"message": "Commande supprimée définitivement"}
-
-    response = supabase.table("carnet_commande").update({
-        "archived": True,
-        "archived_at": datetime.now(ZoneInfo("Europe/Paris")).isoformat()
-    }).eq("id", commande_id).execute()
-
-    if not response.data:
-        raise HTTPException(status_code=404, detail="Commande not found")
-    return response.data[0]
 
 @router.put("/{commande_id}")
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
