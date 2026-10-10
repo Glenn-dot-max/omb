@@ -118,7 +118,10 @@ function setupEventListeners() {
   if (saveCreateFormule) {
     saveCreateFormule.addEventListener(
       "click",
-      handleCreateFormuleWithProduits,
+      preventDoubleClick(
+        "save-create-formule",
+        handleCreateFormuleWithProduits,
+      ),
     );
   }
 

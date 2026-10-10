@@ -175,6 +175,23 @@ async function fetchWithAuth(url, options = {}) {
   return response;
 }
 
+// Protège le bouton contre le double-clic : il est désactivé pendant que
+// l'action tourne, puis réactivé à la fin (succès, erreur ou validation refusée).
+// Utilisation : bouton.addEventListener("click", preventDoubleClick("id-du-boutton", ma fonction));
+function preventDoubleClick(buttonId, action) {
+  return async function (...args) {
+    const button = document.getElementById(buttonId);
+    if (button.disabled) return;
+
+    button.disabled = true;
+    try {
+      await action(...args);
+    } finally {
+      button.disabled = false;
+    }
+  };
+}
+
 // ==============================================
 // HELPERS API
 // ==============================================

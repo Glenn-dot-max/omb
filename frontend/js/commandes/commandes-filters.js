@@ -60,7 +60,10 @@ function setupEventListeners() {
   cancelCreate.addEventListener("click", closeCreateCommandeModal);
 
   const saveCreate = document.getElementById("save-create-commande");
-  saveCreate.addEventListener("click", handleCreateCommande);
+  saveCreate.addEventListener(
+    "click",
+    preventDoubleClick("save-create-commande", handleCreateCommande),
+  );
 
   const addFormulebtn = document.getElementById("add-formule-btn");
   addFormulebtn.addEventListener("click", handleAddFormule);
