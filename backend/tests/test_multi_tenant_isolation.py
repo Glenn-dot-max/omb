@@ -4,6 +4,7 @@ Tests de non-regréssion pour les 2 failles de sécurité corrigées le 05/09/20
 1. PATCH /commande-formules/{id} sans authentification (accès libre non-scopé)
 2. GET /admin/franchises/{id}/produits|formules accessible par un simple USER (IDOR)
 """
+import pytest
 from unittest.mock import MagicMock, patch
 
 # =================================================
@@ -96,3 +97,47 @@ def test_franchise_catalogue_produits_allowed_for_catalog_admin(client, catalog_
         )
 
     assert response.status_code == 200
+
+# =================================================
+# 2.2 - GET /produits/{id} et /formules/{id} cloisonnés par franchise
+# =================================================
+
+def fake_tables(liens_data, item_data):
+    """Fausse base : la table de liens (franchise_produits / franchise_formules)
+     répons liens_data, la table principale (produits / formules) répond item_data."""
+    def table(name):
+        mock_table = MagicMock()
+        if name.startswith("franchise_"):
+            mock_table.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = liens_data
+        else:
+            mock_table.select.return_value.eq.return_value.execute.return_value.data = item_data
+        return mock_table
+    return table
+
+@pytest.mark.parametrize("ressource", ["produits", "formules"])
+def test_get_item_of_other_franchise_returns_404(client, auth_headers, ressource):
+    """Une franchise demande un produit/une formule qui n'est pas lié(e) à elle -> 404"""
+    with patch(f"routes.{ressource}.supabase") as mock_db:
+        mock_db.table.side_effect = fake_tables(liens_data=[], item_data=[{"id": "x-1", "name": "Secret"}])
+        response = client.get(f"/{ressource}/x-1", headers=auth_headers)
+
+    assert response.status_code == 404
+
+@pytest.mark.parametrize("ressource", ["produits", "formules"])
+def test_get_item_of_own_franchise_returns_200(client, auth_headers, ressource):
+    """Une franchise demande un produit/une formule lié(e) à elle -> 200"""
+    with patch(f"routes.{ressource}.supabase") as mock_db:
+        mock_db.table.side_effect = fake_tables(liens_data=[{"id": 1}], item_data=[{"id": "x-1", "name": "Croissant"}])
+        response = client.get(f"/{ressource}/x-1", headers=auth_headers)
+
+    assert response.status_code == 200
+
+@pytest.mark.parametrize("ressource", ["produits", "formules"])
+def test_get_any_item_as_admin_returns_200(client, admin_headers, ressource):
+    """Un admin peut lire n'importe quel produit/une formule, sans vérification de lien"""
+    with patch(f"routes.{ressource}.supabase") as mock_db:
+        mock_db.table.side_effect = fake_tables(liens_data=[], item_data=[{"id": "x-1", "name": "Croissant"}])
+        response = client.get(f"/{ressource}/x-1", headers=admin_headers)
+
+    assert response.status_code == 200
+    

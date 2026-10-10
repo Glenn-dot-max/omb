@@ -150,7 +150,17 @@ async def get_restorable_shared_formules(
 
 @router.get("/{formule_id}")
 async def get_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
-    """Get a single formule by ID"""
+    """Get a single formule by ID.
+    Admin catalogue : n'importe quelle formule. Franchise : seulement les formules liées à sa franchise."""
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
+        lien = supabase.table("franchise_formules")\
+            .select("formule_id")\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("formule_id", formule_id)\
+            .execute()
+        if not lien.data:
+            raise HTTPException(status_code=404, detail="Formule not found")
+        
     response = supabase.table("formules")\
         .select("*")\
         .eq("id", formule_id)\

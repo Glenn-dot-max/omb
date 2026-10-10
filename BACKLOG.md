@@ -48,6 +48,15 @@
 - **À prévoir côté technique** : calculer les KPI **côté backend** (une route dédiée, filtrée par franchise/organisation) plutôt que de charger toutes les commandes dans le navigateur ; pagination / volumes (tâche 2.4).
 - **À décider le moment venu** : quels KPI sont vraiment utiles aux franchises (à leur demander).
 
+### B7 — Distinguer visuellement les produits/formules créés par l'admin et par une franchise
+
+- **Ajouté le** : 2026-10-10
+- **Pourquoi c'est reporté** : confort d'interface, pas un problème de sécurité. Idée de Glenn lors de la réponse à Q2.
+- **Règle actuelle** (Q2, 2026-10-10) : un admin (`TECH_ADMIN` / `CATALOG_ADMIN`) peut créer un produit/une formule pour une, plusieurs ou toutes les franchises ; un utilisateur de franchise ne crée que pour **sa** franchise, et ses créations restent invisibles pour les autres (cloisonnement vérifié côté backend en tâche 2.2).
+- **Idée** : un badge ou un filtre dans les pages Produits et Formules : « Catalogue central » (créé par l'admin) vs « Créé par votre franchise ».
+- **À vérifier avant** : la base ne stocke pas (à confirmer) qui a créé l'élément. Pistes : une colonne `created_by` / `origine` à ajouter (migration, Sprint 5), ou déduire de `franchise_produits` (un élément lié à une seule franchise et créé par un utilisateur de cette franchise). La page Formules affiche déjà « ✅ Formule propre à votre franchise » quand `nb_franchises === 1` (`formules-render.js`) — à généraliser aux produits et à fiabiliser.
+- **Lié à** : Sprint 8 (personnalisation du catalogue par site), Sprint 10 (Vue).
+
 ---
 
 ## Qualité du code (petit ménage)

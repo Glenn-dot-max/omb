@@ -136,7 +136,17 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
 
 @router.get("/{produit_id}")
 async def get_produit(produit_id: str, current_user: dict = Depends(get_current_user)):
-    """Get a single produit by ID"""
+    """Get a single produit by ID.
+    Admin catalogue : n'importe quel produit. Franchise : seulement les produits liés à sa franchise."""
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
+        lien = supabase.table("franchise_produits")\
+            .select("produit_id")\
+            .eq("franchise_id", current_user["franchise_id"])\
+            .eq("produit_id", produit_id)\
+            .execute()
+        if not lien.data:
+            raise HTTPException(status_code=404, detail="Produit not found")
+    
     response = supabase.table("produits")\
         .select("*")\
         .eq("id", produit_id)\
