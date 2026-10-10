@@ -9,7 +9,7 @@
 
 - **Production** : Render déploie la branche `v8` — **Sprint 1 déployé le 2026-10-09** (+ hotfix H1/H2 + correctifs formules), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
 - **Branche de travail** : aucune en cours — `sprint/2-isolation-franchses` = `v8` (en cours). 90 tests verts.
-- **Prochaine étape** : Production = sprint 2 déployé ; prochaine étape = sprint 3 (le XSS dans le frontend) ;
+- **Prochaine étape** : **Sprint P — Performance** (décidé le 2026-10-10, passe avant le Sprint 3), en commençant par **P0** (mesurer, sans code).
 - **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -156,9 +156,52 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 - [~] **2.3** Revue de toutes les routes avec un `{id}` — audit fait le 2026-10-10 (38 routes, 11 fichiers) : **aucune fuite entre franchises restante**. 3 problèmes d'un autre type trouvés :
   - [x] **2.3a** `commandes.py` : 4 `except Exception` transformaient les 400/404 volontaires en 500 → `except HTTPException: raise` ajouté avant. Tests : validate d'une autre franchise → 404, liste sans franchise → 400.
   - [x] **2.3b** Détail technique des erreurs renvoyé au navigateur (`detail=f"...: {str(e)}"`) : `formule_produits.py` (~l.114), `formules.py` (~l.361 et ~l.433) → message générique, détail dans les logs seulement.
-  - [x] **2.3c** (Sprint 7) Uniformiser 403/404 pour une ressource d'une autre franchise → toujours 404 (`produits.py`/`formules.py` update, `formule_produits.py` : 403 aujourd'hui).
+  - [-] **2.3c** (Sprint 7) Uniformiser 403/404 pour une ressource d'une autre franchise → toujours 404 (`produits.py`/`formules.py` update, `formule_produits.py` : 403 aujourd'hui).
 - [-] **2.4** Pagination — **reportée** (2026-10-10) : la liste principale (commandes non archivées) reste petite grâce à l'auto-archivage. Seul l'onglet « Archivées » grossit, avec un risque réel : **limite Supabase de 1 000 lignes par requête, liste coupée sans erreur**. Sera traité dans la page Historique (`BACKLOG.md` B6 : pagination / filtres par période côté serveur).
 - [x] **2.5** Fusionner `sprint/2-isolation-franchises` dans `v8` → déploiement Render → tests en prod.
+
+## ⚡ Sprint P — Performance (priorité : avant le Sprint 3)
+
+Branche : `sprint/p-performance` (à créer depuis `v8`).
+
+> **Constat (2026-10-10)** : l'interface est lente — création de commande, création/modification de formule, mises à jour. Les logs Render du 2026-10-08 montrent **230 à 600 ms entre deux requêtes Supabase** (une base proche répond en 5-20 ms). Trois causes qui s'additionnent :
+>
+> 1. **Distance serveur ↔ base** probable (Render et Supabase dans des régions différentes ?) → chaque requête paie un aller-retour long.
+> 2. **Trop d'allers-retours** : créer une commande avec 3 formules et 10 produits = 1 appel par formule et par produit, envoyés **l'un après l'autre** par le frontend (`handleCreateCommande`, `saveEditCommande` dans `commandes-modals.js`), chacun faisant 3 à 5 requêtes à la base → **~55 requêtes à la suite**.
+> 3. **Le serveur traite les requêtes une par une** : toutes les routes sont en `async def` mais le client Supabase est **synchrone** (bloquant) → chaque requête à la base bloque tout le serveur ; même les appels envoyés en parallèle par le frontend (`Promise.all` pour les produits d'une formule) sont traités à la queue.
+>
+> **Méthode** : on **mesure avant et après** chaque étape (mêmes 3 scénarios chronométrés), pour savoir ce qui aide vraiment. Une étape = une mesure + un commit.
+
+- [ ] **P0 Mesurer (sans code, ~15 min)**
+  - Relever la **région** du service backend Render (Settings → Region) et du projet Supabase (Project Settings → General → Region).
+  - Chronométrer en production, avec l'onglet **Network** (colonne _Time_, filtre _Fetch/XHR_) : ① ouverture de la page Commandes, ② création d'une commande avec 3 formules + 10 produits, ③ modification du nom d'une formule. Noter les temps ici :
+    - ① … s · ② … s · ③ … s · Régions : Render … / Supabase …
+  - Repérer dans les logs Render le temps entre deux lignes `HTTP Request: … supabase.co` (latence par requête).
+- [ ] **P1 Rapprocher le serveur de la base** (si P0 montre des régions éloignées) — gain attendu : **÷ 5 à 10 sur tout**, sans toucher au code.
+  - Option immédiate : recréer/déplacer le service Render dans la région la plus proche de Supabase (Render ne change pas la région d'un service existant : nouveau service + variables d'environnement + bascule de l'URL).
+  - Option prévue : la migration vers **Hetzner** (Sprint 11, post-octobre 2026) → choisir l'Allemagne (Falkenstein/Nuremberg) avec Supabase à **Francfort** (`eu-central-1`).
+  - Re-mesurer les 3 scénarios.
+- [ ] **P2 Traiter les requêtes en parallèle côté serveur** — remplacer `async def` par `def` dans les routes qui n'utilisent pas `await` : FastAPI exécute alors chaque requête dans un thread séparé au lieu de bloquer tout le serveur.
+  - ⚠️ À tester sérieusement (le client Supabase est partagé entre les threads) ; surveiller dans les logs si l'erreur `[Errno 11]` (tâche 1.9) diminue ou augmente — elle pourrait être liée.
+  - Les tests existants doivent rester verts sans modification (le comportement ne change pas, seule la concurrence change).
+  - Re-mesurer, en particulier ③ et l'ajout de plusieurs produits à une formule.
+- [ ] **P3 Créer une commande complète en un seul appel** — nouvelle route (ex. `POST /commandes/complete`) qui reçoit la commande **avec** ses formules (et exclusions) et ses produits, vérifie les droits **une fois**, puis fait des **insertions groupées** (une insertion pour toutes les formules, une pour tous les produits).
+  - Frontend : `handleCreateCommande` envoie un seul appel au lieu de 1 + N.
+  - Gain attendu sur ② : **~55 requêtes → ~6**.
+  - Bonus : plus de commande « à moitié créée » si une étape échoue au milieu (aujourd'hui, la commande peut exister sans une partie de ses produits).
+  - Tests : création complète OK ; doublon de formule/produit refusé ; produit ou formule non accessible à la franchise → refus et **rien** n'est créé.
+- [ ] **P4 Archivage automatique en une seule requête** — `auto_archive_old_commandes` (`commandes.py`) lit toutes les commandes validées puis les archive **une par une** (1 requête par commande), à **chaque ouverture** de la page Commandes → une seule requête `update … where delivery_date < aujourd'hui and validated and not archived` (filtrée par franchise pour les non-admins).
+  - Tests : seules les commandes passées et validées sont archivées ; une franchise n'archive que les siennes.
+  - Re-mesurer ①.
+- [ ] **P5 Même principe pour les autres enregistrements lents**
+  - Modification d'une commande (`saveEditCommande` : exclusions + nouvelles formules + nouveaux produits envoyés un par un) → un appel groupé.
+  - Création d'une formule avec ses produits (`formules-create.js` : 1 appel par produit) → insertion groupée des produits côté serveur.
+  - Re-mesurer ② (en modification) et ③.
+- [ ] **P6 (à arbitrer) Mettre en cache la vérification de l'utilisateur** — `get_current_user` fait 1 requête à la base **à chaque appel**. Un cache de quelques secondes (ex. 10-30 s) économise cette requête.
+  - ⚠️ Compromis avec la tâche 1.4 : un changement de rôle, une désactivation ou un changement de mot de passe mettrait jusqu'à la durée du cache à s'appliquer. À décider après P1-P5 selon le gain restant.
+- [ ] **P7 Déploiement** — fusion dans `v8` → Render → re-mesurer en production et comparer à P0. Noter les gains dans le journal.
+
+**Hors scope de ce sprint** (noté pour plus tard) : passer au client Supabase **asynchrone** (plus propre que P2 mais touche toutes les routes — à envisager avec la Phase B) ; pagination de l'onglet « Archivées » (→ `BACKLOG.md` B6).
 
 ## Sprint 3 — Frontend : XSS
 
