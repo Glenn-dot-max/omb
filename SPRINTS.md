@@ -191,6 +191,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - Bonus : plus de commande « à moitié créée » si une étape échoue au milieu (aujourd'hui, la commande peut exister sans une partie de ses produits).
   - Tests : création complète OK ; doublon de formule/produit refusé ; produit ou formule non accessible à la franchise → refus et **rien** n'est créé.
   - [x] **P3a** Modèle CommandeComplete (formules + produits, règles anti-doublon) + 9 tests
+  - [x] **P3b** Route POST /commandes/complete : droits vérifiés en 2 requêtes, insertions par lots, annulation si échec + 6 tests
 - [x] **P4 Archivage automatique en une seule requête** — `auto_archive_old_commandes` (`commandes.py`) lit toutes les commandes validées puis les archive **une par une** (1 requête par commande), à **chaque ouverture** de la page Commandes → une seule requête `update … where delivery_date < aujourd'hui and validated and not archived` (filtrée par franchise pour les non-admins).
   - Tests : seules les commandes passées et validées sont archivées ; une franchise n'archive que les siennes.
   - Re-mesurer ①.
