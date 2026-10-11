@@ -175,10 +175,18 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
         today_paris = datetime.now(paris_tz).date()
         cutoff_date = today_paris.isoformat()
         
-        # ✅ CORRECTION : Ne pas filtrer par franchise pour TECH_ADMIN
-        query = supabase.table("carnet_commande").select("id, delivery_date")
-        
-        # Si l'utilisateur n'est PAS TECH_ADMIN, filtrer par franchise
+        # Une seule requête : archiver directement toutes les commandes validées, 
+        # non archivées, dont la date de livraison est passée (avant aujourd'hui, heure de Paris).
+        query = supabase.table("carnet_commande")\
+            .update({
+                "archived": True,
+                "archived_at": datetime.now(paris_tz).isoformat()
+            })\
+            .eq("archived", False)\
+            .eq("validated", True)\
+            .lt("delivery_date", cutoff_date)
+
+        # Si l'utilisateur n'est PAS TECH_ADMIN, n'archiver que les commandes de sa franchise
         if current_user.get("role") != "TECH_ADMIN":
             if not current_user.get("franchise_id"):
                 raise HTTPException(
@@ -186,43 +194,16 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
                     detail="Utilisateur sans franchise associée"
                 )
             query = query.eq("franchise_id", current_user["franchise_id"])
-        
-        # Récupérer les commandes actives
-        response = query\
-            .eq("archived", False)\
-            .eq("validated", True)\
-            .execute()
-        
-        if not response.data:
+
+        response = query.execute()
+        count = len(response.data)
+
+        if count == 0:
             return {"count": 0, "message": "Aucune commande à archiver"}
-        
-        commandes_a_archiver = []
-        
-        for commande in response.data:
-            delivery_date_str = commande["delivery_date"]
-            delivery_date_only = delivery_date_str.split("T")[0]
-            year, month, day = map(int, delivery_date_only.split("-"))
-            delivery_date = date(year, month, day)
-            
-            if delivery_date < today_paris:
-                commandes_a_archiver.append(commande["id"])
-        
-        if not commandes_a_archiver:
-            return {"count": 0, "message": "Aucune commande de J-1 à archiver"}
-        
-        # Archiver les commandes
-        for commande_id in commandes_a_archiver:
-            supabase.table("carnet_commande")\
-                .update({
-                    "archived": True,
-                    "archived_at": datetime.now(paris_tz).isoformat()
-                })\
-                .eq("id", commande_id)\
-                .execute()
-        
+
         return {
-            "count": len(commandes_a_archiver),
-            "message": f"{len(commandes_a_archiver)} commande(s) archivée(s)",
+            "count": count,
+            "message": f"{count} commande(s) archivée(s)",
             "cutoff_date": cutoff_date
         }
 

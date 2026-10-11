@@ -169,4 +169,53 @@ def test_get_commandes_without_franchise_returns_400(client, catalog_admin_heade
         response = client.get("/commandes/", headers=catalog_admin_headers)
 
     assert response.status_code == 400
-    
+
+
+# ==============================================
+# TESTS - Archivage automatique en une seule requête (P4)
+# ==============================================
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+def today_paris():
+    return datetime.now(ZoneInfo("Europe/Paris")).date().isoformat()
+
+def test_auto_archive_franchise_single_update(client, auth_headers):
+    """Franchise : UNE seule requête update, filtrée sur la date et sur SA franchise"""
+    with patch("routes.commandes.supabase") as mock_db:
+        update = mock_db.table.return_value.update
+        chaine = update.return_value.eq.return_value.eq.return_value.lt.return_value
+        chaine.eq.return_value.execute.return_value.data = [{"id": "c-1"}, {"id": "c-2"}]
+
+        response = client.post("/commandes/auto-archive", headers=auth_headers)
+
+        assert update.call_count == 1
+        assert update.call_args[0][0]["archived"] is True
+        update.return_value.eq.return_value.eq.return_value.lt.assert_called_once_with("delivery_date", today_paris())
+        chaine.eq.assert_called_once_with("franchise_id", "franchise-abc")
+        mock_db.table.return_value.select.assert_not_called()
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 2
+
+def test_auto_archive_nothing_to_archive(client, auth_headers):
+    """Aucune commande passée -> count 0"""
+    with patch("routes.commandes.supabase") as mock_db:
+        chaine = mock_db.table.return_value.update.return_value.eq.return_value.eq.return_value.lt.return_value
+        chaine.eq.return_value.execute.return_value.data = []
+        response = client.post("/commandes/auto-archive", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 0
+
+def test_auto_archive_admin_all_franchises(client, admin_headers):
+    """Admin : archive les commandes passées de toutes les franchises (pas de filtre franchise)"""
+    with patch("routes.commandes.supabase") as mock_db:
+        chaine = mock_db.table.return_value.update.return_value.eq.return_value.eq.return_value.lt.return_value
+        chaine.execute.return_value.data = [{"id": "c-1"}]
+        response = client.post("/commandes/auto-archive", headers=admin_headers)
+
+        chaine.eq.assert_not_called()
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
