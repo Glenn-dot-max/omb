@@ -57,6 +57,23 @@
 - **À vérifier avant** : la base ne stocke pas (à confirmer) qui a créé l'élément. Pistes : une colonne `created_by` / `origine` à ajouter (migration, Sprint 5), ou déduire de `franchise_produits` (un élément lié à une seule franchise et créé par un utilisateur de cette franchise). La page Formules affiche déjà « ✅ Formule propre à votre franchise » quand `nb_franchises === 1` (`formules-render.js`) — à généraliser aux produits et à fiabiliser.
 - **Lié à** : Sprint 8 (personnalisation du catalogue par site), Sprint 10 (Vue).
 
+### B9 — Récapitulatif à confirmer avant de créer une commande
+
+- **Ajouté le** : 2026-10-11
+- **Pourquoi c'est reporté** : amélioration d'interface demandée par Glenn pendant P3 ; à faire après P3 (ou avec P3c si le temps le permet).
+- **Idée** : quand l'utilisateur clique sur « Créer », afficher d'abord un **récapitulatif** de la commande, qu'il doit **confirmer une seconde fois** avant l'envoi :
+  - infos générales : client, date, heure, nombre de couverts, type de prestation (et coefficient si mariage), service, notes, en attente ou non ;
+  - **nombre de formules** et, pour chacune : son nom, ses couverts, **le nombre de produits qu'elle contient** (et les produits exclus) ;
+  - **nombre de produits ajoutés directement**, avec quantité et unité ;
+  - deux boutons : « ✅ Confirmer la commande » et « ✏️ Modifier » (revient au formulaire sans rien perdre).
+- **Pourquoi c'est utile** : éviter les erreurs de saisie (mauvaise date, formule oubliée, quantité fausse) avant qu'elles n'arrivent dans le planning de production.
+- **À savoir pour le faire** :
+  - tout se passe **côté frontend**, dans `handleCreateCommande` (`frontend/js/commandes/commandes-modals.js`), **avant** l'appel au serveur : les données sont déjà dans `tempFormules` / `tempProduits` ;
+  - le nombre de produits par formule s'obtient avec l'API existante `GET /formule-produits/formule/{id}` (déjà utilisée pour afficher la composition d'une formule) — ou mieux, en le faisant renvoyer par le backend pour éviter un appel par formule ;
+  - **après P3**, la création se fait en un seul appel (`POST /commandes/complete`) : le récap affiche exactement ce qui sera envoyé dans cet appel → facile à brancher ;
+  - le même récap pourrait servir à la **modification** et à la **duplication** d'une commande.
+- **Lié à** : Sprint P (P3), B6.
+
 ---
 
 ## Qualité du code (petit ménage)
