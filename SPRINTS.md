@@ -192,6 +192,9 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - Tests : création complète OK ; doublon de formule/produit refusé ; produit ou formule non accessible à la franchise → refus et **rien** n'est créé.
   - [x] **P3a** Modèle CommandeComplete (formules + produits, règles anti-doublon) + 9 tests
   - [x] **P3b** Route POST /commandes/complete : droits vérifiés en 2 requêtes, insertions par lots, annulation si échec + 6 tests
+  - [ ] **P3d** (Q5) Menus de sélection filtrés sur la franchise de l'utilisateur : `filterForMyFranchise()` dans `auth.js`, appliquée aux 6 menus (création/modification de commande, création de formule, ajout dans une formule). **À déployer avec P3.**
+- [ ] **P3e** (Q5) Page Produits : indicateur « ✅ dans votre franchise / ❌ pas dans votre franchise » pour les admins du catalogue qui ont une franchise.
+
 - [x] **P4 Archivage automatique en une seule requête** — `auto_archive_old_commandes` (`commandes.py`) lit toutes les commandes validées puis les archive **une par une** (1 requête par commande), à **chaque ouverture** de la page Commandes → une seule requête `update … where delivery_date < aujourd'hui and validated and not archived` (filtrée par franchise pour les non-admins).
   - Tests : seules les commandes passées et validées sont archivées ; une franchise n'archive que les siennes.
   - Re-mesurer ①.

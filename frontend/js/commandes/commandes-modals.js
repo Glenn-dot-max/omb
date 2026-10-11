@@ -330,7 +330,7 @@ function populateEditFormuleSelector() {
   const select = document.getElementById("edit-formule-select");
   select.innerHTML = '<option value="">-- Sélectionner une formule --</option>';
 
-  allFormules.forEach((formule) => {
+  filterForMyFranchise(allFormules).forEach((formule) => {
     const option = document.createElement("option");
     option.value = formule.id;
     option.textContent = formule.name;
@@ -342,7 +342,7 @@ function populateEditProduitSelector() {
   const select = document.getElementById("edit-produit-select");
   select.innerHTML = '<option value="">-- Sélectionner un produit --</option>';
 
-  allProduits.forEach((produit) => {
+  filterForMyFranchise(allProduits).forEach((produit) => {
     const option = document.createElement("option");
     option.value = produit.id;
     option.textContent = produit.name;
@@ -1091,7 +1091,7 @@ function populateFormuleSelector() {
   const select = document.getElementById("formule-select");
   select.innerHTML = '<option value="">-- Sélectionner une formule --</option>';
 
-  allFormules.forEach((formule) => {
+  filterForMyFranchise(allFormules).forEach((formule) => {
     const option = document.createElement("option");
     option.value = formule.id;
     option.textContent = formule.name.trim();
@@ -1103,7 +1103,7 @@ function populateProduitSelector() {
   const select = document.getElementById("produit-select");
   select.innerHTML = '<option value="">-- Sélectionner un produit --</option>';
 
-  allProduits.forEach((produit) => {
+  filterForMyFranchise(allProduits).forEach((produit) => {
     const option = document.createElement("option");
     option.value = produit.id;
     option.textContent = produit.name.trim();

@@ -145,7 +145,7 @@ async function loadProduitsForCreateSelect() {
     select.innerHTML =
       '<option value="">-- Sélectionner un produit --</option>';
 
-    produits.forEach((produit) => {
+    filterForMyFranchise(produits).forEach((produit) => {
       const option = document.createElement("option");
       option.value = produit.id;
       option.textContent = produit.name;

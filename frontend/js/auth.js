@@ -175,9 +175,26 @@ async function fetchWithAuth(url, options = {}) {
   return response;
 }
 
+// Q5 : dans les menus de la sélection (création de commande, de formule...) un compte
+// qui a une franchise ne voit que les produits/formules actifs pour SA franchise.
+// - Listes "admin du catalogue" : chaque élément a un champ franchise_ids -> on filtre.
+// - Listes "franchise" : déjà filtrées par le serveur (pas de franchise_ids) -> on garde tout.
+// - Compte sans franchise (TECH_ADMIN): on garde tout.
+function filterForMyFranchise(elements) {
+  const user = getUser();
+  if (!user || !user.franchise_id) return elements;
+
+  const maFranchise = String(user.franchise_id);
+  return elements.filter(
+    (element) =>
+      !Array.isArray(element.franchise_ids) ||
+      element.franchise_ids.map(String).includes(maFranchise),
+  );
+}
+
 // Protège le bouton contre le double-clic : il est désactivé pendant que
 // l'action tourne, puis réactivé à la fin (succès, erreur ou validation refusée).
-// Utilisation : bouton.addEventListener("click", preventDoubleClick("id-du-boutton", ma fonction));
+// Utilisation : bouton.addEventListener("click", preventDoubleClick("id-du-bouton", ma fonction));
 function preventDoubleClick(buttonId, action) {
   return async function (...args) {
     const button = document.getElementById(buttonId);
