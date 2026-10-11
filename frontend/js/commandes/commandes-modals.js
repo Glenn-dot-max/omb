@@ -1658,41 +1658,26 @@ async function handleCreateCommande() {
       validated: !enAttente,
     };
 
-    // Appel API pour créer la commande
-    const nouvelleCommande = await createCommande(commandeData);
-
+    // =========================================
+    // 4. AJOUTER LE CONTENU DANS LE MÊME APPEL (Sprint P, P3)
     // ==========================================
-    // 4. AJOUTER LES FORMULES
-    // ==========================================
+    // Le serveur crée la commande, ses formules (et exclusions) et ses produits
+    // en une seule fois - ou rien du tout si quelque chose ne va pas.
 
-    if (tempFormules.length > 0) {
-      for (const formule of tempFormules) {
-        const formuleData = {
-          commande_id: nouvelleCommande.id,
-          formule_id: formule.formule_id,
-          quantite_recommandee: formule.couverts,
-          quantite_finale: formule.couverts,
-          produits_exclus: formule.produits_exclus || [],
-        };
-        await createCommandeFormule(formuleData);
-      }
-    }
+    commandeData.formules = tempFormules.map((formule) => ({
+      formule_id: formule.formule_id,
+      quantite_finale: formule.couverts,
+      produits_exclus: formule.produits_exclus || [],
+    }));
 
-    // ==========================================
-    // 5. AJOUTER LES PRODUITS
-    // ==========================================
+    commandeData.produits = tempProduits.map((produit) => ({
+      produit_id: produit.produit_id,
+      quantite: produit.quantite,
+      unite: produit.unite,
+    }));
 
-    if (tempProduits.length > 0) {
-      for (const produit of tempProduits) {
-        const produitData = {
-          commande_id: nouvelleCommande.id,
-          produit_id: produit.produit_id,
-          quantite: produit.quantite,
-          unite: produit.unite,
-        };
-        await createCommandeProduit(produitData);
-      }
-    }
+    // Un seul appel API pour la commande ET tout son contenu
+    await createCommandeComplete(commandeData);
 
     // ==========================================
     // 6. RAFRAÎCHIR LA LISTE

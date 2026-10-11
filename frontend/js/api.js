@@ -161,6 +161,15 @@ async function createCommande(commande) {
   }
 }
 
+async function createCommandeComplete(commande) {
+  try {
+    return await apiPost("/commandes/complete", commande);
+  } catch (error) {
+    console.error("Erreur API createCommandeComplete:", error);
+    throw error;
+  }
+}
+
 async function deleteCommande(commandeId) {
   try {
     await apiDelete(`/commandes/${commandeId}`); // ✅ Sans slash
