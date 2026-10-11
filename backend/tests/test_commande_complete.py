@@ -35,15 +35,23 @@ def test_commande_complete_sans_contenu_refusee():
     with pytest.raises(ValidationError):
         CommandeComplete(**commande())
 
-def tests_commande_complete_formule_en_double_refusee():
+def test_commande_complete_formule_en_double_refusee():
     with pytest.raises(ValidationError):
         CommandeComplete(**commande(formules=[
-            {"formule_id": FORMULE_A, "quantite": 2, "unite": "unité"},
-            {"produit_id": PRODUIT_A, "quantite": 3, "unite": "unité"}
+            {"formule_id": FORMULE_A, "quantite_finale": 10},
+            {"formule_id": FORMULE_A, "quantite_finale": 5},
         ]))
 
-def test_commande_complete_name_produit_unites_differentes_accepte():
-    """Le même produit avce deux unités différentes est autorisé (comme en base)"""
+
+def test_commande_complete_produit_meme_unite_en_double_refuse():
+    with pytest.raises(ValidationError):
+        CommandeComplete(**commande(produits=[
+            {"produit_id": PRODUIT_A, "quantite": 2, "unite": "unité"},
+            {"produit_id": PRODUIT_A, "quantite": 3, "unite": "unité"},
+        ]))
+
+def test_commande_complete_meme_produit_unites_differentes_accepte():
+    """Le même produit avec deux unités différentes est autorisé (comme en base)"""
     c = CommandeComplete(**commande(produits=[
         {"produit_id": PRODUIT_A, "quantite": 2, "unite": "unité"},
         {"produit_id": PRODUIT_A, "quantite": 1, "unite": "kg"},
