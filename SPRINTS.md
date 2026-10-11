@@ -9,7 +9,7 @@
 
 - **Production** : Render déploie la branche `v8` — **Sprint 1 déployé le 2026-10-09** (+ hotfix H1/H2 + correctifs formules), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
 - **Branche de travail** : aucune en cours — `sprint/2-isolation-franchses` = `v8` (en cours). 90 tests verts.
-- **Prochaine étape** : **Sprint P — Performance** (décidé le 2026-10-10, passe avant le Sprint 3), en commençant par **P0** (mesurer, sans code). A suivre - P3
+- **Prochaine étape** : **Sprint P — Performance** (décidé le 2026-10-10, passe avant le Sprint 3), en commençant par **P0** (mesurer, sans code). A suivre - P2
 - **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -190,6 +190,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - Gain attendu sur ② : **~55 requêtes → ~6**.
   - Bonus : plus de commande « à moitié créée » si une étape échoue au milieu (aujourd'hui, la commande peut exister sans une partie de ses produits).
   - Tests : création complète OK ; doublon de formule/produit refusé ; produit ou formule non accessible à la franchise → refus et **rien** n'est créé.
+  - [x] **P3a** Modèle CommandeComplete (formules + produits, règles anti-doublon) + 9 tests
 - [x] **P4 Archivage automatique en une seule requête** — `auto_archive_old_commandes` (`commandes.py`) lit toutes les commandes validées puis les archive **une par une** (1 requête par commande), à **chaque ouverture** de la page Commandes → une seule requête `update … where delivery_date < aujourd'hui and validated and not archived` (filtrée par franchise pour les non-admins).
   - Tests : seules les commandes passées et validées sont archivées ; une franchise n'archive que les siennes.
   - Re-mesurer ①.

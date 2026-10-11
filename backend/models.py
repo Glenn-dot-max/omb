@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, constr, field_validator
+from pydantic import BaseModel, EmailStr, Field, constr, field_validator, model_validator
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime, date, time
@@ -165,6 +165,48 @@ class CarnetCommandeUpdate(BaseModel):
     validated: Optional[bool] = None
     class Config:
         extra = 'forbid'
+
+# ================ COMMANDE COMPLETE (P3) ================
+# Une commande avec ses formules et ses produits, créés un seul appel.
+
+class CommandeCompleteFormule(BaseModel):
+    """Une formule à ajouter dans une commande complète."""
+    formule_id: UUID
+    quantite_finale: float = Field(ge=0, le=10000)
+    produits_exclus: List[UUID] = Field(default_factory=list)
+
+    class Config:
+        extra = 'forbid'
+
+class CommandeCompleteProduit(BaseModel):
+    """Un produit à ajouter directement dans une commande complète."""
+    produit_id: UUID
+    quantite: float = Field(ge=0, le=10000)
+    unite: Optional[constr(max_length=50)] = None
+
+    class Config:
+        extra = 'forbid'
+
+class CommandeComplete(CarnetCommandeCreate):
+    """La commande (mêmes champs et mêmes règles que CarnetCommandeCreate) + son contenu"""
+    formules: List[CommandeCompleteFormule] = Field(default_factory=list)
+    produits: List[CommandeCompleteProduit] = Field(default_factory=list)
+
+    @model_validator(mode='after')
+    def cehck_contenu(self):
+        if not self.formules and not self.produits:
+            raise ValueError('La commande doit contenir au moins une formule ou un produit')
+
+        formule_ids = [f.formule_id for f in self.formules]
+        if len(formule_ids) != len(set(formule_ids)):
+            raise ValueError("Une même formule ne peut apparaître qu'une fois dans la commande")
+
+        cles_produits = [(p.produit_id, p.unite) for p in self.produits]
+        if len(cles_produits) != len(set(cles_produits)):
+            raise ValueError("Un même produit avec la même unité ne peut apparaître qu'une fois dans la commande")
+        
+        return self
+
 
 
 # ================ COMMANDE_FORMULES MODELS ================
