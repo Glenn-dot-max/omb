@@ -175,21 +175,25 @@ async function fetchWithAuth(url, options = {}) {
   return response;
 }
 
+// Q5 : pour un compte qui a une franchise et qui voit tout le catalogue (admin du catalogue),
+// indique si un produit/ une formule est actif pour SA franchise.
+// Renvoie null quand la question ne se pose pas (compte sans franchise, ou liste déjà filtrée).
+function isInMyFranchise(element) {
+  const user = getUser();
+  if (!user || !user.franchise_id || !Array.isArray(element.franchise_ids))
+    return null;
+  return element.franchise_ids.map(String).includes(String(user.franchise_id));
+}
+
 // Q5 : dans les menus de la sélection (création de commande, de formule...) un compte
 // qui a une franchise ne voit que les produits/formules actifs pour SA franchise.
 // - Listes "admin du catalogue" : chaque élément a un champ franchise_ids -> on filtre.
 // - Listes "franchise" : déjà filtrées par le serveur (pas de franchise_ids) -> on garde tout.
 // - Compte sans franchise (TECH_ADMIN): on garde tout.
 function filterForMyFranchise(elements) {
-  const user = getUser();
-  if (!user || !user.franchise_id) return elements;
-
-  const maFranchise = String(user.franchise_id);
-  return elements.filter(
-    (element) =>
-      !Array.isArray(element.franchise_ids) ||
-      element.franchise_ids.map(String).includes(maFranchise),
-  );
+  // On écarte seulement ce qui n'est PAS dans ma franchise (false) ;
+  // null (question sans objet) et true sont gardés.
+  return elements.filter((element) => isInMyFranchise(element) !== false);
 }
 
 // Protège le bouton contre le double-clic : il est désactivé pendant que

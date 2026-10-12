@@ -2748,3 +2748,26 @@ select.filter-select {
     transform: translateX(5px);
   }
 }
+
+/* Q5 : appartenance d'un produit à la franchise de l'utilisateur (admins du catalogue) */
+.badge-my-franchise {
+  display: inline-block;
+  margin: 0.4rem 0 0 0.4rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.badge-my-franchise.in {
+  color: #1e7e34;
+  background: #e9f7ef;
+  border: 1px solid #b7e4c7;
+}
+
+.badge-my-franchise.out {
+  color: #6c757d;
+  background: #f1f3f5;
+  border: 1px solid #dee2e6;
+}

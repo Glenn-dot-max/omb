@@ -74,6 +74,18 @@
   - le même récap pourrait servir à la **modification** et à la **duplication** d'une commande.
 - **Lié à** : Sprint P (P3), B6.
 
+### B10 — Bouton « Remonter en haut » sur les longues listes
+
+- **Ajouté le** : 2026-10-11
+- **Pourquoi c'est reporté** : confort d'interface, demandé par Glenn.
+- **Idée** : sur les pages **Produits** et **Formules** (plusieurs centaines d'éléments), un bouton flottant « ⬆️ » en bas à droite, qui **apparaît dès que l'utilisateur a fait défiler la page** et ramène en haut d'un clic (défilement doux).
+- **À savoir pour le faire** :
+  - un seul composant réutilisable (une fonction JS + une classe CSS), branché sur les deux pages — et pourquoi pas Commandes et Planning ;
+  - afficher/masquer selon `window.scrollY` (écouteur `scroll`), remonter avec `window.scrollTo({ top: 0, behavior: "smooth" })` ;
+  - style en classes CSS (pas en `style="…"`), pour préparer le Sprint T (theming) ;
+  - accessibilité : un vrai `<button>` avec un `aria-label="Remonter en haut de la page"`.
+- **Lié à** : Sprint T, Sprint 10 (Vue).
+
 ---
 
 ## Qualité du code (petit ménage)

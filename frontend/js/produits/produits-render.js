@@ -232,6 +232,15 @@ function displayProduits(produits) {
 // AFFICHAGE VUE CARTES
 // ===========================================
 
+// Q5 : badge "dans votre franchise" pour les admins du catalogue qui ont une franchise.
+function myFranchiseBadge(produit) {
+  const inMyfranchise = isInMyFranchise(produit);
+  if (inMyfranchise === null) return "";
+  return inMyfranchise
+    ? `<span class="badge-my-franchise in">✅ Dans votre franchise</span>`
+    : `<span class="badge-my-franchise out">Pas dans votre franchise</span>`;
+}
+
 function displayProduitsCards(produits, container) {
   const currentUser = getUser();
   const isTechAdmin = isCatalogAdminRole(currentUser);
@@ -326,6 +335,7 @@ function displayProduitsCards(produits, container) {
             <span class="badge type">${typeName}</span>
           </div>
           ${ownershipBadge}
+          ${myFranchiseBadge(produit)}
           ${franchiseInfo}
           <div class="product-actions">
             <button class="edit-btn"
@@ -434,7 +444,7 @@ function displayProduitsTable(produits, container) {
 
               return `
                 <tr>
-                  <td class="product-name">${displayName}${ownershipBadge}</td>
+                  <td class="product-name">${displayName}${ownershipBadge}${myFranchiseBadge(produit)}</td>
                   <td><span class="badge category">${categoryName}</span></td>
                   <td><span class="badge type">${typeName}</span></td>
                   ${franchisesCell}
