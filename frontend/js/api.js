@@ -200,6 +200,15 @@ async function updateCommande(commandeId, commande) {
   }
 }
 
+async function updateCommandeComplete(commandeId, modification) {
+  try {
+    return await apiPut(`/commandes/${commandeId}/complete`, modification);
+  } catch (error) {
+    console.error("Erreur API updateCommandeComplete:", error);
+    throw error;
+  }
+}
+
 // ===========================================
 // COMMANDES - FORMULES
 // ===========================================

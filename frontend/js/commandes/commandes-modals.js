@@ -859,57 +859,47 @@ async function saveEditCommande() {
       notes: notes || null,
     };
 
-    await updateCommande(AppState.currentEditingCommande.id, commandeData);
-
     // ===============================================
-    // STEP 4 : UPDATE EXISTING FORMULES EXCLUSIONS
+    // STEP 4 : TOUT ENREGISTRER EN UN SEUL APPEL (Sprint P, P5a)
     // ===============================================
+    // Infos de la commande + formules existantes (couverts, exclusions)
+    // + formules et produits ajoutés : le serveur vérifie tout, puis écrit.
 
-    const existingFormules = editFormules.filter((f) => f.id);
+    const modification = {
+      ...commandeData,
 
-    if (existingFormules.length > 0) {
-      for (const formule of existingFormules) {
-        await updateCommandeFormuleExclusions(
-          formule.id,
-          formule.produits_exclus || [],
-          formule.couverts,
-        );
-      }
-    }
+      // Formules déjà dans la commande (elles ont un id de ligne)
+      formules_modifiees: editFormules
+        .filter((f) => f.id)
+        .map((f) => ({
+          commande_formule_id: f.id,
+          quantite_finale: f.couverts,
+          produits_exclus: f.produits_exclus || [],
+        })),
 
-    // ===============================================
-    // STEP 5 : CREATE NEW FORMULES & PRODUITS
-    // ===============================================
+      // Formules ajoutées pendant cette modification (pas encore d'id)
+      formules_ajoutees: editFormules
+        .filter((f) => !f.id)
+        .map((f) => ({
+          formule_id: f.formule_id,
+          quantite_finale: f.couverts,
+          produits_exclus: f.produits_exclus || [],
+        })),
 
-    const newFormules = editFormules.filter((f) => !f.id);
+      // Produits ajoutés pendant cette modification (pas encore d'id)
+      produits_ajoutes: editProduits
+        .filter((p) => !p.id)
+        .map((p) => ({
+          produit_id: p.produit_id,
+          quantite: p.quantite,
+          unite: p.unite,
+        })),
+    };
 
-    if (newFormules.length > 0) {
-      for (const formule of newFormules) {
-        const formuleData = {
-          commande_id: AppState.currentEditingCommande.id,
-          formule_id: formule.formule_id,
-          quantite_finale: formule.couverts,
-          produits_exclus: formule.produits_exclus || [],
-        };
-        const created = await createCommandeFormule(formuleData);
-        formule.id = created.id; // désormais "existante": ne sera plus renvoyée
-      }
-    }
-
-    const newProduits = editProduits.filter((p) => !p.id);
-
-    if (newProduits.length > 0) {
-      for (const produit of newProduits) {
-        const produitData = {
-          commande_id: AppState.currentEditingCommande.id,
-          produit_id: produit.produit_id,
-          quantite: produit.quantite,
-          unite: produit.unite,
-        };
-        const created = await createCommandeProduit(produitData);
-        produit.id = created.id; // désormais "existant"; ne sera plus renvoyé
-      }
-    }
+    await updateCommandeComplete(
+      AppState.currentEditingCommande.id,
+      modification,
+    );
 
     // ===============================================
     // STEP 6 : Finalize
