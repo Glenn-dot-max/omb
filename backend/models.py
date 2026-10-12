@@ -207,7 +207,39 @@ class CommandeComplete(CarnetCommandeCreate):
         
         return self
 
+# ================ MODIFICATION D'UNE COMMANDE (P5a) ================
+# Toutes les modifications d'une commande, enregistrée en un seul appel.
 
+class CommandeFormuleModifiee(BaseModel):
+    """Une formule déjà dans la commande : nouveaux couverts et nouvelles exclusions"""
+    commande_formule_id: int
+    quantite_finale: float = Field(ge=0, le=10000)
+    produits_exclus: List[UUID] = Field(default_factory=list)
+
+    class Config:
+        extra = 'forbid'
+
+class CommandeModification(CarnetCommandeUpdate):
+    """Les champs modifiables de la commande (tous optionnels) + les changements de son contenu"""
+    formules_modifiees: List[CommandeFormuleModifiee] = Field(default_factory=list)
+    formules_ajoutees: List[CommandeCompleteFormule] = Field(default_factory=list)
+    produits_ajoutes: List[CommandeCompleteProduit] = Field(default_factory=list)
+
+    @model_validator(mode='after')
+    def check_doublons(self):
+        ids_modifiees = [f.commande_formule_id for f in self.formules_modifiees]
+        if len(ids_modifiees) != len(set(ids_modifiees)):
+            raise ValueError("Une même formule de la commande ne peut être modifiée qu'une fois")
+
+        ids_ajoutees = [f.formule_id for f in self.formules_ajoutees]
+        if len(ids_ajoutees) != len(set(ids_ajoutees)):
+            raise ValueError("Une même formule ne peut être ajoutée qu'une fois")
+
+        cles_produits = [(p.produit_id, p.unite) for p in self.produits_ajoutes]
+        if len(cles_produits) != len(set(cles_produits)):
+            raise ValueError("Un même produit avec la même unité ne peut apparaître qu'une fois dans la commande")
+
+        return self
 
 # ================ COMMANDE_FORMULES MODELS ================
 

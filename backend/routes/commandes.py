@@ -2,7 +2,8 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
-from models import CarnetCommandeCreate, CarnetCommandeUpdate, CommandeComplete
+from models import CarnetCommandeCreate, CarnetCommandeUpdate, CommandeComplete, CommandeModification
+from utils import verify_commande_ownership
 from datetime import datetime, date, time, timedelta
 from uuid import UUID
 import logging
@@ -294,6 +295,103 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
             detail="Erreur lors de l'archivage automatique des commandes"
         )
 
+@router.put("/{commande_id}/complete")
+async def update_commande_complete(commande_id: str, modif: CommandeModification, current_user: dict = Depends(get_current_user)):
+    """Enregistre en un seul appel toute la modification d'une commande :
+    ses informations, les couverts/exclusions de ses formules existantes,
+    et les formules/produits ajoutés. Tout est vérifié AVANT d'écrire."""
+    franchise_id = current_user.get("franchise_id")
+    if not franchise_id:
+        raise HTTPException(status_code=400, detail="Un compte sans franchise ne peut pas modifier de commande")
+
+    # ---------- 1. VÉRIFICATIONS (aucune écriture) ----------
+
+    # La commande existe et appartient à la franchise
+    verify_commande_ownership(supabase, commande_id, current_user)
+
+    # Les formules modifiées appartiennent bien à CETTE commande
+    ids_modifies = [f.commande_formule_id for f in modif.formules_modifiees]
+    if ids_modifies:
+        lignes = supabase.table("commande_formules")\
+            .select("id")\
+            .eq("commande_id", commande_id)\
+            .in_("id", ids_modifies)\
+            .execute()
+        if set(ids_modifies) - {ligne["id"] for ligne in lignes.data}:
+            raise HTTPException(status_code=404, detail="Formule de commande introuvable")
+
+    # Les formules et produits ajoutés sont disponibles pour la franchise
+    check_acces_catalogue("franchise_formules", "formule_id",
+                          [str(f.formule_id) for f in modif.formules_ajoutees], franchise_id, "Formule")
+    check_acces_catalogue("franchise_produits", "produit_id",
+                          list({str(p.produit_id) for p in modif.produits_ajoutes}), franchise_id, "Produit")
+
+    # ---------- 2. ÉCRITURES ----------
+
+    # Informations de la commande (seulement les champs envoyés)
+    champs = {
+        k: v for k, v in modif.model_dump(
+            exclude={"formules_modifiees", "formules_ajoutees", "produits_ajoutes"}
+        ).items() if v is not None
+    }
+    if champs:
+        supabase.table("carnet_commande").update(format_delivery_fields(champs)).eq("id", commande_id).execute()
+
+    exclusions = []
+
+    # Formules existantes : couverts, puis exclusions remplacées
+    for f in modif.formules_modifiees:
+        supabase.table("commande_formules")\
+            .update({"quantite_finale": f.quantite_finale})\
+            .eq("id", f.commande_formule_id)\
+            .execute()
+        exclusions += [
+            {"commande_formule_id": f.commande_formule_id, "produit_id": str(produit_id)}
+            for produit_id in f.produits_exclus
+        ]
+    if ids_modifies:
+        supabase.table("commande_formule_exclusions")\
+            .delete()\
+            .in_("commande_formule_id", ids_modifies)\
+            .execute()
+
+    # Formules ajoutées (une insertion pour toutes)
+    if modif.formules_ajoutees:
+        formules_creees = supabase.table("commande_formules").insert([
+            {
+                "commande_id": commande_id,
+                "formule_id": str(f.formule_id),
+                "quantite_recommandee": f.quantite_finale,
+                "quantite_finale": f.quantite_finale,
+            }
+            for f in modif.formules_ajoutees
+        ]).execute().data
+        id_par_formule = {ligne["formule_id"]: ligne["id"] for ligne in formules_creees}
+        exclusions += [
+            {"commande_formule_id": id_par_formule[str(f.formule_id)], "produit_id": str(produit_id)}
+            for f in modif.formules_ajoutees
+            for produit_id in f.produits_exclus
+        ]
+
+    # Toutes les exclusions (formules existantes + ajoutées) en une insertion
+    if exclusions:
+        supabase.table("commande_formule_exclusions").insert(exclusions).execute()
+
+    # Produits ajoutés (une insertion pour tous)
+    if modif.produits_ajoutes:
+        supabase.table("commande_produits").insert([
+            {
+                "commande_id": commande_id,
+                "produit_id": str(p.produit_id),
+                "quantite": p.quantite,
+                "unite": p.unite,
+            }
+            for p in modif.produits_ajoutes
+        ]).execute()
+
+    return {"message": "Commande mise à jour", "id": commande_id}
+
+            
 
 @router.put("/{commande_id}")
 async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
