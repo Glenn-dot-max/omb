@@ -86,20 +86,24 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
             enriched_produits.append(enriched_produit)
 
         return enriched_produits
-    
+
     # Pour les utilisateurs franchisés
     franchise_id = current_user["franchise_id"]
+    
+    # Pagination : Supabase renvoie au plus 1000 lignes par requête
+    liens_franchise = fetch_all_paginated(
+        supabase,
+        table="franchise_produits",
+        select="produit_id",
+        filters={"franchise_id": franchise_id, "active": True}
+    )
 
-    franchise_produits = supabase.table("franchise_produits")\
-        .select("produit_id")\
-        .eq("franchise_id", franchise_id)\
-        .eq("active", True)\
-        .execute()
-    
-    if not franchise_produits.data:
+    if not liens_franchise:
         return []
-    
-    produit_ids = [fp["produit_id"] for fp in franchise_produits.data]
+
+    produit_ids = [lien["produit_id"] for lien in liens_franchise]
+
+
 
     produits_resp = supabase.table("produits")\
         .select("*")\
@@ -116,14 +120,17 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
         set_cached("franchises_all", cached_franchises)
     total_franchises = len(cached_franchises)
 
-    all_liens = supabase.table("franchise_produits")\
-        .select("produit_id")\
-        .in_("produit_id", produit_ids)\
-        .eq("active", True)\
-        .execute()
+    # Tous les liens (toutes franchises), paginés : sans pagination, 
+    # la liste était coupée à 1000 lignes et nb_franchises devenait faux.
+    all_liens = fetch_all_paginated(
+        supabase,
+        table="franchise_produits",
+        select="produit_id",
+        filters={"active": True}
+    )
 
     from collections import Counter
-    nb_par_produit = Counter(str(lien["produit_id"]) for lien in all_liens.data)
+    nb_par_produit = Counter(str(lien["produit_id"]) for lien in all_liens)
 
     for produit in produits:
         produit_id_str = str(produit["id"])

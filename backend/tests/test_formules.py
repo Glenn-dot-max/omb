@@ -49,3 +49,28 @@ def test_create_formule_with_html_name_returns_422(client, admin_headers):
     })
     assert response.status_code == 422
 
+# ===============================================
+# TESTS - Nombre de franchises par formule, sans troncature à 1000 lignes (P9)
+# ===============================================
+from unittest.mock import patch
+
+def test_nb_franchises_formules_compte_tous_les_liens(client, auth_headers):
+    """nb_franchises doit compter TOUS les liens actifs, même au-delà de 1000 lignes"""
+    liens_ma_franchise = [{"formule_id": "f1"}, {"formule_id": "f2"}]
+    tous_les_liens = [{"formule_id": "f1"}] * 3 + [{"formule_id": "f2"}]  # f1 = 3 franchises, f2 = 1
+
+    def faux_fetch_all(supabase, table, select, filters=None, page_size=1000):
+        return liens_ma_franchise if "franchise_id" in (filters or {}) else tous_les_liens
+
+    with patch("routes.formules.fetch_all_paginated", side_effect=faux_fetch_all), \
+         patch("routes.formules.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.in_.return_value.order.return_value.execute.return_value.data = [
+            {"id": "f1", "name": "Brunch"}, {"id": "f2", "name": "Goûter"}
+        ]
+        mock_db.table.return_value.select.return_value.execute.return_value.data = [{"id": "x"}, {"id": "y"}, {"id": "z"}]
+        response = client.get("/formules/", headers=auth_headers)
+
+    assert response.status_code == 200
+    nb = {f["id"]: f["nb_franchises"] for f in response.json()}
+    assert nb == {"f1": 3, "f2": 1}
+    

@@ -108,3 +108,28 @@ def test_produit_update_allows_partial_update():
     """On peut modifier seulement la catégorie, sans renvoyer le nom"""
     produit = ProduitUpdate(categorie_id=2)
     assert produit.name is None
+
+# ===============================================
+# TESTS - Nombre de franchises par produit, sans troncature à 1000 lignes (P9)
+# ===============================================
+
+def test_nb_franchises_compte_tous_les_liens(client, auth_headers):
+    """nb_franchises doit compter TOUS les liens actifs, même au-delà de 1000 lignes"""
+    liens_ma_franchise = [{"produit_id": "p1"}, {"produit_id": "p2"}]
+    tous_les_liens = [{"produit_id": "p1"}] * 3 + [{"produit_id": "p2"}] # p1 = 3 franchises, p2 = 1
+
+    def faux_fetch_all(supabase, table, select, filters=None, page_size=1000):
+        return liens_ma_franchise if "franchise_id" in (filters or {}) else tous_les_liens
+
+    with patch("routes.produits.fetch_all_paginated", side_effect=faux_fetch_all), \
+         patch("routes.produits.get_cached", return_value=[{"id": "f1"}, {"id": "f2"}, {"id": "f3"}]), \
+         patch("routes.produits.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.in_.return_value.order.return_value.execute.return_value.data = [
+            {"id": "p1", "name": "A"}, {"id": "p2", "name": "B"}
+        ]
+        response = client.get("/produits/", headers=auth_headers)
+
+    assert response.status_code == 200
+    nb = {p["id"]: p["nb_franchises"] for p in response.json()}
+    assert nb == {"p1": 3, "p2": 1}
+    

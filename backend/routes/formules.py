@@ -62,16 +62,18 @@ async def get_formules(current_user: dict = Depends(get_current_user)):
 
     franchise_id = current_user["franchise_id"]
 
-    franchise_formules = supabase.table("franchise_formules")\
-        .select("formule_id")\
-        .eq("franchise_id", franchise_id)\
-        .eq("active", True)\
-        .execute()
+    # Pagination : Supabase renvoie au plus 1000 lignes par requête
+    liens_franchise = fetch_all_paginated(
+        supabase,
+        table="franchise_formules",
+        select="formule_id",
+        filters={"franchise_id": franchise_id, "active": True}
+    )
 
-    if not franchise_formules.data:
+    if not liens_franchise:
         return []
 
-    formule_ids = [fp["formule_id"] for fp in franchise_formules.data]
+    formule_ids = [lien["formule_id"] for lien in liens_franchise]
 
     formules = supabase.table("formules")\
         .select("*")\
@@ -82,14 +84,16 @@ async def get_formules(current_user: dict = Depends(get_current_user)):
     all_franchises = supabase.table("franchises").select("id").execute()
     total_franchises = len(all_franchises.data)
 
-    all_liens = supabase.table("franchise_formules")\
-        .select("formule_id")\
-        .in_("formule_id", formule_ids)\
-        .eq("active", True)\
-        .execute()
+    # Tous les liens actifs (toutes franchises), paginés (limite Supabase de 1000 lignes)
+    all_liens = fetch_all_paginated(
+        supabase,
+        table="franchise_formules",
+        select="formule_id",
+        filters={"active": True}
+    )
 
     from collections import Counter
-    nb_par_formule = Counter(lien["formule_id"] for lien in all_liens.data)
+    nb_par_formule = Counter(lien["formule_id"] for lien in all_liens)
 
     for formule in formules.data:
         formule["nb_franchises"] = nb_par_formule.get(formule["id"], 0)
