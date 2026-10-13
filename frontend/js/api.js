@@ -152,15 +152,6 @@ async function getCommandes() {
   }
 }
 
-async function createCommande(commande) {
-  try {
-    return await apiPost("/commandes/", commande);
-  } catch (error) {
-    console.error("Erreur API createCommande:", error);
-    throw error;
-  }
-}
-
 async function createCommandeComplete(commande) {
   try {
     return await apiPost("/commandes/complete", commande);
@@ -179,27 +170,6 @@ async function deleteCommande(commandeId) {
   }
 }
 
-async function updateCommande(commandeId, commande) {
-  try {
-    const response = await fetchWithAuth(`${API_URL}/commandes/${commandeId}`, {
-      // ✅ Sans slash
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(commande),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Erreur mise à jour commande");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Erreur API updateCommande:", error);
-    throw error;
-  }
-}
-
 async function updateCommandeComplete(commandeId, modification) {
   try {
     return await apiPut(`/commandes/${commandeId}/complete`, modification);
@@ -212,15 +182,6 @@ async function updateCommandeComplete(commandeId, modification) {
 // ===========================================
 // COMMANDES - FORMULES
 // ===========================================
-
-async function createCommandeFormule(data) {
-  try {
-    return await apiPost("/commande-formules/", data);
-  } catch (error) {
-    console.error("Erreur API createCommandeFormule:", error);
-    throw error;
-  }
-}
 
 async function getCommandeFormules(commandeId) {
   try {
@@ -240,34 +201,9 @@ async function deleteCommandeFormule(commandeFormuleId) {
   }
 }
 
-async function getCommandeFormuleExclusions(commandeFormuleId) {
-  try {
-    const data = await apiGet(
-      `/commande-formules/${commandeFormuleId}/exclusions`,
-    ); // ✅ Sans slash
-    console.log(
-      `📥 Exclusions récupérées pour formule ${commandeFormuleId}:`,
-      data,
-    );
-    return data;
-  } catch (error) {
-    console.error("Erreur API getCommandeFormuleExclusions:", error);
-    return [];
-  }
-}
-
 // ===========================================
 // COMMANDES - PRODUITS
 // ===========================================
-
-async function createCommandeProduit(data) {
-  try {
-    return await apiPost("/commande-produits/", data);
-  } catch (error) {
-    console.error("Erreur API createCommandeProduit:", error);
-    throw error;
-  }
-}
 
 async function getCommandeProduits(commandeId) {
   try {
@@ -444,27 +380,6 @@ async function validateCommande(commandeId) {
 }
 
 // ===========================================
-// MISE À JOUR DES EXCLUSIONS D'UNE FORMULE
-// ===========================================
-
-async function updateCommandeFormuleExclusions(
-  commandeFormuleId,
-  produits_exclus,
-  quantite_finale = null,
-) {
-  try {
-    const body = { produits_exclus };
-    if (quantite_finale !== null) {
-      body.quantite_finale = quantite_finale;
-    }
-    return await apiPatch(`/commande-formules/${commandeFormuleId}`, body);
-  } catch (error) {
-    console.error("Erreur API updateCommandeFormuleExclusions:", error);
-    throw error;
-  }
-}
-
-// ===========================================
 // CATEGORIES API
 // ===========================================
 
@@ -491,19 +406,6 @@ async function deleteCategoryById(categoryId) {
     await apiDelete(`/categories/${categoryId}`);
   } catch (error) {
     console.error("Erreur API deleteCategoryById:", error);
-    throw error;
-  }
-}
-
-// ===========================================
-// DUPLICATION D'UNE COMMANDE
-// ===========================================
-
-async function duplicateCommande(commandeId) {
-  try {
-    return await apiPost(`/commandes/${commandeId}/duplicate`, {});
-  } catch (error) {
-    console.error("Erreur API duplicateCommande:", error);
     throw error;
   }
 }

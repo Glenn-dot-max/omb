@@ -39,7 +39,7 @@ def test_get_formules_by_commande_success(client, auth_headers):
     formules = response.json()
     assert formules[0]["produits_exclus"] == ["p-9", "p-7"]
     assert formules[1]["produits_exclus"] == []
-    assert "commande_formules_exclusions" not in formules[0]
+    assert "commande_formule_exclusions" not in formules[0]
 
 
 def test_create_commande_formule_success(client, auth_headers):

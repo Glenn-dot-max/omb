@@ -6,11 +6,6 @@
 // ===========================================
 
 function setupEventListeners() {
-  const form = document.getElementById("add-formule-form");
-  if (form) {
-    form.addEventListener("submit", handleAddFormule);
-  }
-
   const searchInput = document.getElementById("search-input");
   searchInput.addEventListener("input", handleSearch);
 
@@ -133,43 +128,6 @@ function setupEventListeners() {
         closeCreateFormuleModal();
       }
     });
-  }
-}
-
-// ===========================================
-// GESTION DE L'AJOUT D'UNE FORMULE
-// ===========================================
-
-async function handleAddFormule(event) {
-  event.preventDefault();
-
-  const name = document.getElementById("formule-name").value.trim();
-  const couverts = document.getElementById("formule-couverts").value;
-  const type = document.getElementById("formule-type").value;
-
-  if (!name) {
-    alert("Le nom de la formule est requis.");
-    return;
-  }
-
-  try {
-    const nouvelleFormule = await createFormule({
-      name: name,
-      nombre_couverts: parseInt(couverts),
-    });
-
-    allFormules.push(nouvelleFormule);
-    displayFormules(allFormules);
-
-    // Vider le formulaire
-    document.getElementById("formule-name").value = "";
-    document.getElementById("formule-couverts").value = "1";
-    document.getElementById("formule-type").value = "Brunch";
-
-    alert("Formule ajoutée avec succès !");
-  } catch (error) {
-    console.error("Erreur lors de l'ajout de la formule :", error);
-    alert("Erreur lors de l'ajout de la formule.");
   }
 }
 
