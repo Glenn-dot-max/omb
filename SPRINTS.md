@@ -204,7 +204,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - Modification d'une commande (`saveEditCommande` : exclusions + nouvelles formules + nouveaux produits envoyés un par un) → un appel groupé.
   - Création d'une formule avec ses produits (`formules-create.js` : 1 appel par produit) → insertion groupée des produits côté serveur.
   - Re-mesurer ② (en modification) et ③.
-- [ ] **P6 (à arbitrer) Mettre en cache la vérification de l'utilisateur** — `get_current_user` fait 1 requête à la base **à chaque appel**. Un cache de quelques secondes (ex. 10-30 s) économise cette requête.
+- [-] **P6 (à arbitrer) Mettre en cache la vérification de l'utilisateur** — `get_current_user` fait 1 requête à la base **à chaque appel**. Un cache de quelques secondes (ex. 10-30 s) économise cette requête.
   - ⚠️ Compromis avec la tâche 1.4 : un changement de rôle, une désactivation ou un changement de mot de passe mettrait jusqu'à la durée du cache à s'appliquer. À décider après P1-P5 selon le gain restant.
 - [ ] **P7 Déploiement** — fusion dans `v8` → Render → re-mesurer en production et comparer à P0. Noter les gains dans le journal.
 - [ ] **P8 Ménage Docker / Hetzner** — décision du 2026-10-10 : **on reste sur Render**, Hetzner est reporté sine die. On retire du dépôt ce qui ne sert qu'à Hetzner (git garde l'historique : on pourra tout retrouver le jour venu) :
@@ -300,10 +300,10 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **10.1** Choisir le framework (recommandation : Vue) et l'intégrer pour les **nouveaux** écrans.
 - [ ] **10.2** Migrer les écrans existants au fil des modifications (pas de réécriture d'un coup).
 
-## Sprint 11 — Infra Hetzner (avant la bascule)
+## Sprint 11 — Infra Hetzner (avant la bascule) -> finalement reporté (décision prise en oct. 2026)
 
-- [ ] **11.1** TLS effectif + en-têtes de sécurité (dont CSP) dans `nginx/nginx.conf`.
-- [ ] **11.2** Dockerfile : utilisateur non-root + `HEALTHCHECK` (ne concerne pas Render, qui utilise le runtime Python natif).
+- [-] **11.1** TLS effectif + en-têtes de sécurité (dont CSP) dans `nginx/nginx.conf`.
+- [-] **11.2** Dockerfile : utilisateur non-root + `HEALTHCHECK` (ne concerne pas Render, qui utilise le runtime Python natif).
 
 ---
 

@@ -22,8 +22,7 @@ Si une tâche est complexe ou impacte plusieurs fichiers, tu découpes en étape
 - **Backend** : Python 3.11 + FastAPI + Supabase (PostgreSQL) + JWT (python-jose) + Bcrypt
 - **Frontend** : HTML/CSS + Vanilla JavaScript (modules ES6, pas de framework)
 - **Auth** : JWT Bearer Token, 7 jours d'expiration, rôles TECH_ADMIN / USER
-- **Infra cible** : Hetzner VPS (CX22) via Docker Compose + Nginx (post-octobre 2026)
-- **Infra actuelle** : Render (backend) + fichiers statiques servis directement
+- **Infra** : Render (backend FastAPI + frontend statique), base Supabase à Francfort (eu-central-1). Hetzner/Docker abandonnés pour l'instant (oct. 2026).
 
 ---
 

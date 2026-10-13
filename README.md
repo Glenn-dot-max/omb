@@ -493,36 +493,6 @@ CORS_ORIGINS=https://ton-frontend.onrender.com
 
 ---
 
-### Infra cible — Hetzner CX22 (Docker Compose)
-
-Prévu post-octobre 2026. L'infra est prête (`docker-compose.yml`, `nginx/nginx.conf`, `deploy.sh`).
-
-**Sur le VPS Hetzner :**
-
-```bash
-# 1. Installer Docker
-curl -fsSL https://get.docker.com | sh
-
-# 2. Cloner le repo
-git clone https://github.com/ton-user/omb.git && cd omb
-
-# 3. Créer le fichier d'environnement
-cp .env.example backend/.env
-# Éditer backend/.env avec les vraies valeurs
-
-# 4. Déployer
-chmod +x deploy.sh && ./deploy.sh
-```
-
-Architecture Docker :
-
-```
-Internet → nginx:80 → /api/* → FastAPI:8000 → Supabase
-                    → /*     → frontend static
-```
-
----
-
 ## 🐛 Troubleshooting
 
 ### Backend ne démarre pas
