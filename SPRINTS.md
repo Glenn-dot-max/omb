@@ -7,12 +7,11 @@
 
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
-- **Production** : Render déploie `v8` — Sprints 0, 1 et 2 déployés, hotfix H1/H2, correctifs formules, double clic sur « Créer ». **Base Supabase déménagée à Francfort le 2026-10-10 (P1)** : création d'une commande ~20 s → ~4 s en production. Python 3.13.
-- **Branche de travail** : `sprint/p-performance` (**pas encore déployée**, on continue en local). Faits : P3 (+ P3d, P3e), P4, P5a, P5b-1, P9. 123 tests verts (commit `63ee60a`).
-- **Prochaine tâche** : **P5b-2** — frontend : `handleCreateFormuleWithProduits` (`formules-create.js`) envoie les produits dans `createFormule` (champ `produits`), au lieu d'un appel `createFormuleProduit` par produit.
-- **Ensuite** : P2 (serveur en parallèle), P6 (cache, à arbitrer), P8 (ménage Docker + code mort), puis **P7 : déploiement** du Sprint P.
+- **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13** (création de commande < 1 s, base à Francfort). Python 3.13.
+- **Branche de travail** : aucune en cours (`sprint/p-performance` = `v8`).
+- **Prochaines tâches** : **P10** (cache busting des JS/CSS, incident du déploiement P7) ; **P8c** à partir du ~2026-10-16 (supprimer les anciennes routes backend devenues inutiles, une fois que tous les navigateurs ont la nouvelle version).
 - **À faire hors code** : mettre en pause l'ancien projet Supabase (Oregon) vers le 2026-10-15, puis le supprimer ; effacer les dumps de `~/omb-migration` (garder `schema.sql`).
-- **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
+- **Ensuite** : Sprint 3 (XSS frontend), puis Sprint 4 (hygiène). Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
 ---
 
@@ -206,8 +205,8 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - Re-mesurer ② (en modification) et ③.
 - [-] **P6 (à arbitrer) Mettre en cache la vérification de l'utilisateur** — `get_current_user` fait 1 requête à la base **à chaque appel**. Un cache de quelques secondes (ex. 10-30 s) économise cette requête.
   - ⚠️ Compromis avec la tâche 1.4 : un changement de rôle, une désactivation ou un changement de mot de passe mettrait jusqu'à la durée du cache à s'appliquer. À décider après P1-P5 selon le gain restant.
-- [ ] **P7 Déploiement** — fusion dans `v8` → Render → re-mesurer en production et comparer à P0. Noter les gains dans le journal.
-- [ ] **P8 Ménage Docker / Hetzner** — décision du 2026-10-10 : **on reste sur Render**, Hetzner est reporté sine die. On retire du dépôt ce qui ne sert qu'à Hetzner (git garde l'historique : on pourra tout retrouver le jour venu) :
+- [x] **P7 Déploiement** — fusion dans `v8` → Render → re-mesurer en production et comparer à P0. Noter les gains dans le journal.
+- [x] **P8 Ménage Docker / Hetzner** — décision du 2026-10-10 : **on reste sur Render**, Hetzner est reporté sine die. On retire du dépôt ce qui ne sert qu'à Hetzner (git garde l'historique : on pourra tout retrouver le jour venu) :
   - supprimer `docker-compose.yml`, `deploy.sh`, le dossier `nginx/` (dont `nginx/certbot/`) et `backend/Dockerfile` (Render utilise son runtime Python natif via `render.yaml`, pas Docker) ;
   - `frontend/js/config.js` : retirer le cas `"/api"` (servi par Nginx en Docker sur `localhost` sans port) → ne garder que développement local (`http://localhost:8000`) et production (`https://omb-backend.onrender.com`) ;
   - `README.md` : supprimer la section « Infra cible — Hetzner CX22 (Docker Compose) » (~ligne 496) et vérifier les mentions de `localhost:8080` ;
@@ -329,3 +328,4 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - **2026-10-08** — Sprint 0 fait (sauf 0.5). Tâches 1.1 (reset mot de passe : doublon de modèle + nom de champ `newPassword` côté frontend), 1.2, 1.3, 1.4 (rôle/franchise relus en base, tokens invalidés après changement de mot de passe, nouveau token renvoyé) faites, 56 tests verts. 1.5 préparée (ajustements : `FormuleUpdate`, apostrophe autorisée, `getErrorMessage`) + ajout 1.5b. **Incident prod** sur la commande `f4efe8e8…` : chargement en erreur masqué → commande affichée vide → doublons → 500. Diagnostic fait, Hotfix H1 planifié et reporté (contournement : recharger la page). Ajout 1.9 (`Errno 11`) ; découverte que Render tourne en Python 3.13 (4.3 mise à jour). Signalement « duplication de commande incomplète » → cause trouvée (alias `tempFormules` / `AppState.tempFormules` désynchronisés), Hotfix H2 planifié.
 - **2026-10-09** — Hotfix H1 + H2 déployés. Tâches 1.5b, 1.6, 1.7 faites. **Sprint 1 déployé en production** (fast-forward de `v8`). Tests en prod : 2 bugs anciens de la page Formules trouvés et corrigés. Création de `BACKLOG.md` (mot de passe oublié reporté).
 - **2026-10-10** - déploiement du sprint 2 et tests des nouvelles fonctionnalités directement sur Render. Redéploiement de la base supabase, vers Frankfort depuis l'Oregon. Gain de temps sur l'interface presque par 5 sur chaque transaction.
+- **2026-10-13** — **Sprint P déployé** (P2, P3, P4, P5, P8a/b, P9). Incident au déploiement : le CDN de Render a servi un ancien `auth.js` pendant ~5 min (mélange de versions) → ajout de la P10 (cache busting). P6 écartée (gain minime, contraire à 1.4).
