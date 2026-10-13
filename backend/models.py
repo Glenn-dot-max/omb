@@ -75,8 +75,26 @@ class FormuleBase(BaseModel):
     def validate_name(cls, v):
         return check_name(v)
 
+class FormuleCreateProduit(BaseModel):
+    """Un produit à mettre dans une formule, dès sa création (P5b)"""
+    produit_id: UUID
+    quantite: float = Field(default=0, ge=0, le=10000)
+    unite: Optional[constr(max_length=50)] = None
+
+    class Config:
+        extra = 'forbid'
+
 class FormuleCreate(FormuleBase):
     franchise_ids: Optional[List[str]] = None
+    produits: List[FormuleCreateProduit] = Field(default_factory=list)
+
+    @model_validator(mode='after')
+    def check_produits_uniques(self):
+        produit_ids = [p.produit_id for p in self.produits]
+        if len(produit_ids) != len(set(produit_ids)):
+            raise ValueError("Un même produit ne peut apparaître qu'une fois dans la formule")
+        return self
+
 
 class FormuleUpdate(BaseModel):
     name: Optional[constr(min_length=1, max_length=200)] = None

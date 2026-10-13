@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user, is_catalog_admin, CATALOG_ADMIN_ROLES
 from database import get_supabase_client
-from utils import fetch_all_paginated, normalize_name
+from utils import fetch_all_paginated, normalize_name, check_acces_catalogue
 from models import FormuleCreate, FormuleUpdate, ToggleFranchisesRequest
 from fastapi.encoders import jsonable_encoder
 from typing import List
@@ -188,9 +188,31 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
     - Crée la formule uniquement pour SA franchise (ignore franchise_ids)
     """
 
-    formule_data = formule.model_dump(exclude={"franchise_ids"})
+    formule_data = formule.model_dump(exclude={"franchise_ids", "produits"})
 
     logger.info(f"🆕 Creating Formule: {formule_data}")
+
+    # P5b : un utilisateur de franchise ne compose qu'avec les produits de SA franchise.
+    # Vérifié AVANT de créer quoi que ce soit (une requête pour tous les produits).
+    if current_user.get("role") not in CATALOG_ADMIN_ROLES:
+        check_acces_catalogue(
+            supabase, "franchise_produits", "produit_id",
+            list({str(p.produit_id) for p in formule.produits}),
+            current_user["franchise_id"], "Produit"
+        )
+
+    def inserer_produits(formule_id: str):
+        """P5b : tous les produits de la formule en UNE insertion"""
+        if formule.produits:
+            supabase.table("formule_produits").insert([
+                {
+                    "formule_id": formule_id,
+                    "produit_id": str(p.produit_id),
+                    "quantite": p.quantite,
+                    "unite": p.unite,
+                }
+                for p in formule.produits
+            ]).execute()
 
     if current_user.get("role") in CATALOG_ADMIN_ROLES:
         # TECH_ADMIN : on garde un nom globalement unique
@@ -274,6 +296,8 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
 
             logger.info(f"✅ FRANCHISE : Formule réactivée et réinitialisée ({reusable_formule_id})")
 
+            inserer_produits(reusable_formule_id)
+
             return jsonable_encoder(updated.data[0] if updated.data else {
                 "id": reusable_formule_id,
                 **formule_data,
@@ -313,6 +337,8 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
             logger.warning(f"⚠️ Erreur création liens franchise_formules: {str(e)}")
 
     print (f"✅ Formule créée et activée pour {liens_crees} franchise(s)")
+
+    inserer_produits(nouvelle_formule["id"])
 
     return jsonable_encoder(nouvelle_formule)
 

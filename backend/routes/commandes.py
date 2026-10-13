@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
 from models import CarnetCommandeCreate, CarnetCommandeUpdate, CommandeComplete, CommandeModification
-from utils import verify_commande_ownership
+from utils import verify_commande_ownership, check_acces_catalogue
 from datetime import datetime, date, time, timedelta
 from uuid import UUID
 import logging
@@ -55,23 +55,7 @@ def check_commande_doublon(commande_data: dict):
             detail=f"❌ Une commande avec le nom \"{commande_data['nom_client']}\" existe déjà pour le {commande_data['delivery_date']} à {commande_data.get('delivery_hour', '10:00')}."
         )
 
-def check_acces_catalogue(table: str, colonne: str, ids: list, franchise_id: str, libelle: str):
-    """Vérifie EN UNE REQUÊTE que tous les ids (formules ou produits) sont actifs pour la franchise.
-    Lève une 404 s'il en manque un seul."""
-    if not ids:
-        return
-    liens = supabase.table(table)\
-        .select(colonne)\
-        .eq("franchise_id", franchise_id)\
-        .eq("active", True)\
-        .in_(colonne, ids)\
-        .execute()
-    trouves = {lien[colonne] for lien in liens.data}
-    if set(ids) - trouves:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"{libelle} introuvable ou non disponible pour votre franchise"
-        )
+
 
 @router.get("/")
 async def get_commandes(current_user: dict = Depends(get_current_user)):
@@ -195,8 +179,8 @@ async def create_commande_complete(commande: CommandeComplete, current_user: dic
     # 2. Vérifier les droits sur TOUTES les formules et TOUS les produits (1 requête chacun)
     formule_ids = [str(f.formule_id) for f in commande.formules]
     produit_ids = list({str(p.produit_id) for p in commande.produits})
-    check_acces_catalogue("franchise_formules", "formule_id", formule_ids, franchise_id, "Formule")
-    check_acces_catalogue("franchise_produits", "produit_id", produit_ids, franchise_id, "Produit")
+    check_acces_catalogue(supabase, "franchise_formules", "formule_id", formule_ids, franchise_id, "Formule")
+    check_acces_catalogue(supabase, "franchise_produits", "produit_id", produit_ids, franchise_id, "Produit")
 
     # 3. Créer la commande
     nouvelle_commande = supabase.table("carnet_commande").insert(commande_data).execute().data[0]
@@ -321,9 +305,9 @@ async def update_commande_complete(commande_id: str, modif: CommandeModification
             raise HTTPException(status_code=404, detail="Formule de commande introuvable")
 
     # Les formules et produits ajoutés sont disponibles pour la franchise
-    check_acces_catalogue("franchise_formules", "formule_id",
+    check_acces_catalogue(supabase, "franchise_formules", "formule_id",
                           [str(f.formule_id) for f in modif.formules_ajoutees], franchise_id, "Formule")
-    check_acces_catalogue("franchise_produits", "produit_id",
+    check_acces_catalogue(supabase, "franchise_produits", "produit_id",
                           list({str(p.produit_id) for p in modif.produits_ajoutes}), franchise_id, "Produit")
 
     # ---------- 2. ÉCRITURES ----------

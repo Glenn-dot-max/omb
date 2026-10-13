@@ -46,3 +46,21 @@ def fetch_all_paginated(supabase, table: str, select: str, filters: dict = None,
             break
         offset += page_size
     return all_data
+
+def check_acces_catalogue(supabase, table: str, colonne: str, ids: list, franchise_id: str, libelle: str):
+    """Vérifie EN UNE REQUÊTE que tous les ids (formules ou produits) sont actifs pour la franchise.
+    Lève une 404 s'il en manque un seul."""
+    if not ids:
+        return
+    liens = supabase.table(table)\
+        .select(colonne)\
+        .eq("franchise_id", franchise_id)\
+        .eq("active", True)\
+        .in_(colonne, ids)\
+        .execute()
+    trouves = {lien[colonne] for lien in liens.data}
+    if set(ids) - trouves:
+        raise HTTPException(
+            status_code=404,
+            detail=f"{libelle} introuvable ou non disponible pour votre franchise"
+        )
