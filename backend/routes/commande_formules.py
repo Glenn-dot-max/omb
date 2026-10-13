@@ -14,7 +14,7 @@ supabase = get_supabase_client()
 
 
 @router.get("/commande/{commande_id}")
-async def get_formules_by_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+def get_formules_by_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Formules d'une commande, AVEC leurs exclusions, en une seule requête (P5a-3)"""
     verify_commande_ownership(supabase, commande_id, current_user)
 
@@ -33,7 +33,7 @@ async def get_formules_by_commande(commande_id: str, current_user: dict = Depend
 
 
 @router.post("/")
-async def create_commande_formule(commande_formule: CommandeFormuleCreate, current_user: dict = Depends(get_current_user)):
+def create_commande_formule(commande_formule: CommandeFormuleCreate, current_user: dict = Depends(get_current_user)):
     """Add a formule to a commande"""
     # Vérifier la commande
     verify_commande_ownership(supabase, str(commande_formule.commande_id), current_user)
@@ -76,7 +76,7 @@ async def create_commande_formule(commande_formule: CommandeFormuleCreate, curre
     return commande_formule_data
 
 @router.delete("/{commande_formule_id}")
-async def delete_commande_formule(commande_formule_id: int, current_user: dict = Depends(get_current_user)):
+def delete_commande_formule(commande_formule_id: int, current_user: dict = Depends(get_current_user)):
     """Remove a formule from a commande"""
     existing = get_or_404(supabase, "commande_formules", commande_formule_id, select="commande_id", detail="Commande-Formule not found")
     verify_commande_ownership(supabase, existing['commande_id'], current_user)
@@ -87,7 +87,7 @@ async def delete_commande_formule(commande_formule_id: int, current_user: dict =
     return {"message": "Commande-Formule deleted successfully"}
 
 @router.get("/{commande_formule_id}/exclusions")
-async def get_formule_exclusions(commande_formule_id: int, current_user: dict = Depends(get_current_user)):
+def get_formule_exclusions(commande_formule_id: int, current_user: dict = Depends(get_current_user)):
     """Get excluded products for a commande-formule"""
     existing = get_or_404(supabase, "commande_formules", commande_formule_id, select="commande_id", detail="Commande-Formule not found")
     verify_commande_ownership(supabase, existing['commande_id'], current_user)
@@ -101,7 +101,7 @@ async def get_formule_exclusions(commande_formule_id: int, current_user: dict = 
     return [row["produit_id"] for row in response.data]
 
 @router.patch("/{commande_formule_id}")
-async def update_commande_formule_exclusions(
+def update_commande_formule_exclusions(
     commande_formule_id: int,
     update_data: CommandeFormuleExclusionsUpdate,
     current_user: dict = Depends(get_current_user)

@@ -7,7 +7,7 @@ router = APIRouter(prefix="/categories", tags=["categories"])
 supabase = get_supabase_client()
 
 @router.get("/")
-async def get_categories(current_user: dict = Depends(get_current_user)):
+def get_categories(current_user: dict = Depends(get_current_user)):
     """Get all categories (shared across all franchises)"""
     response = supabase.table("categories")\
         .select("*")\
@@ -16,7 +16,7 @@ async def get_categories(current_user: dict = Depends(get_current_user)):
     return response.data
 
 @router.post("/")
-async def create_categorie(categorie: CategorieCreate, current_user: dict = Depends(is_catalog_admin)):
+def create_categorie(categorie: CategorieCreate, current_user: dict = Depends(is_catalog_admin)):
     """Create a new category (TECH_ADMIN/CATALOG_ADMIN only)"""
     # ✅ Only tech admins can create
     
@@ -38,7 +38,7 @@ async def create_categorie(categorie: CategorieCreate, current_user: dict = Depe
     return response.data[0]
 
 @router.put("/{categorie_id}")
-async def update_categorie(categorie_id: int, categorie: CategorieUpdate, current_user: dict = Depends(is_catalog_admin)):
+def update_categorie(categorie_id: int, categorie: CategorieUpdate, current_user: dict = Depends(is_catalog_admin)):
     """Update a category (TECH_ADMIN/CATALOG_ADMIN only)"""
 
     existing = supabase.table("categories")\
@@ -69,7 +69,7 @@ async def update_categorie(categorie_id: int, categorie: CategorieUpdate, curren
     return response.data[0]
 
 @router.delete("/{categorie_id}")
-async def delete_categorie(categorie_id: int, current_user: dict = Depends(is_catalog_admin)):
+def delete_categorie(categorie_id: int, current_user: dict = Depends(is_catalog_admin)):
     """Delete a category (TECH_ADMIN/CATALOG_ADMIN only)"""
     # ✅ Only tech admins can delete
     

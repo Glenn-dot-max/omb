@@ -14,7 +14,7 @@ router = APIRouter(prefix="/produits", tags=["produits"])
 supabase = get_supabase_client()
 
 @router.get("/")
-async def get_produits(current_user: dict = Depends(get_current_user)):
+def get_produits(current_user: dict = Depends(get_current_user)):
     """
     Get all produits:
     - TECH_ADMIN: tous les produits avec info sur les franchises liées
@@ -142,7 +142,7 @@ async def get_produits(current_user: dict = Depends(get_current_user)):
     return produits
 
 @router.get("/{produit_id}")
-async def get_produit(produit_id: str, current_user: dict = Depends(get_current_user)):
+def get_produit(produit_id: str, current_user: dict = Depends(get_current_user)):
     """Get a single produit by ID.
     Admin catalogue : n'importe quel produit. Franchise : seulement les produits liés à sa franchise."""
     if current_user.get("role") not in CATALOG_ADMIN_ROLES:
@@ -164,7 +164,7 @@ async def get_produit(produit_id: str, current_user: dict = Depends(get_current_
     return response.data[0]
 
 @router.post("/")
-async def create_produit(produit: ProduitCreate, current_user: dict = Depends(get_current_user)):
+def create_produit(produit: ProduitCreate, current_user: dict = Depends(get_current_user)):
     """
     Create a new produit
 
@@ -296,7 +296,7 @@ async def create_produit(produit: ProduitCreate, current_user: dict = Depends(ge
     return jsonable_encoder(nouveau_produit)
 
 @router.delete("/{produit_id}")
-async def delete_produit(produit_id: str, current_user: dict = Depends(get_current_user)):
+def delete_produit(produit_id: str, current_user: dict = Depends(get_current_user)):
     """
     Delete/Deactivate a produit
     - TECH_ADMIN: supprime complètement le produit
@@ -411,7 +411,7 @@ async def delete_produit(produit_id: str, current_user: dict = Depends(get_curre
 
 
 @router.patch("/{produit_id}/franchises")
-async def toggle_produit_franchises(produit_id: str, request: ToggleFranchisesRequest, current_user: dict = Depends(get_current_user)):
+def toggle_produit_franchises(produit_id: str, request: ToggleFranchisesRequest, current_user: dict = Depends(get_current_user)):
     """
     Activer/ Désactiver un produit pour certaines franchises (TECH_ADMIN only)
 
@@ -483,7 +483,7 @@ async def toggle_produit_franchises(produit_id: str, request: ToggleFranchisesRe
 
 
 @router.patch("/{produit_id}")
-async def update_produit(produit_id: str, produit: ProduitUpdate, current_user: dict = Depends(get_current_user)):
+def update_produit(produit_id: str, produit: ProduitUpdate, current_user: dict = Depends(get_current_user)):
     """
     Update an existing produit
     - TECH_ADMIN: peut modifier n'importe quel produit

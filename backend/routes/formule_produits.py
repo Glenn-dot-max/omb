@@ -8,7 +8,7 @@ router = APIRouter(prefix="/formule-produits", tags=["formule-produits"])
 supabase = get_supabase_client()
 
 @router.get("/formule/{formule_id}")
-async def get_produits_by_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
+def get_produits_by_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
     """Get all produits for a formule"""
     formule_check = supabase.table("formules")\
         .select("id")\
@@ -46,7 +46,7 @@ async def get_produits_by_formule(formule_id: str, current_user: dict = Depends(
     return result
 
 @router.post("/")
-async def create_formule_produit(formule_produit: FormuleProduitCreate, current_user: dict = Depends(get_current_user)):
+def create_formule_produit(formule_produit: FormuleProduitCreate, current_user: dict = Depends(get_current_user)):
     """Add a produit to a formule"""
     formule_check = supabase.table("formules")\
         .select("id")\
@@ -114,7 +114,7 @@ async def create_formule_produit(formule_produit: FormuleProduitCreate, current_
     return jsonable_encoder(response.data[0])
 
 @router.put("/{formule_produit_id}")
-async def update_formule_produit(formule_produit_id: int, formule_produit: FormuleProduitUpdate, current_user: dict = Depends(get_current_user)):
+def update_formule_produit(formule_produit_id: int, formule_produit: FormuleProduitUpdate, current_user: dict = Depends(get_current_user)):
     """Update formule-produit association"""
 
     existing = supabase.table("formule_produits")\
@@ -151,7 +151,7 @@ async def update_formule_produit(formule_produit_id: int, formule_produit: Formu
     return response.data[0]
 
 @router.delete("/{formule_produit_id}")
-async def delete_formule_produit(formule_produit_id: int, current_user: dict = Depends(get_current_user)):
+def delete_formule_produit(formule_produit_id: int, current_user: dict = Depends(get_current_user)):
     """Remove a produit from a formule"""
     existing = supabase.table("formule_produits")\
         .select("formule_id")\

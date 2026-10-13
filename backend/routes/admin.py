@@ -20,13 +20,13 @@ USER_PUBLIC_COLUMNS = "id, email, full_name, role, franchise_id, active, must_ch
 # FRANCHISE - CRUD
 # ======================================
 @router.get("/franchises")
-async def get_franchises(current_user: dict = Depends(is_catalog_admin)):
+def get_franchises(current_user: dict = Depends(is_catalog_admin)):
     """Liste toutes les franchises (TECH_ADMIN/CATALOG_ADMIN)"""
     response = supabase.table("franchises").select("*").order("nom").execute()
     return response.data
 
 @router.get("/franchises/{franchise_id}")
-async def get_franchise(franchise_id: str, current_user: dict = Depends(is_catalog_admin)):
+def get_franchise(franchise_id: str, current_user: dict = Depends(is_catalog_admin)):
     """Récupère une franchise par son ID (TECH_ADMIN/CATALOG_ADMIN)"""
     response = supabase.table("franchises").select("*").eq("id", franchise_id).execute()
     if not response.data:
@@ -34,7 +34,7 @@ async def get_franchise(franchise_id: str, current_user: dict = Depends(is_catal
     return response.data[0]
 
 @router.post("/franchises")
-async def create_franchise(franchise: FranchiseCreate, current_user: dict = Depends(is_tech_admin)):
+def create_franchise(franchise: FranchiseCreate, current_user: dict = Depends(is_tech_admin)):
     """Crée une nouvelle franchise (TECH ADMIN UNIQUEMENT)"""
     franchise_data = franchise.model_dump()
     franchise_data["created_at"] = datetime.now(timezone.utc).isoformat()
@@ -45,7 +45,7 @@ async def create_franchise(franchise: FranchiseCreate, current_user: dict = Depe
     return response.data[0]
 
 @router.put("/franchises/{franchise_id}")
-async def update_franchise(
+def update_franchise(
     franchise_id: str, 
     franchise: FranchiseUpdate, 
     current_user: dict = Depends(is_tech_admin)
@@ -62,7 +62,7 @@ async def update_franchise(
     return response.data[0]
 
 @router.delete("/franchises/{franchise_id}")
-async def delete_franchise(franchise_id: str, current_user: dict = Depends(is_tech_admin)):
+def delete_franchise(franchise_id: str, current_user: dict = Depends(is_tech_admin)):
     """Désactive une franchise (TECH ADMIN UNIQUEMENT)"""
     response = supabase.table("franchises").update({"active": False}).eq("id", franchise_id).execute()
     if not response.data:
@@ -75,7 +75,7 @@ async def delete_franchise(franchise_id: str, current_user: dict = Depends(is_te
 # ======================================
 
 @router.get("/users")
-async def get_users(
+def get_users(
     franchise_id: Optional[str] = None,
     current_user: dict = Depends(is_tech_admin)
 ):
@@ -88,7 +88,7 @@ async def get_users(
     return response.data
 
 @router.get("/users/{user_id}")
-async def get_user(user_id: str, current_user: dict = Depends(is_tech_admin)):
+def get_user(user_id: str, current_user: dict = Depends(is_tech_admin)):
     """Récupère un utilisateur par son ID (TECH ADMIN UNIQUEMENT)"""
     response = supabase.table("users").select(USER_PUBLIC_COLUMNS).eq("id", user_id).execute()
     if not response.data:
@@ -96,7 +96,7 @@ async def get_user(user_id: str, current_user: dict = Depends(is_tech_admin)):
     return response.data[0]
 
 @router.post("/users")
-async def create_user(user: UserCreate, current_user: dict = Depends(is_tech_admin)):
+def create_user(user: UserCreate, current_user: dict = Depends(is_tech_admin)):
     """Crée un nouvel utilisateur (TECH ADMIN UNIQUEMENT)"""
     # Vérifie que l'email n'existe pas déjà
     existing = supabase.table("users").select("*").eq("email", user.email).execute()
@@ -134,7 +134,7 @@ async def create_user(user: UserCreate, current_user: dict = Depends(is_tech_adm
     return result
 
 @router.put("/users/{user_id}")
-async def update_user(
+def update_user(
     user_id: str, 
     user: UserUpdate, 
     current_user: dict = Depends(is_tech_admin)
@@ -159,7 +159,7 @@ async def update_user(
     return result
 
 @router.post("/users/{user_id}/reset-password")
-async def reset_password(
+def reset_password(
     user_id: str,
     reset: PasswordReset,
     current_user: dict = Depends(is_tech_admin)
@@ -182,7 +182,7 @@ async def reset_password(
     }
 
 @router.delete("/users/{user_id}")
-async def delete_user(user_id: str, current_user: dict = Depends(is_tech_admin)):
+def delete_user(user_id: str, current_user: dict = Depends(is_tech_admin)):
     """Désactive un utilisateur (TECH ADMIN UNIQUEMENT)"""
     response = supabase.table("users").update({"active": False}).eq("id", user_id).execute()
     if not response.data:
@@ -194,7 +194,7 @@ async def delete_user(user_id: str, current_user: dict = Depends(is_tech_admin))
 # ======================================
 
 @router.get("/franchises/{franchise_id}/produits")
-async def get_franchise_produits(
+def get_franchise_produits(
     franchise_id: str,
     current_user: dict = Depends(is_catalog_admin)
 ):
@@ -280,7 +280,7 @@ async def get_franchise_produits(
 # ======================================
 
 @router.get("/franchises/{franchise_id}/formules")
-async def get_franchise_formules(
+def get_franchise_formules(
     franchise_id: str,
     current_user: dict = Depends(is_catalog_admin)
 ):
@@ -340,7 +340,7 @@ async def get_franchise_formules(
 # ======================================
 
 @router.get("/franchises/{franchise_id}/commandes")
-async def get_franchise_commandes(
+def get_franchise_commandes(
     franchise_id: str,
     archived: bool = False,
     current_user: dict = Depends(is_tech_admin)

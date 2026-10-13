@@ -24,7 +24,7 @@ supabase = get_supabase_client()
 
 @router.post("/login", response_model=LoginResponse)
 @limiter.limit("5/minute")
-async def login(request: Request, credentials: LoginRequest):
+def login(request: Request, credentials: LoginRequest):
     """Connexion utilisateur"""
     
     # 1. Récupérer l'utilisateur par email
@@ -75,7 +75,7 @@ async def login(request: Request, credentials: LoginRequest):
 # ===============================================
 
 @router.get("/me", response_model=UserInfo)
-async def get_me(current_user: dict = Depends(get_current_user)):
+def get_me(current_user: dict = Depends(get_current_user)):
     """Récupère les infos de l'utilisateur connecté"""
     
     # Récupérer les détails complets depuis la DB
@@ -106,7 +106,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 # ===============================================
 
 @router.post("/change-password")
-async def change_password(
+def change_password(
     request: ChangePasswordRequest,
     current_user: dict = Depends(get_current_user)
 ):
@@ -160,7 +160,7 @@ async def change_password(
 
 @router.post("/forgot-password")
 @limiter.limit("3/minute")
-async def forgot_password(request: Request, payload: ForgotPasswordRequest):
+def forgot_password(request: Request, payload: ForgotPasswordRequest):
     """
     Envoie un email de réinitialisation si un compte actif existe pour cet email.
     Renvoie toujours le même message générique, que le compte existe ou non,
@@ -200,7 +200,7 @@ async def forgot_password(request: Request, payload: ForgotPasswordRequest):
 
 @router.post("/reset-password")
 @limiter.limit("5/minute")
-async def reset_password(request: Request, payload: ResetPasswordRequest):
+def reset_password(request: Request, payload: ResetPasswordRequest):
     """Réinitialise le mot de passe à partir du token reçu par email"""
 
     token_hash = hash_reset_token(payload.token)

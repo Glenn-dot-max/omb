@@ -14,7 +14,7 @@ class TypeUpdate(BaseModel):
     name: str
 
 @router.get("/")
-async def get_types(current_user: dict = Depends(get_current_user)):
+def get_types(current_user: dict = Depends(get_current_user)):
     """Get all types (shared across all franchises)"""
     response = supabase.table("types")\
         .select("*")\
@@ -23,7 +23,7 @@ async def get_types(current_user: dict = Depends(get_current_user)):
     return response.data
 
 @router.post("/")
-async def create_type(type_data: TypeCreate, current_user: dict = Depends(is_catalog_admin)):
+def create_type(type_data: TypeCreate, current_user: dict = Depends(is_catalog_admin)):
     """Create a new type (TECH_ADMIN/CATALOG_ADMIN only)"""
 
     existing = supabase.table("types")\
@@ -44,7 +44,7 @@ async def create_type(type_data: TypeCreate, current_user: dict = Depends(is_cat
     return response.data[0]
 
 @router.put("/{type_id}")
-async def update_type(type_id: int, type_data: TypeUpdate, current_user: dict = Depends(is_catalog_admin)):
+def update_type(type_id: int, type_data: TypeUpdate, current_user: dict = Depends(is_catalog_admin)):
     """Update a type (TECH_ADMIN/CATALOG_ADMIN only)"""
 
     existing = supabase.table("types")\
@@ -75,7 +75,7 @@ async def update_type(type_id: int, type_data: TypeUpdate, current_user: dict = 
     return response.data[0]
 
 @router.delete("/{type_id}")
-async def delete_type(type_id: int, current_user: dict = Depends(is_catalog_admin)):
+def delete_type(type_id: int, current_user: dict = Depends(is_catalog_admin)):
     """Delete a type (TECH_ADMIN/CATALOG_ADMIN only)"""
 
     existing = supabase.table("types")\

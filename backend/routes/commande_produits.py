@@ -10,7 +10,7 @@ router = APIRouter(prefix="/commande-produits", tags=["commande-produits"])
 supabase = get_supabase_client()
 
 @router.get("/commande/{commande_id}")
-async def get_produits_by_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+def get_produits_by_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Get all produits for a commande"""
     verify_commande_ownership(supabase, commande_id, current_user)
 
@@ -18,7 +18,7 @@ async def get_produits_by_commande(commande_id: str, current_user: dict = Depend
     return response.data
 
 @router.post("/")
-async def create_commande_produit(commande_produit: CommandeProduitCreate, current_user: dict = Depends(get_current_user)):
+def create_commande_produit(commande_produit: CommandeProduitCreate, current_user: dict = Depends(get_current_user)):
     """Add a produit to a commande"""
     # Vérifier ma commande
     verify_commande_ownership(supabase, str(commande_produit.commande_id), current_user)
@@ -49,7 +49,7 @@ async def create_commande_produit(commande_produit: CommandeProduitCreate, curre
     return response.data[0]
 
 @router.put("/{commande_produit_id}")
-async def update_commande_produit(commande_produit_id: int, commande_produit: CommandeProduitUpdate, current_user: dict = Depends(get_current_user)):
+def update_commande_produit(commande_produit_id: int, commande_produit: CommandeProduitUpdate, current_user: dict = Depends(get_current_user)):
     """Update commande-produit association"""
     existing = get_or_404(supabase, "commande_produits", commande_produit_id, select="commande_id", detail="Commande-Produit not found")
     verify_commande_ownership(supabase, existing["commande_id"], current_user)
@@ -62,7 +62,7 @@ async def update_commande_produit(commande_produit_id: int, commande_produit: Co
     return response.data[0]
 
 @router.delete("/{commande_produit_id}")
-async def delete_commande_produit(commande_produit_id: int, current_user: dict = Depends(get_current_user)):
+def delete_commande_produit(commande_produit_id: int, current_user: dict = Depends(get_current_user)):
     """Remove a produit from a commande"""
     existing = get_or_404(supabase, "commande_produits", commande_produit_id, select="commande_id", detail="Commande-Produit not found")
     verify_commande_ownership(supabase, existing["commande_id"], current_user)

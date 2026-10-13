@@ -13,7 +13,7 @@ router = APIRouter(prefix="/formules", tags=["formules"])
 supabase = get_supabase_client()
 
 @router.get("/")
-async def get_formules(current_user: dict = Depends(get_current_user)):
+def get_formules(current_user: dict = Depends(get_current_user)):
     """
     Get all formules:
     - TECH_ADMIN: toutes les formules avec info sur les franchises liées
@@ -105,7 +105,7 @@ async def get_formules(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/restorable-shared")
-async def get_restorable_shared_formules(
+def get_restorable_shared_formules(
     franchise_id: str,
     current_user: dict = Depends(is_catalog_admin),
 ):
@@ -153,7 +153,7 @@ async def get_restorable_shared_formules(
 
 
 @router.get("/{formule_id}")
-async def get_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
+def get_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
     """Get a single formule by ID.
     Admin catalogue : n'importe quelle formule. Franchise : seulement les formules liées à sa franchise."""
     if current_user.get("role") not in CATALOG_ADMIN_ROLES:
@@ -175,7 +175,7 @@ async def get_formule(formule_id: str, current_user: dict = Depends(get_current_
     return response.data[0]
 
 @router.post("/")
-async def create_formule(formule: FormuleCreate, current_user: dict = Depends(get_current_user)):
+def create_formule(formule: FormuleCreate, current_user: dict = Depends(get_current_user)):
     """
     Create a new formule
 
@@ -343,7 +343,7 @@ async def create_formule(formule: FormuleCreate, current_user: dict = Depends(ge
     return jsonable_encoder(nouvelle_formule)
 
 @router.delete("/{formule_id}")
-async def delete_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
+def delete_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
     """
     Delete/Deactivate a formule
     - TECH_ADMIN: supprime complètement la formule
@@ -463,7 +463,7 @@ async def delete_formule(formule_id: str, current_user: dict = Depends(get_curre
             raise HTTPException(status_code=500, detail=f"Erreur lors de la désactivation de la formule")
 
 @router.patch("/{formule_id}/franchises")
-async def toggle_formule_franchises(formule_id: str, request: ToggleFranchisesRequest, current_user: dict = Depends(is_catalog_admin)):
+def toggle_formule_franchises(formule_id: str, request: ToggleFranchisesRequest, current_user: dict = Depends(is_catalog_admin)):
     """
     Activer/Désactiver une formule pour certaines franchises (TECH_ADMIN only)
 
@@ -532,7 +532,7 @@ async def toggle_formule_franchises(formule_id: str, request: ToggleFranchisesRe
 
 
 @router.post("/{formule_id}/restore-original")
-async def restore_shared_original_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
+def restore_shared_original_formule(formule_id: str, current_user: dict = Depends(get_current_user)):
     """
     Restaure la version partagée d'une formule pour un utilisateur franchisé.
     - Désactive la formule actuelle (copie franchise)
@@ -670,7 +670,7 @@ async def restore_shared_original_formule(formule_id: str, current_user: dict = 
     }
 
 @router.patch("/{formule_id}")
-async def update_formule(formule_id: str, formule: FormuleUpdate, current_user: dict = Depends(get_current_user)):
+def update_formule(formule_id: str, formule: FormuleUpdate, current_user: dict = Depends(get_current_user)):
     """
     Update an existing formule
     - TECH_ADMIN: peut modifier n'importe quelle formule

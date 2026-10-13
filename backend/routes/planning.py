@@ -15,7 +15,7 @@ router = APIRouter(prefix="/planning", tags=["planning"])
 supabase = get_supabase_client()
 
 @router.get("/production")
-async def get_planning_production(
+def get_planning_production(
     date_debut: str, 
     date_fin: str, 
     type_prestation: str = "toutes", 

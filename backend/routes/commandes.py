@@ -58,7 +58,7 @@ def check_commande_doublon(commande_data: dict):
 
 
 @router.get("/")
-async def get_commandes(current_user: dict = Depends(get_current_user)):
+def get_commandes(current_user: dict = Depends(get_current_user)):
     """Get all commandes (TECH_ADMIN: all, USER: their franchise)"""
     try:
         query = supabase.table("carnet_commande").select("*")
@@ -95,7 +95,7 @@ async def get_commandes(current_user: dict = Depends(get_current_user)):
         )   
 
 @router.get("/archived")
-async def get_archived_commandes(current_user: dict = Depends(get_current_user)):
+def get_archived_commandes(current_user: dict = Depends(get_current_user)):
     """Get all archived commandes (TECH_ADMIN: all, USER: their franchise)"""
     
     try:
@@ -130,7 +130,7 @@ async def get_archived_commandes(current_user: dict = Depends(get_current_user))
     
 
 @router.get("/{commande_id}")
-async def get_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+def get_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Get a single Non-archived commande by ID"""
 
     query = supabase.table("carnet_commande").select("*").eq("id", commande_id).eq("archived", False)
@@ -150,7 +150,7 @@ async def get_commande(commande_id: str, current_user: dict = Depends(get_curren
     return response.data[0]
 
 @router.post("/")
-async def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
+def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
     """Create a new commande"""
 
     commande_data = format_delivery_fields(commande.model_dump())
@@ -162,7 +162,7 @@ async def create_commande(commande: CarnetCommandeCreate, current_user: dict = D
     return response.data[0]
 
 @router.post("/complete")
-async def create_commande_complete(commande: CommandeComplete, current_user: dict = Depends(get_current_user)):
+def create_commande_complete(commande: CommandeComplete, current_user: dict = Depends(get_current_user)):
     """Crée une commande AVEC ses formules (et leurs exclusions) et ses produits, en un seul appel.
     Les droits sont vérifiés une seule fois, puis tout est inséré par lots (une insertion par table).
     Si une insertion échoue après la création de la commande, la commande est supprimée :
@@ -230,7 +230,7 @@ async def create_commande_complete(commande: CommandeComplete, current_user: dic
     return nouvelle_commande
 
 @router.post("/auto-archive")
-async def auto_archive_old_commandes(current_user: dict = Depends(get_current_user)):
+def auto_archive_old_commandes(current_user: dict = Depends(get_current_user)):
     """Archive automatiquement les commandes dont la date de livraison est passée"""
     
     try:
@@ -280,7 +280,7 @@ async def auto_archive_old_commandes(current_user: dict = Depends(get_current_us
         )
 
 @router.put("/{commande_id}/complete")
-async def update_commande_complete(commande_id: str, modif: CommandeModification, current_user: dict = Depends(get_current_user)):
+def update_commande_complete(commande_id: str, modif: CommandeModification, current_user: dict = Depends(get_current_user)):
     """Enregistre en un seul appel toute la modification d'une commande :
     ses informations, les couverts/exclusions de ses formules existantes,
     et les formules/produits ajoutés. Tout est vérifié AVANT d'écrire."""
@@ -378,7 +378,7 @@ async def update_commande_complete(commande_id: str, modif: CommandeModification
             
 
 @router.put("/{commande_id}")
-async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
+def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
     """Update an existing commande"""
     update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
     update_data = format_delivery_fields(update_data)
@@ -397,7 +397,7 @@ async def update_commande(commande_id: str, commande: CarnetCommandeUpdate, curr
     return response.data[0]
 
 @router.delete("/{commande_id}")
-async def delete_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+def delete_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a commande"""
 
     if current_user["role"] != "TECH_ADMIN":
@@ -444,7 +444,7 @@ async def delete_commande(commande_id: str, current_user: dict = Depends(get_cur
 
 
 @router.patch("/{commande_id}/validate")
-async def validate_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+def validate_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """
     Valider une commande (passe validated à True)
     """
@@ -473,7 +473,7 @@ async def validate_commande(commande_id: str, current_user: dict = Depends(get_c
         )
 
 @router.post("/{commande_id}/duplicate")
-async def duplicate_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+def duplicate_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Duplique une commande avec ses formules, exclusions et produits directs"""
 
     #1. Récupérer la commande source (scoping franchise)
