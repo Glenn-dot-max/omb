@@ -272,18 +272,15 @@ async function handleCreateFormuleWithProduits() {
       formuleData.franchise_ids = franchiseIds;
     }
 
-    const nouvelleFormule = await createFormule(formuleData);
+    // Les produits partent DANS la création (Sprint P, P5b):
+    // le serveur vérifie les droits, crée la formule et insère tous ses produits en un appel.
+    formuleData.produits = tempProduitsToCreate.map((produit) => ({
+      produit_id: produit.produit_id,
+      quantite: produit.quantite,
+      unite: produit.unite,
+    }));
 
-    await Promise.all(
-      tempProduitsToCreate.map((produit) =>
-        createFormuleProduit({
-          formule_id: nouvelleFormule.id,
-          produit_id: produit.produit_id,
-          quantite: produit.quantite,
-          unite: produit.unite,
-        }),
-      ),
-    );
+    await createFormule(formuleData);
 
     // Recharger depuis le serveur : lui seul connaît les franchises liées
     // (la répinse de création ne contient pas nb_franchises / is_limited).
