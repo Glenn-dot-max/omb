@@ -7,9 +7,11 @@
 
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
-- **Production** : Render déploie la branche `v8` — **Sprint 1 déployé le 2026-10-09** (+ hotfix H1/H2 + correctifs formules), en **Python 3.13**. Index SQL (`supabase-scripts/create_indexes.sql`) appliqués dans Supabase.
-- **Branche de travail** : aucune en cours — `sprint/2-isolation-franchses` = `v8` (en cours). 90 tests verts.
-- **Prochaine étape** : **Sprint P — Performance** (décidé le 2026-10-10, passe avant le Sprint 3), en commençant par **P0** (mesurer, sans code). A suivre - P2
+- **Production** : Render déploie `v8` — Sprints 0, 1 et 2 déployés, hotfix H1/H2, correctifs formules, double clic sur « Créer ». **Base Supabase déménagée à Francfort le 2026-10-10 (P1)** : création d'une commande ~20 s → ~4 s en production. Python 3.13.
+- **Branche de travail** : `sprint/p-performance` (**pas encore déployée**, on continue en local). Faits : P3 (+ P3d, P3e), P4, P5a, P5b-1, P9. 123 tests verts (commit `63ee60a`).
+- **Prochaine tâche** : **P5b-2** — frontend : `handleCreateFormuleWithProduits` (`formules-create.js`) envoie les produits dans `createFormule` (champ `produits`), au lieu d'un appel `createFormuleProduit` par produit.
+- **Ensuite** : P2 (serveur en parallèle), P6 (cache, à arbitrer), P8 (ménage Docker + code mort), puis **P7 : déploiement** du Sprint P.
+- **À faire hors code** : mettre en pause l'ancien projet Supabase (Oregon) vers le 2026-10-15, puis le supprimer ; effacer les dumps de `~/omb-migration` (garder `schema.sql`).
 - **Non prioritaire** : voir [BACKLOG.md](BACKLOG.md).
 
 ---
