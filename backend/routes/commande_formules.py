@@ -15,11 +15,22 @@ supabase = get_supabase_client()
 
 @router.get("/commande/{commande_id}")
 async def get_formules_by_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
-    """Get all formules for a commande"""
+    """Formules d'une commande, AVEC leurs exclusions, en une seule requête (P5a-3)"""
     verify_commande_ownership(supabase, commande_id, current_user)
-        
-    response = supabase.table("commande_formules").select("*").eq("commande_id", commande_id).execute()
+
+    # Jointure : Supabase renvoie, pour chaque formule, la liste de ses exclusions
+    response = supabase.table("commande_formules")\
+        .select("*, commande_formule_exclusions(produit_id)")\
+        .eq("commande_id", commande_id)\
+        .execute()
+
+    # On aplatit au format attendu par le frontend : produits_exclus =["id1", "id2", ...]
+    for ligne in response.data:
+        exclusions = ligne.pop("commande_formule_exclusions", None) or []
+        ligne["produits_exclus"] = [e["produit_id"] for e in exclusions]
+
     return response.data
+
 
 @router.post("/")
 async def create_commande_formule(commande_formule: CommandeFormuleCreate, current_user: dict = Depends(get_current_user)):

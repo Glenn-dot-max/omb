@@ -198,7 +198,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [x] **P4 Archivage automatique en une seule requête** — `auto_archive_old_commandes` (`commandes.py`) lit toutes les commandes validées puis les archive **une par une** (1 requête par commande), à **chaque ouverture** de la page Commandes → une seule requête `update … where delivery_date < aujourd'hui and validated and not archived` (filtrée par franchise pour les non-admins).
   - Tests : seules les commandes passées et validées sont archivées ; une franchise n'archive que les siennes.
   - Re-mesurer ①.
-- [ ] **P5 Même principe pour les autres enregistrements lents**
+- [x] **P5 Même principe pour les autres enregistrements lents**
   - Modification d'une commande (`saveEditCommande` : exclusions + nouvelles formules + nouveaux produits envoyés un par un) → un appel groupé.
   - Création d'une formule avec ses produits (`formules-create.js` : 1 appel par produit) → insertion groupée des produits côté serveur.
   - Re-mesurer ② (en modification) et ③.
@@ -212,6 +212,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - `SPRINTS.md` : passer le **Sprint 11** en reporté (`[-]`), et la tâche **11.2** (Dockerfile non-root) devient sans objet ;
   - avant de supprimer : `grep -rn "docker\|nginx\|deploy.sh\|8080" --exclude-dir=venv --exclude-dir=.git .` pour ne rien oublier ;
   - tests : suite verte + application locale et production qui démarrent normalement (rien de tout ça n'est utilisé par Render).
+  - supprimer getCommandeFormuleExclusions (api.js) et la route GET /commande-formules/{id}/exclusions, devenues inutiles (P5a-3).
 - [x] **P9 Bug : nombre de franchises faux (limite Supabase de 1000 lignes)** — vu le 2026-10-11 : des produits actifs dans 3 franchises affichent « propre à votre franchise ». Dans `GET /produits/` et `GET /formules/` (partie franchise), la requête qui compte les liens actifs dépassait 1000 lignes et était tronquée sans erreur → `nb_franchises` faux. Correctif : `fetch_all_paginated` (déjà utilisée par la partie admin). ⚠️ Reste à surveiller : `in_("id", produit_ids)` sur la table `produits` sera aussi limité à 1000 lignes si une franchise dépasse 1000 produits.
 
 **Hors scope de ce sprint** (noté pour plus tard) : passer au client Supabase **asynchrone** (plus propre que P2 mais touche toutes les routes — à envisager avec la Phase B) ; pagination de l'onglet « Archivées » (→ `BACKLOG.md` B6).

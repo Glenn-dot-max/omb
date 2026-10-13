@@ -1,22 +1,29 @@
 from unittest.mock import MagicMock, patch
 
 def test_get_formules_by_commande_success(client, auth_headers):
-    """Un USER peut récipérer les formules de SA commande"""
+    """Un USER récupère les formules de SA commande, AVEC leur exclusions (P5a-3)"""
     carnet_commande_response = MagicMock()
     carnet_commande_response.data = [{"id": "commande-1"}]
 
+    # Réponse de Supabase avec la jointure : les exclusions sont imbriquées dans chaque formule
     commande_formules_response = MagicMock()
     commande_formules_response.data = [
         {"id": 1, "commande_id": "commande-1", "formule_id": "formule-1",
-         "quantite_recommandee": 4, "quantite_finale": 4, "produits_exclus": []}
+         "quantite_recommandee": 4, "quantite_finale": 4,
+         "commande_formule_exclusions": [{"produit_id": "p-9"}, {"produit_id": "p-7"}]},
+        {"id": 2, "commande_id": "commande-1", "formule_id": "formule-2",
+         "quantite_recommandee": 2, "quantite_finale": 2,
+         "commande_formule_exclusions": []},
     ]
 
+    tables = {}
     def table_side_effect(table_name):
         mock_table = MagicMock()
         if table_name == "carnet_commande":
-            mock_table.select.return_value.eq.return_value.eq.return_value.execute.return_value = carnet_commande_response
+            mock_table.select.return_value.eq.return_value.execute.return_value = carnet_commande_response
         elif table_name == "commande_formules":
             mock_table.select.return_value.eq.return_value.execute.return_value = commande_formules_response
+        tables[table_name] = mock_table
         return mock_table
 
     with patch("routes.commande_formules.supabase") as mock_db:
@@ -24,7 +31,16 @@ def test_get_formules_by_commande_success(client, auth_headers):
         response = client.get("/commande-formules/commande/commande-1", headers=auth_headers)
 
     assert response.status_code == 200
-    assert response.json() == commande_formules_response.data
+
+    # Une seule requête, qui demande les exclusions avec les formules (jointure)
+    tables["commande_formules"].select.assert_called_once_with("*, commande_formule_exclusions(produit_id)")
+
+    # Les exclusions arrievnt sous la forme attendue par le frontend : une simple liste d'ids
+    formules = response.json()
+    assert formules[0]["produits_exclus"] == ["p-9", "p-7"]
+    assert formules[1]["produits_exclus"] == []
+    assert "commande_formules_exclusions" not in formules[0]
+
 
 def test_create_commande_formule_success(client, auth_headers):
     """Un USER peut ajouter une formule active de sa franchise à sa commande, avec des exclusions"""

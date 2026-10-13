@@ -154,8 +154,8 @@ async function displayDetailsFormules(
         ? `${formule.quantite_finale} × ${coefficient} = <strong>${couvertsEffectifs} couverts effectifs</strong>`
         : `${formule.quantite_finale} couverts`;
 
-    // Récupérer les exclusions
-    const exclusions = await getCommandeFormuleExclusions(formule.id);
+    // Les exclusions arrivent avec la formule (P5a-3)
+    const exclusions = formule.produits_exclus || [];
 
     // Récupérer les produits de la formule
     const formuleProduits = await getFormuleProduits(formule.formule_id);
@@ -282,7 +282,7 @@ async function handleEditCommande(commande) {
         );
 
         // Charger les exclusions existantes
-        const exclusions = await getCommandeFormuleExclusions(f.id);
+        const exclusions = f.produits_exclus || [];
 
         return {
           id: f.id,
@@ -984,7 +984,7 @@ async function handleDuplicateCommande(commande) {
         formulesNonCopiees++;
         continue;
       }
-      const exclusions = await getCommandeFormuleExclusions(f.id);
+      const exclusions = f.produits_exclus || []; // arrivent avec la formule (P5a-3)
       tempFormules.push({
         formule_id: f.formule_id,
         formule_name: formuleData.name,
