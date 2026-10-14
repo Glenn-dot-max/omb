@@ -1,184 +1,125 @@
-# 🗺️ OMB — Roadmap v8 → v9+
+# 🗺️ OMB — Feuille de route produit
 
-> Dernière mise à jour : 12 août 2026
+> Vue d'ensemble du produit : où on en est, ce qu'on construit, dans quel ordre, et quand.
+> Le détail de chaque module est dans [`docs/modules/`](docs/modules/), les interventions du développeur senior dans [`docs/dev-senior.md`](docs/dev-senior.md).
+> Le suivi des tâches techniques en cours est dans [`SPRINTS.md`](SPRINTS.md), les idées non prioritaires dans [`BACKLOG.md`](BACKLOG.md).
+>
+> Dernière mise à jour : **2026-10-14**. Ce fichier est alimenté au fil des informations données par Glenn.
+>
+> _L'ancienne roadmap technique (sprints d'août 2026, Docker/Hetzner) est conservée dans l'historique git (dernière version : commit `6b43933`, 2026-08-14)._
 
 ---
 
-## 📅 Calendrier global
+## 🎯 Vision
+
+Une **solution complète de gestion pour traiteurs** : développée d'abord pour **Oh My Brunch et ses franchises**, puis **commercialisée à d'autres traiteurs**.
+
+Principe directeur : **construire pour OMB, concevoir pour plusieurs clients** (multi-organisations dès les fondations, rien de spécifique à OMB dans le code).
+
+Ordre de construction choisi par Glenn (2026-10-13) : **d'abord le terrain (la production), ensuite le bureau.**
 
 ```
-Août 2026
-├── Semaine 1 (12-16/08) ── Sprint 1  🔴 Sécurité critique
-├── Semaine 2 (17-21/08) ── Sprint 2  🟠 Cohérence backend
-└── Semaine 3 (24-28/08) ── Sprint 3  🟡 Performance
-
-Septembre 2026
-├── Semaine 1 (31/08-04/09) ── Sprint 4A + Sprint 6 (en parallèle)
-├── Semaine 2 (07-11/09)    ── Sprint 4B  🟢 Découpage commandes.js
-└── Semaine 3-4 (14-25/09)  ── Sprint 5  🔵 Docker / Infra
-
-Octobre 2026
-└── Bascule Hetzner CX22 ✅
+                         BUREAU (ensuite)
+   CRM commercial → Devis → ┐                    ┌→ Facture client → Plateforme agréée (e-facture)
+                            ▼                    │
+                         Commande  ──────→ Production ──→ Livraison
+                            ▲                    ▲
+                         TERRAIN (d'abord)       │
+   Recettes / fiches techniques ─────────────────┤  (grammages, coûts, allergènes)
+   Pack hygiène + traçabilité (scan des lots) ───┤  (réception, températures, nettoyage)
+   Tablette : pointage, heures, plannings ───────┘
+   Factures fournisseurs (IA) → prix des articles
 ```
 
 ---
 
-## 🔴 Sprint 1 — Sécurité critique
+## 📍 Où on en est (2026-10-13)
 
-**Branche :** `fix/security-hardening`
-**Durée estimée :** 1-2 jours
+**En production** (Render, branche `v8`, base Supabase à **Francfort**) :
+- Gestion des **commandes** (création, modification, duplication, archivage automatique), des **formules** et des **produits** par franchise, **planning de production** avec export Excel, **administration** (franchises, utilisateurs).
+- Sécurité revue (Sprints 0, 1, 2) et **performances** fortement améliorées (Sprint P) : création d'une commande **~20 s → < 1 s**, création d'une formule **~4,5 s → ~1 s**, requêtes traitées en parallèle.
+- **123 tests automatiques** côté backend.
 
-| #   | Statut  | Tâche                                                                  | Fichier(s)                                                                                      | Effort |
-| --- | ------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------ |
-| 1.1 | ✅ Fait | Remplacer tous les `detail=str(e)` par message générique + log serveur | `routes/commandes.py`, `routes/planning.py`, `routes/produits.py`, `routes/formules.py`         | 30 min |
-| 1.2 | ✅ Fait | Retirer les 3 `console.log` de `config.js`                             | `frontend/js/config.js`                                                                         | 5 min  |
-| 1.3 | ✅ Fait | Ajouter `min_length=8` sur `new_password` dans `PasswordReset`         | `routes/admin.py`                                                                               | 10 min |
-| 1.4 | ✅ Fait | Installer `slowapi` + rate limit 5 req/min sur `POST /auth/login`      | `routes/auth.py`, `requirements.txt`, `main.py`                                                 | 45 min |
-| 1.5 | ✅ Fait | Vérification `active = True` dans `get_current_user`                   | `auth.py`                                                                                       | 30 min |
-| 1.6 | ✅ Fait | Déplacer les 4 scripts root dans `scripts/`                            | `generate_password.py`, `create_catalog_admin.py`, `create_user_paris.py`, `test_connection.py` | 10 min |
+**Ce qui reste à terminer sur l'existant** (détail dans `SPRINTS.md`) :
+- **P10** : *cache busting* des fichiers JS/CSS (incident du déploiement du 2026-10-13).
+- **P8c** : supprimer les anciennes routes backend devenues inutiles (à partir du ~2026-10-16).
+- **Sprint 3** : protection du frontend contre le XSS (indispensable avant de manipuler des données financières et personnelles).
+- **Sprint 4** : hygiène du code (scripts, dépendances, venv local en Python 3.13…).
+- Hors code : **mettre en pause puis supprimer l'ancien projet Supabase (Oregon)** vers le 2026-10-15 ; effacer les dumps de `~/omb-migration` (garder `schema.sql`).
 
-**✅ Sprint 1 terminé et mergé sur v8 — 12 août 2026**
-
-**Critère de validation :**
-
-- [x] Un compte désactivé ne peut plus appeler l'API
-- [x] Brute-force sur `/auth/login` bloqué après 5 tentatives
-- [x] Aucun `str(e)` retourné au client en prod
-- [x] Aucun `console.log` en prod
+**Rien n'est encore commencé** sur les fondations multi-traiteurs (Phase B) ni sur les nouveaux modules.
 
 ---
 
-## 🟠 Sprint 2 — Cohérence & Robustesse backend
+## 🧱 Les étapes
 
-**Branche :** `refactor/backend-consistency`
-**Durée estimée :** 2-3 jours
+| # | Étape | Fiche | Durée estimée (plein temps) | Fin visée | Statut |
+|---|---|---|---|---|---|
+| 0 | Finir l'existant (P10, P8c, Sprints 3 et 4) | [`SPRINTS.md`](SPRINTS.md) | 1,5 à 2 semaines | fin octobre 2026 | 🟡 en cours |
+| B | **Fondations** : organisations/sites, salariés, cloisonnement, migrations, CI, Vue, briques communes, nouveau catalogue | [`00-fondations.md`](docs/modules/00-fondations.md) | 5 à 7 semaines | mi-décembre 2026 | ⚪ à faire |
+| M1 | 🏭 **Pack hygiène et traçabilité** (scan des lots) | [`01-hygiene-tracabilite.md`](docs/modules/01-hygiene-tracabilite.md) | 5 à 6 semaines | fin janvier 2027 | ⚪ à faire |
+| M2 | 🏭 **Tablette : pointage, heures, plannings, rapports** | [`02-tablette-pointage-heures.md`](docs/modules/02-tablette-pointage-heures.md) | 4 à 5 semaines | début mars 2027 | ⚪ à faire |
+| M3 | 🏭 **Recettes, grammages et prix fournisseurs** | [`03-recettes-prix-fournisseurs.md`](docs/modules/03-recettes-prix-fournisseurs.md) | 4 à 5 semaines | début avril 2027 | ⚪ à faire |
+| M4 | 🏢 **Clients, devis (→ planning de production), factures + facture électronique, remplacement d'EBP** | [`04-facturation-clients.md`](docs/modules/04-facturation-clients.md) | 7 à 9 semaines | **début juin 2027** | ⚪ à faire |
+| M5 | 🏭 **Reconnaissance des factures fournisseurs par IA** | [`05-ia-factures-fournisseurs.md`](docs/modules/05-ia-factures-fournisseurs.md) | 3 à 4 semaines | début juillet 2027 | ⚪ à faire |
+| M6 | 🏢 **CRM commercial** | [`06-crm-commercial.md`](docs/modules/06-crm-commercial.md) | 3 à 5 semaines | été 2027 | ⚪ à faire |
 
-| #   | Statut  | Tâche                                                                              | Fichier(s)                      | Effort |
-| --- | ------- | ---------------------------------------------------------------------------------- | ------------------------------- | ------ |
-| 2.1 | ✅ Fait | Remplacer `datetime.utcnow()` par `datetime.now(timezone.utc)`                     | `routes/admin.py` + autres      | 20 min |
-| 2.2 | ✅ Fait | Retirer le double `from zoneinfo import ZoneInfo` dans `commandes.py`              | `routes/commandes.py`           | 5 min  |
-| 2.3 | ✅ Fait | Migrer tous les `@validator` vers `@field_validator` (Pydantic v2)                 | `backend/models.py`             | 1h30   |
-| 2.4 | ✅ Fait | Déplacer les modèles Pydantic de `admin.py` vers `models.py`                       | `routes/admin.py` → `models.py` | 30 min |
-| 2.5 | ✅ Fait | Ajouter pagination dans `formules.py` pour `franchise_formules`                    | `routes/formules.py`            | 20 min |
-| 2.6 | ✅ Fait | Ignorer le param `franchise_id` query si l'user n'est pas TECH_ADMIN dans planning | `routes/planning.py`            | 15 min |
-| 2.7 | ✅ Fait | Nettoyer l'import `field_validator` inutilisé dans `models.py`                     | `backend/models.py`             | 5 min  |
+**Total : environ 6 à 8 mois** à plein temps (8 h/jour, 5 jours/semaine), **plus ~30 % de marge** pour les imprévus.
 
-**✅ Sprint 2 terminé et mergé sur v8 — 12 août 2026**
+Légende : ⚪ à faire · 🟡 en cours · ✅ fait · ⏸️ en pause
 
-**Critère de validation :**
+### ⚠️ Règle de calendrier : la facturation électronique
 
-- [x] `python -W error` sans warning de dépréciation Pydantic
-- [x] Un USER ne peut pas modifier le scope franchise du planning via query param
+La facture électronique devient obligatoire en **émission** pour les PME et micro-entreprises à partir de **septembre 2027** (réforme française — calendrier à revérifier sur impots.gouv.fr et avec l'expert-comptable). D'où :
 
----
-
-## 🟡 Sprint 3 — Performance backend
-
-**Branche :** `perf/backend-cache-indexes`
-**Durée estimée :** 2-3 jours
-
-| #   | Statut  | Tâche                                                                            | Fichier(s)                                                    | Effort |
-| --- | ------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ |
-| 3.1 | ✅ Fait | Créer les index Supabase manquants (SQL) sur les colonnes de filtrage fréquentes | Script SQL dans `supabase-scripts/`                           | 1h     |
-| 3.2 | ✅ Fait | Installer `cachetools` + créer `backend/cache.py` avec `TTLCache(ttl=300)`       | `backend/cache.py`, `requirements.txt`                        | 45 min |
-| 3.3 | ✅ Fait | Appliquer le cache sur `franchises`, `categories`, `types`                       | `routes/produits.py`, `routes/planning.py`, `routes/admin.py` | 1h     |
-| 3.4 | ✅ Fait | Invalider le cache sur les mutations franchises                                  | `routes/admin.py`                                             | 30 min |
-| 3.5 | ✅ Fait | Abaisser limite max planning à 90 jours                                          | `routes/planning.py`                                          | 15 min |
-
-**✅ Sprint 3 terminé et mergé sur v8 — 12 août 2026**
-
-**Critère de validation :**
-
-- [x] Cache TTL 5min actif sur franchises, categories, types
-- [x] Index SQL créés sur toutes les colonnes de filtrage fréquentes
-- [x] Planning limité à 90 jours max
+- **Le module M4 démarre au plus tard début avril 2027**, quoi qu'il arrive. Si un module de production prend du retard, on termine ses détails **après** M4.
+- C'est pour cette raison que M4 (bureau) passe **avant** M5 (IA factures fournisseurs), malgré l'ordre « terrain d'abord ».
+- **Dès maintenant** : vérifier avec le comptable qu'OMB a bien choisi une plateforme pour la **réception** des factures électroniques (obligatoire pour toutes les entreprises depuis septembre 2026 — ce n'est pas à l'application de le faire).
 
 ---
 
-## 🟢 Sprint 4 — Refactor Frontend
+## 🧭 Principes de construction
 
-**Branche :** `refactor/frontend-modules`
-**Durée estimée :** 3-5 jours
-
-### Étape A — State management
-
-| #   | Statut     | Tâche                                           | Fichier(s)                               | Effort |
-| --- | ---------- | ----------------------------------------------- | ---------------------------------------- | ------ |
-| 4.1 | ⬜ À faire | Créer `AppState` centralisé dans `commandes.js` | `frontend/js/commandes.js`               | 1h     |
-| 4.2 | ⬜ À faire | Idem pour `planning.js` et `formules.js`        | `frontend/js/planning.js`, `formules.js` | 30 min |
-
-### Étape B — Découpage de `commandes.js` (2742 lignes)
-
-| #   | Statut     | Tâche                                                        | Fichier(s) à créer              | Effort |
-| --- | ---------- | ------------------------------------------------------------ | ------------------------------- | ------ |
-| 4.3 | ⬜ À faire | Extraire les fonctions de chargement API                     | `js/commandes-data.js`          | 1h     |
-| 4.4 | ⬜ À faire | Extraire les fonctions de rendu HTML                         | `js/commandes-render.js`        | 1h30   |
-| 4.5 | ⬜ À faire | Extraire la logique des modales                              | `js/commandes-modals.js`        | 1h30   |
-| 4.6 | ⬜ À faire | Extraire les filtres et la recherche                         | `js/commandes-filters.js`       | 45 min |
-| 4.7 | ⬜ À faire | Mettre à jour `commandes.html` pour les nouveaux modules ES6 | `frontend/pages/commandes.html` | 20 min |
-
-**Critère de validation :**
-
-- [ ] `commandes.js` principal < 200 lignes
-- [ ] Toutes les fonctionnalités existantes marchent identiquement
-- [ ] Aucune variable globale flottante
+1. **Une seule chaîne de données** : client → devis → commande → production → facture. Chaque module se branche sur ce qui existe, sans dupliquer.
+2. **Construire le cœur du métier, brancher le reste** :
+   | Construire | Brancher (intégration) |
+   |---|---|
+   | Hygiène/traçabilité, pointage/plannings, recettes, devis, factures, CRM | Transmission des factures électroniques (**plateforme agréée** via API), **paie** (export des heures), **comptabilité** (export) |
+3. **Les enregistrements sensibles ne s'effacent pas** (relevés d'hygiène, pointages, factures) : une correction crée un nouvel enregistrement, l'original est conservé, et un journal d'audit dit qui a fait quoi.
+4. **Deux interfaces** : le **bureau** (navigateur) et la **tablette** (cuisine/atelier : tactile, code PIN, gros boutons).
+5. **Les nouveaux écrans en Vue** ; l'existant migre au fil des modifications.
+6. **Même méthode qu'aujourd'hui** : un test, puis le code, puis un commit, une tâche à la fois ; chaque module est montré aux franchises dès qu'il est utilisable, avant d'être peaufiné.
+7. **Chaque module activable par organisation** (pour la commercialisation, plus tard).
 
 ---
 
-## 🔵 Sprint 5 — Infrastructure & Migration Docker
+## 👨‍💻 Interventions du développeur senior
 
-**Branche :** `infra/docker-prep`
-**Durée estimée :** 2-3 jours
-**⏰ À faire en septembre 2026**
+Revue par un développeur senior freelance aux moments clés + un suivi mensuel léger. Détail, questions préparées et budget indicatif dans [`docs/dev-senior.md`](docs/dev-senior.md).
 
-| #   | Statut     | Tâche                                                            | Fichier(s)             | Effort |
-| --- | ---------- | ---------------------------------------------------------------- | ---------------------- | ------ |
-| 5.1 | ⬜ À faire | Créer `backend/Dockerfile` (Python 3.11, uvicorn, non-root user) | `backend/Dockerfile`   | 45 min |
-| 5.2 | ⬜ À faire | Créer `docker-compose.yml` (backend + nginx)                     | `docker-compose.yml`   | 1h     |
-| 5.3 | ⬜ À faire | Créer `nginx/nginx.conf` (gzip, cache statiques, proxy backend)  | `nginx/nginx.conf`     | 1h     |
-| 5.4 | ⬜ À faire | Créer `.dockerignore`                                            | `.dockerignore`        | 10 min |
-| 5.5 | ⬜ À faire | Créer `backend/.env.example` avec toutes les variables requises  | `backend/.env.example` | 15 min |
-| 5.6 | ⬜ À faire | Tester le stack complet en local avec `docker compose up`        | —                      | 1h     |
-| 5.7 | ⬜ À faire | Documenter la procédure de déploiement Hetzner dans `README.md`  | `README.md`            | 45 min |
-
-**Critère de validation :**
-
-- [ ] `docker compose up` lance le stack complet
-- [ ] App fonctionnelle sur `http://localhost`
+| # | Quand | Sujet |
+|---|---|---|
+| S1 | **novembre 2026**, avant la Phase B (B2) | Architecture : organisations / sites / salariés / catalogue (articles achetés vs produits vendus) |
+| S2 | fin de la Phase B (décembre 2026) | Revue des fondations : migrations, cloisonnement, RLS, socle Vue, tablette |
+| S3 | avant la mise en production de M1/M2 | Traçabilité, inaltérabilité des enregistrements, pointage (conformité) |
+| S4 | **avant la mise en production de M4** (mai–juin 2027) | Facturation : numérotation, avoirs, conservation, intégration de la plateforme agréée, sécurité |
+| S5 | avant le premier client externe | **Audit de sécurité complet + test d'intrusion** (par un spécialiste) |
+| — | **une demi-journée par mois** | Revue de code des dernières semaines et questions accumulées |
 
 ---
 
-## 🧪 Sprint 6 — Tests automatisés
+## ✅ À préparer dès maintenant
 
-**Branche :** `test/coverage-critical-paths`
-**Durée estimée :** 3-4 jours
-**⏰ Peut démarrer en parallèle du Sprint 4**
-
-| #   | Statut     | Tâche                                                            | Fichier(s)                   | Effort |
-| --- | ---------- | ---------------------------------------------------------------- | ---------------------------- | ------ |
-| 6.1 | ⬜ À faire | Installer `pytest` + `httpx` + `pytest-asyncio`                  | `requirements.txt` (dev)     | 15 min |
-| 6.2 | ⬜ À faire | Créer `tests/conftest.py` avec client FastAPI + mock Supabase    | `backend/tests/conftest.py`  | 1h     |
-| 6.3 | ⬜ À faire | Tests auth : login OK, mauvais mdp, token expiré, compte inactif | `tests/test_auth.py`         | 1h     |
-| 6.4 | ⬜ À faire | Tests scoping multi-tenant                                       | `tests/test_multitenancy.py` | 1h30   |
-| 6.5 | ⬜ À faire | Tests validation Pydantic                                        | `tests/test_models.py`       | 1h     |
-| 6.6 | ⬜ À faire | Tests commandes CRUD + archivage                                 | `tests/test_commandes.py`    | 1h30   |
-| 6.7 | ⬜ À faire | CI GitHub Actions avec `pytest`                                  | `.github/workflows/test.yml` | 45 min |
-
-**Critère de validation :**
-
-- [ ] `pytest` passe avec ≥ 80% de couverture sur les routes critiques
-- [ ] CI bloque un merge si les tests échouent
+- [ ] Trouver le développeur senior (profil : Python/FastAPI, PostgreSQL, idéalement SaaS/facturation, posture de mentor) — intervention S1 en novembre.
+- [ ] Commander **une tablette et une douchette Bluetooth** de test, pour valider le scan dans la vraie cuisine avant M1.
+- [ ] Récupérer auprès des franchises leurs **documents actuels** : relevés de températures, plans de nettoyage, fiches de réception, fiches techniques, plannings, feuilles d'heures.
+- [ ] Rendez-vous avec l'**expert-comptable** : plateforme de réception des factures électroniques, choix de la plateforme pour l'émission, logiciel de paie utilisé (format d'export des heures), convention collective applicable ; **remplacement d'EBP** (comptabilité externalisée, format d'export, date de bascule) ; **logiciel d'encaissement certifié** : OMB y est-il soumis s'il enregistre des paiements de particuliers ?
 
 ---
 
-## 🗑️ Code mort à supprimer (validé avec Glenn)
+## 📓 Journal des décisions
 
-| Fichier                                                  | Raison                            | Statut                        |
-| -------------------------------------------------------- | --------------------------------- | ----------------------------- |
-| `backend/generate_password.py`                           | Script one-shot de setup          | ⬜ À déplacer dans `scripts/` |
-| `backend/create_catalog_admin.py`                        | Script one-shot de création admin | ⬜ À déplacer dans `scripts/` |
-| `backend/create_user_paris.py`                           | Script de seed ponctuel           | ⬜ À déplacer dans `scripts/` |
-| `backend/test_connection.py`                             | Script de debug Supabase          | ⬜ À déplacer dans `scripts/` |
-| `frontend/js/config.js` — 3 `console.log`                | Aucune utilité fonctionnelle      | ✅ Fait (Sprint 1)            |
-| `backend/models.py` — import `field_validator` inutilisé | Import orphelin                   | ⬜ Sprint 2                   |
-| `backend/routes/commandes.py` — double import `ZoneInfo` | Redondant                         | ⬜ Sprint 2                   |
+- **2026-10-07** — Vision : développé pour OMB et ses franchises, puis vendu à d'autres traiteurs. Modèle cible organisation → sites.
+- **2026-10-10** — On reste sur Render (Hetzner/Docker abandonnés pour l'instant). Base Supabase déménagée à Francfort.
+- **2026-10-13** — Sprint P (performances) déployé. Ambition élargie à une **solution complète pour traiteurs**. Ordre : **terrain d'abord** (hygiène + traçabilité par scan, tablette de pointage et heures, recettes avec grammages et prix fournisseurs, puis IA sur les factures fournisseurs), **bureau ensuite** (clients/devis/factures avec facture électronique, CRM). Glenn passe à **plein temps**. Règle : M4 (facturation) démarre au plus tard début avril 2027. Interventions d'un développeur senior planifiées.
+- **2026-10-14** — Demandes d'OMB intégrées à M4 : **devis validé (client + commerce) → commande → planning de production**, modifiable jusqu'au jour même avec notification à la cuisine, un site par devis, pas d'acompte. OMB utilise **EBP** : M4 remplacera la gestion commerciale, la comptabilité sera confiée à l'expert-comptable. M4 estimé à 7 à 9 semaines (fin visée début juin 2027).
