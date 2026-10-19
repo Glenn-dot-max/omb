@@ -259,42 +259,6 @@ class CommandeModification(CarnetCommandeUpdate):
 
         return self
 
-# ================ COMMANDE_FORMULES MODELS ================
-
-class CommandeFormuleBase(UUIDModel):
-    commande_id: UUID
-    formule_id: UUID
-    quantite_recommandee: float = Field(default=0, ge=0, le=10000)
-    quantite_finale: float = Field(default=0, ge=0, le=10000)
-    produits_exclus: list[str] = Field(default_factory=list)
-    
-    @field_validator('quantite_recommandee', 'quantite_finale')
-    @classmethod
-    def validate_quantites(cls, v):
-        if v < 0:
-            raise ValueError('La quantité ne peut pas être négative')
-        if v > 10000:
-            raise ValueError('Quantité trop élevée (max 10000)')
-        return round(v, 2)
-
-class CommandeFormuleCreate(CommandeFormuleBase):
-    class Config:
-        extra = 'forbid'
-
-class CommandeFormuleUpdate(BaseModel):
-    quantite_recommandee: Optional[float] = Field(None, ge=0, le=10000)
-    quantite_finale: Optional[float] = Field(None, ge=0, le=10000)
-    
-    class Config:
-        extra = 'forbid'
-
-class CommandeFormuleExclusionsUpdate(BaseModel):
-    produits_exclus: list[str] = Field(default_factory=list)
-    quantite_finale: Optional[float] = Field(None, ge=0, le=10000)
-
-    class Config:
-        extra = 'forbid'
-
 # ================ FORMULE_PRODUITS MODELS ================
 
 class FormuleProduitBase(UUIDModel):

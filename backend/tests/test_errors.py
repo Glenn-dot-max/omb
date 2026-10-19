@@ -13,12 +13,12 @@ DUPLICATE_ERROR = APIError({
     "details": "Key (...) already exists"
 })
 
-def test_duplicate_produit_in_commande_returns_409(client, admin_headers):
+def test_duplicate_key_returns_409(client, admin_headers):
     """La base refuse un doublon (contrainte d'unicité, code 23505) -> 409 (et pas 500)"""
     with patch("routes.formule_produits.supabase") as mock_db:
         # Le contrôle de doublon fait par la route répond "aucun doublon" :
         # c'est la base qui refuse (cas de deux clics simultanés)
-        mock_db.table.return_value.select.return_value.eq.return_value.eq.return_valie.execute.return_value.data = []
+        mock_db.table.return_value.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = []
         mock_db.table.return_value.insert.return_value.execute.side_effect = DUPLICATE_ERROR
         response = client.post("/formule-produits/", headers=admin_headers, json={
             "formule_id": "c9ffddc5-70cf-4cf0-b4c3-960679a94de6",
@@ -28,18 +28,6 @@ def test_duplicate_produit_in_commande_returns_409(client, admin_headers):
 
     assert response.status_code == 409
 
-
-def test_duplicate_formule_in_commande_returns_409(client, admin_headers):
-    """Ajouter une formule déjà présente dans la commande -> 409 (et pas 500)"""
-    with patch("routes.commande_formules.supabase") as mock_db:
-        mock_db.table.return_value.insert.return_value.execute.side_effect = DUPLICATE_ERROR
-        response = client.post("/commande-formules/", headers=admin_headers, json={
-            "commande_id": "f4efe8e8-e861-4f1a-91a7-1d9e2608a8d6",
-            "formule_id": "c9ffddc5-70cf-4cf0-b4c3-960679a94de6",
-            "quantite_finale": 10
-        })
-
-    assert response.status_code == 409
 
 # ==============================================
 # TESTS - Aucun détail technique renvoyé au navigateur (2.3b)
