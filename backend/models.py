@@ -22,6 +22,13 @@ def check_name(v: str) -> str:
         raise ValueError('Les caractères < et > ne sont pas autorisés')
     return v.strip()
 
+def check_nom_client(v: str) -> str:
+    """Règles du nom de client, en cération ET en modification d'une commande"""
+    if not v or not v.strip():
+        raise ValueError('Le nom du client ne peut pas être vide')
+    if re.search(r'[<>"\'\\/]', v):
+        raise ValueError('Caractères non autorisés dans le nom du client')
+    return v.strip()
 
 # ================ PRODUIT MODÈLE ================
 
@@ -127,11 +134,7 @@ class CarnetCommandeBase(BaseModel):
     @field_validator('nom_client')
     @classmethod
     def validate_nom_client(cls, v):
-        if not v or not v.strip():
-            raise ValueError('Le nom du client ne peut pas être vide')
-        if re.search(r'[<>"\'\\/]', v):
-            raise ValueError('Caractères non autorisés dans le nom du client')
-        return v.strip()
+        return check_nom_client(v)
     
     @field_validator('delivery_date')
     @classmethod
@@ -181,6 +184,13 @@ class CarnetCommandeUpdate(BaseModel):
     notes: Optional[constr(max_length=5000)] = None
     avec_service: Optional[bool] = None
     validated: Optional[bool] = None
+
+    @field_validator('nom_client')
+    @classmethod
+    def validate_nom_client(cls, v):
+        if v is None:
+            return v
+        return check_nom_client(v)
     class Config:
         extra = 'forbid'
 

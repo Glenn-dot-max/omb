@@ -47,6 +47,17 @@ def test_modele_modification_vide_acceptee():
     m = CommandeModification(delivery_hour="11:30")
     assert m.formules_modifiees == []
 
+@pytest.mark.parametrize("nom", ["<img src=x onerror=alert(1)>", "Dupont <b>", "   "])
+def test_modele_modification_nom_client_invalide_refuse(nom):
+    """À la modification, le nom du client suit les mêmes règles qu'à la création (3.1)"""
+    with pytest.raises(ValidationError):
+        CommandeModification(nom_client=nom)
+
+def test_modele_modification_nom_client_valide_accepte():
+    """Nom valide accepté, espaces autour retirés"""
+    m = CommandeModification(nom_client ="  Mariage Durand  ")
+    assert m.nom_client == "Mariage Durand"
+
 # --- Fausse base pour la route ---
 
 def fake_db(commande_trouvee=True, formules_de_la_commande=(708, 709), liens_formules=None):

@@ -10,7 +10,7 @@
 - **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13**, P10 (cache busting) le 2026-10-14 (création de commande < 1 s, base à Francfort ; ancien projet Oregon supprimé le 2026-10-19). Python 3.13.
 - **Branche de travail** : aucune en cours.
 - **Décision du 2026-10-19** : le frontend passe à **Vue.js** (Sprint V, juste après l'existant). Règle : **ne plus faire de travail sur l'ancien frontend qui deviendrait inutile avec Vue** (sauf bug bloquant ou faille de sécurité en production).
-- **Prochaines tâches** : **P8c** (supprimer les anciennes routes backend devenues inutiles) → **Sprint 3 revu** (XSS : validation côté backend) → **Sprint 4** (hygiène, sans la 4.5) → **Sprint V** (Vue).
+- **Prochaines tâches** : **Sprint 3 revu** (XSS : validation côté backend, en cours) → **Sprint 4** (hygiène, sans la 4.5) → **Sprint V** (Vue). Sprint P terminé le 2026-10-19 (P8c) ; Hotfix H3 (Errno 11) déployé le 2026-10-19.
 - Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -232,7 +232,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 > **Changement de stratégie** (passage à Vue décidé le 2026-10-19) : on ne corrige plus les ~98 `innerHTML` de l'ancien frontend (Vue échappe automatiquement les données affichées → travail inutile). À la place, on empêche les balises d'**entrer** dans la base : validation Pydantic côté backend, testée avec pytest, qui reste utile après Vue (deuxième barrière).
 > Inventaire du 2026-10-19 : déjà protégés → noms de produits/formules (`check_name`), `nom_client` **à la création**, catégories. Données insérées dans des attributs HTML : uniquement des id/nombres (sûr).
 
-- [ ] **3.1** `nom_client` **à la modification** : `CarnetCommandeUpdate` (`models.py`, ~ligne 174) n'a pas le validateur de `CarnetCommandeBase` → un nom avec balise passe par `PUT /commandes/{id}/complete`. Factoriser une fonction partagée (comme `check_name`) utilisée par les deux.
+- [x] **3.1** `nom_client` **à la modification** : `CarnetCommandeUpdate` (`models.py`, ~ligne 174) n'a pas le validateur de `CarnetCommandeBase` → un nom avec balise passe par `PUT /commandes/{id}/complete`. Factoriser une fonction partagée (comme `check_name`) utilisée par les deux.
 - [ ] **3.2** `notes` de commande (création et modification) : refuser `<` et `>` (garder apostrophes et guillemets, utiles en français).
 - [ ] **3.3** Types (`routes/types.py`, `TypeCreate` / `TypeUpdate` sans aucune validation) : même règle que les catégories.
 - [ ] **3.4** Admin : franchises (`nom`, `city`, `address`, `phone`) et utilisateurs (`full_name`) : refuser `<` et `>`.
