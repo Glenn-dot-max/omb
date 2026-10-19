@@ -24,3 +24,19 @@ def test_erreur_reseau_supabase_renvoie_503_avec_cors(client, auth_headers):
     assert response.status_code == 503
     assert response.headers.get("access-control-allow-origin") == origin
     assert "Errno" not in response.text
+
+
+# ==============================================
+# TESTS - CORS : origines autorisées (Sprint V)
+# ==============================================
+import pytest
+
+@pytest.mark.parametrize("origin", ["http://localhost:5173", "https://omb-frontend.onrender.com"])
+def test_cors_origine_autorisee(client, origin):
+    """Leserveur de développement Vue (5173) et la production peuvent appeler l'API"""
+    response = client.options("/auth/me", headers={"Origin": origin, "Access-Control-Request-Method": "GET"})
+    assert response.headers.get("access-control-allow-origin") == origin
+
+def test_cors_origine_inconnue_refusee(client):
+    response = client.options("/auth/me", headers={"Origin": "https://site-pirate.example", "Access-Control-Request-Method": "GET"})
+    assert "access-control-allow-origin" not in response.headers
