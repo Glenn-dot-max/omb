@@ -1,6 +1,6 @@
 # ⏱️ M2 — Tablette : pointage, heures, plannings, rapports
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **4 à 5 semaines** · Fin visée : début mars 2027
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **4 à 5 semaines** · Fin visée : fin juin 2027 (après M4, ordre revu le 2026-10-19)
 > Prérequis : [Phase B](00-fondations.md) (salariés + code PIN, interface tablette, inaltérabilité, journal d'audit). Revue senior : **S3** avant mise en production.
 
 ## 🎯 Objectif

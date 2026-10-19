@@ -1,6 +1,6 @@
 # 🧾 M4 — Clients, devis, factures et facture électronique
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **7 à 9 semaines** (périmètre élargi le 2026-10-14 : devis → planning, remplacement d'EBP) · Fin visée : **début juin 2027**
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **7 à 9 semaines** (périmètre élargi le 2026-10-14 : devis → planning, remplacement d'EBP) · Fin visée : **fin mai 2027** (démarrage mi-mars, juste après M1)
 > ⚠️ **Démarrage au plus tard début avril 2027** (échéance légale de septembre 2027). Revue senior : **S4** avant mise en production.
 
 ## 🎯 Objectif

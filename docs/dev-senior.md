@@ -22,10 +22,10 @@ Glenn développe en apprenant, avec l'aide d'une IA (explications, code, tests, 
 
 | # | Quand | Durée | Sujet | Livrable attendu | Statut |
 |---|---|---|---|---|---|
-| S1 | **novembre 2026**, avant B2 | 1 jour | Architecture des fondations : organisations / sites / salariés, cloisonnement, nouveau catalogue (articles achetés vs produits vendus), tablette (hors ligne ?) | Modèle de données validé (ou corrigé), liste des risques | ⚪ à planifier |
-| S2 | fin de Phase B (décembre 2026) | ½ à 1 jour | Revue des fondations : migrations, RLS, tests d'isolation, socle Vue, tablette | Liste de corrections avant les modules | ⚪ |
+| S1 | **novembre 2026**, pendant le Sprint V, avant la Phase B | 1 jour | Socle Vue (structure, client API, cohabitation avec l'ancien frontend) + architecture des fondations : organisations / sites / salariés, cloisonnement, nouveau catalogue (articles achetés vs produits vendus), tablette (hors ligne ?) | Modèle de données validé (ou corrigé), liste des risques | ⚪ à planifier |
+| S2 | fin de Phase B (janvier 2027) | ½ à 1 jour | Revue des fondations : migrations, RLS, tests d'isolation, socle Vue, tablette | Liste de corrections avant les modules | ⚪ |
 | S3 | avant mise en production de M1 / M2 | ½ jour | Traçabilité, inaltérabilité des enregistrements, journal d'audit, pointage | Validation ou corrections | ⚪ |
-| S4 | **avant mise en production de M4** (mai–juin 2027) | 1 jour | Facturation : numérotation, avoirs, conservation, intégration de la plateforme agréée, sécurité | Feu vert pour la facture électronique | ⚪ |
+| S4 | **avant mise en production de M4** (mai 2027) | 1 jour | Facturation : numérotation, avoirs, conservation, intégration de la plateforme agréée, sécurité | Feu vert pour la facture électronique | ⚪ |
 | S5 | avant le **premier client externe** | selon devis | **Audit de sécurité complet + test d'intrusion** (spécialiste en sécurité) | Rapport d'audit, corrections | ⚪ |
 | — | **chaque mois** | ½ jour | Revue de code des dernières semaines + questions accumulées | Remarques, bonnes pratiques | ⚪ |
 

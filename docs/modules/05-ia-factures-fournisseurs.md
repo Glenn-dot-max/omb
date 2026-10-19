@@ -1,6 +1,6 @@
 # 🤖 M5 — Reconnaissance des factures fournisseurs par IA
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **3 à 4 semaines** · Fin visée : début juillet 2027
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **3 à 4 semaines** · Fin visée : fin août 2027
 > Prérequis : [M3 — Recettes et prix fournisseurs](03-recettes-prix-fournisseurs.md) (articles, fournisseurs, historique des prix) et le stockage de fichiers ([Phase B](00-fondations.md)).
 
 ## 🎯 Objectif

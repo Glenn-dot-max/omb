@@ -7,10 +7,11 @@
 
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
-- **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13** (création de commande < 1 s, base à Francfort). Python 3.13.
-- **Branche de travail** : aucune en cours (`sprint/p-performance` = `v8`).
-- **Prochaines tâches** : **P10** (cache busting des JS/CSS, incident du déploiement P7) ; **P8c** à partir du ~2026-10-16 (supprimer les anciennes routes backend devenues inutiles, une fois que tous les navigateurs ont la nouvelle version).
-- **Ensuite** : Sprint 3 (XSS frontend), puis Sprint 4 (hygiène). Non prioritaire : [BACKLOG.md](BACKLOG.md).
+- **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13**, P10 (cache busting) le 2026-10-14 (création de commande < 1 s, base à Francfort ; ancien projet Oregon supprimé le 2026-10-19). Python 3.13.
+- **Branche de travail** : aucune en cours.
+- **Décision du 2026-10-19** : le frontend passe à **Vue.js** (Sprint V, juste après l'existant). Règle : **ne plus faire de travail sur l'ancien frontend qui deviendrait inutile avec Vue** (sauf bug bloquant ou faille de sécurité en production).
+- **Prochaines tâches** : **P8c** (supprimer les anciennes routes backend devenues inutiles) → **Sprint 3 revu** (XSS : validation côté backend) → **Sprint 4** (hygiène, sans la 4.5) → **Sprint V** (Vue).
+- Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
 ---
 
@@ -109,7 +110,7 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
   - Test : suite verte.
 - [x] **1.8** Fusion dans `v8` + déploiement Render + tests en prod (2026-10-09). Parcours « mot de passe oublié » reporté → `BACKLOG.md` B1. Bugs trouvés pendant les tests et corrigés : modification d'une formule impossible depuis le 15 juin (champ `detail-formule-type` supprimé du HTML mais encore lu en JS), badge « toutes les franchises » affiché à tort après modification (réponse incomplète du serveur → fusion des objets).
 - [ ] **1.9 Erreur `[Errno 11] Resource temporarily unavailable`** — 2026-10-08 à 16:24:59, 2 GET simultanés (`/commande-formules/commande/…` et `/commande-produits/commande/…`) en 500. Erreur réseau passagère backend → Supabase. Piste : connexion HTTP/2 partagée du client Supabase quand plusieurs requêtes partent en même temps. Enquêter (reproduire, voir si elle revient dans les logs Render, options : désactiver HTTP/2, réessai automatique). Le Hotfix H1 empêche déjà qu'elle fausse les données.
-- [ ] **1.10 Rôle incohérent entre frontend et backend après un changement de rôle** — depuis 1.4, le backend lit rôle et franchise **en base** à chaque requête, mais le frontend (`getUser()` dans `auth.js`) les lit dans le **token**, figé à la connexion. Après un changement de rôle dans l'admin, l'écran se comporte selon l'ancien rôle et le serveur selon le nouveau (vu le 2026-10-11 : badges contradictoires dans la page Produits). Correctif : au chargement de chaque page, récupérer rôle et franchise via `GET /auth/me` et les utiliser à la place du token. Contournement en attendant : se déconnecter / reconnecter après un changement de rôle.
+- [ ] **1.10 Rôle incohérent entre frontend et backend après un changement de rôle** — depuis 1.4, le backend lit rôle et franchise **en base** à chaque requête, mais le frontend (`getUser()` dans `auth.js`) les lit dans le **token**, figé à la connexion. Après un changement de rôle dans l'admin, l'écran se comporte selon l'ancien rôle et le serveur selon le nouveau (vu le 2026-10-11 : badges contradictoires dans la page Produits). Correctif : au chargement de chaque page, récupérer rôle et franchise via `GET /auth/me` et les utiliser à la place du token. Contournement en attendant : se déconnecter / reconnecter après un changement de rôle. → **À faire dans le socle Vue (V1)** : pas de correctif dans l'ancien frontend.
 
 ## 🚑 Hotfix H1 — Commande affichée vide en modification → doublons (incident du 2026-10-08)
 
@@ -214,21 +215,26 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - avant de supprimer : `grep -rn "docker\|nginx\|deploy.sh\|8080" --exclude-dir=venv --exclude-dir=.git .` pour ne rien oublier ;
   - tests : suite verte + application locale et production qui démarrent normalement (rien de tout ça n'est utilisé par Render).
   - supprimer getCommandeFormuleExclusions (api.js) et la route GET /commande-formules/{id}/exclusions, devenues inutiles (P5a-3).
+- [ ] **P8c Supprimer les anciennes routes backend remplacées par P3/P5** (gardées quelques jours après le déploiement du 2026-10-13 pour les navigateurs avec l'ancienne version en cache — délai écoulé). Candidates : `POST /commandes/`, `PUT /commandes/{id}`, `POST /commandes/{id}/duplicate`, `POST /commande-formules/`, `PATCH /commande-formules/{id}`, `GET /commande-formules/{id}/exclusions`, `POST /commande-produits/`. Pour **chacune** : vérifier par `grep` qu'aucun appel ne reste dans `frontend/js/` → supprimer la route, ses modèles devenus inutiles et ses tests → suite pytest verte.
 - [x] **P9 Bug : nombre de franchises faux (limite Supabase de 1000 lignes)** — vu le 2026-10-11 : des produits actifs dans 3 franchises affichent « propre à votre franchise ». Dans `GET /produits/` et `GET /formules/` (partie franchise), la requête qui compte les liens actifs dépassait 1000 lignes et était tronquée sans erreur → `nb_franchises` faux. Correctif : `fetch_all_paginated` (déjà utilisée par la partie admin). ⚠️ Reste à surveiller : `in_("id", produit_ids)` sur la table `produits` sera aussi limité à 1000 lignes si une franchise dépasse 1000 produits.
 - [x] **P10 Cache busting des fichiers JS/CSS** — incident du 2026-10-13 au déploiement de P7 : le CDN de Render (`s-maxage=300`) a servi l'ancien `auth.js` avec les nouveaux autres fichiers → `filterForMyFranchise` introuvable pendant ~5 min. Correctif : `?v=__VERSION__` sur les 60 `<script>`/`<link>` des 11 pages HTML, remplacé au build Render par `$RENDER_GIT_COMMIT`.
       Déployé le 2026-10-14 (commit `22cc3e4`), Build Command Render : `V=${RENDER_GIT_COMMIT:-$(date +%s)} find . -name "*.html" -exec perl -pi -e 's/__VERSION__/$ENV{V}/g' {} +`. ⚠️ Toute nouvelle balise `<script>`/`<link>` locale doit avoir `?v=__VERSION__`.
 
 **Hors scope de ce sprint** (noté pour plus tard) : passer au client Supabase **asynchrone** (plus propre que P2 mais touche toutes les routes — à envisager avec la Phase B) ; pagination de l'onglet « Archivées » (→ `BACKLOG.md` B6).
 
-## Sprint 3 — Frontend : XSS
+## Sprint 3 — XSS : bloquer les balises côté backend (revu le 2026-10-19)
 
-> Nuance retenue : ce n'est pas le nombre d'`innerHTML` qui compte, mais le parcours des **données saisies par un utilisateur** jusqu'à l'affichage. Préférer `textContent` ; `escapeHtml()` pour les gabarits HTML ; attention aux attributs `onclick="…"` et aux URL.
+> **Changement de stratégie** (passage à Vue décidé le 2026-10-19) : on ne corrige plus les ~98 `innerHTML` de l'ancien frontend (Vue échappe automatiquement les données affichées → travail inutile). À la place, on empêche les balises d'**entrer** dans la base : validation Pydantic côté backend, testée avec pytest, qui reste utile après Vue (deuxième barrière).
+> Inventaire du 2026-10-19 : déjà protégés → noms de produits/formules (`check_name`), `nom_client` **à la création**, catégories. Données insérées dans des attributs HTML : uniquement des id/nombres (sûr).
 
-- [ ] **3.1** Créer `frontend/js/utils/escape.js` avec `escapeHtml()` (une seule fonction partagée), chargé dans toutes les pages.
-- [ ] **3.2** Inventaire : lister chaque `innerHTML` qui affiche une donnée utilisateur (noms de produits/formules/clients, notes, emails). Ordre : produits → formules → commandes (`commandes-modals.js`) → admin → planning.
-- [ ] **3.3** Corriger fichier par fichier (`textContent` ou `escapeHtml`), un commit par fichier.
-- [ ] **3.4** Test manuel : créer un produit nommé `<img src=x onerror=alert(1)>` → doit s'afficher comme du texte, sans pop-up, sur toutes les pages.
-- [ ] **3.5** Discussion : token JWT dans `localStorage` vs cookie `httpOnly` (le risque baisse fortement une fois 3.3 et 1.4 faits).
+- [ ] **3.1** `nom_client` **à la modification** : `CarnetCommandeUpdate` (`models.py`, ~ligne 174) n'a pas le validateur de `CarnetCommandeBase` → un nom avec balise passe par `PUT /commandes/{id}/complete`. Factoriser une fonction partagée (comme `check_name`) utilisée par les deux.
+- [ ] **3.2** `notes` de commande (création et modification) : refuser `<` et `>` (garder apostrophes et guillemets, utiles en français).
+- [ ] **3.3** Types (`routes/types.py`, `TypeCreate` / `TypeUpdate` sans aucune validation) : même règle que les catégories.
+- [ ] **3.4** Admin : franchises (`nom`, `city`, `address`, `phone`) et utilisateurs (`full_name`) : refuser `<` et `>`.
+- [ ] **3.5** Données déjà en base : requête en lecture seule pour vérifier qu'aucune valeur existante ne contient `<` ou `>` (nom_client, notes, types, franchises, utilisateurs) ; corriger à la main s'il y en a.
+- [ ] **3.6** Ancien frontend, seulement si nécessaire : les 2 `onclick` d'`admin.js` qui insèrent un nom de catégorie/type (`'${cat.name.replace(...)}'`) — vérifier qu'ils sont neutralisés par 3.3 (catégories et types refusent déjà `'` et `"`) ; sinon passer l'id seul.
+- [-] ~~Corriger chaque `innerHTML` avec `escapeHtml()`~~ → abandonné (Vue).
+- [ ] **3.7** Discussion (à reprendre avec le socle Vue) : token JWT dans `localStorage` vs cookie `httpOnly`.
 
 ## Sprint 4 — Hygiène du dépôt
 
@@ -236,9 +242,28 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **4.2** `requirements-dev.txt` pour `pytest` (garder `httpx` en prod : dépendance de Supabase).
 - [ ] **4.3** Aligner le venv local sur la production : Render tourne en réalité en **Python 3.13** (vu dans les logs du 2026-10-08), alors que `render.yaml` demande 3.11 et que le venv local est en 3.9. Choisir une version, la fixer dans `render.yaml` (vérifier pourquoi elle n'est pas respectée) et recréer le venv local avec la même.
 - [ ] **4.4** Renommer `backend/routes/_init_.py` → `__init__.py`.
-- [ ] **4.5** CSS dupliqué dans `frontend/css/style.css` (`.actions-bar`, `.filters-section`, `.filter-select`, `.loader`, `.toast`) — peut se faire avec le Sprint T.
+- [-] **4.5** ~~CSS dupliqué dans `frontend/css/style.css`~~ → abandonné le 2026-10-19 (l'ancien CSS sera remplacé par Vue).
 - [ ] **4.6** `render.yaml` : déclarer les secrets avec `sync: false`.
 - [ ] **4.7** Réaligner `main` sur `v8` après vérification de Q4.
+
+---
+
+# PHASE V — Passage du frontend à Vue.js (décidé le 2026-10-19)
+
+## Sprint V — Vue + Vite, migration progressive des écrans
+
+> **Pourquoi** : un framework plutôt que du JavaScript écrit à la main (conseil d'un développeur, 2026-10-19) → XSS réglé par conception (`{{ }}` toujours échappé ; **ne jamais utiliser `v-html`** avec une donnée saisie), composants réutilisables, code standard pour un futur développeur. Vite empreinte les noms de fichiers → cache réglé sans la P10.
+> **Méthode** : pas de réécriture d'un coup. Ancien et nouveau frontend **cohabitent** ; chaque page migrée remplace l'ancienne dès qu'elle est prête et testée.
+> **Durée estimée** : 4 à 5 semaines (en apprenant Vue). Revue du socle par le développeur senior (S1, novembre).
+
+- [ ] **V0** Décider la cohabitation ancien/nouveau frontend sur Render (même site statique avec un dossier Vue construit par Vite, ou second site statique) et la structure du projet (`frontend-vue/` ?). À valider avant de coder.
+- [ ] **V1 Socle** (~1 semaine) : Vite + Vue 3, routeur, client API (token, erreurs, `getErrorMessage`), garde de connexion, **`GET /auth/me`** pour le rôle et la franchise (**tâche 1.10**), couleurs en variables CSS (**T.1**), build sur Render.
+- [ ] **V2 Pages simples** : connexion, changement et réinitialisation du mot de passe, mon compte, aide. Première mise en production d'une page Vue. Occasion de réactiver « mot de passe oublié » (`BACKLOG.md` B1).
+- [ ] **V3 Commandes** (la plus grosse page) : liste, création, modification, duplication, archivées. Intégrer **B9** (récapitulatif avant création) et **B10** (bouton « remonter en haut »).
+- [ ] **V4 Planning** (avec l'export Excel).
+- [ ] **V5 Admin** (franchises, utilisateurs, catégories, types).
+- [ ] **V6** Supprimer les fichiers de l'ancien frontend devenus inutiles à chaque page migrée.
+- **Produits et Formules** : **pas migrées dans ce sprint** → elles le seront pendant le **Sprint 8** (nouveau catalogue), pour ne pas les refaire deux fois.
 
 ---
 
@@ -272,6 +297,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **8.1** Table `site_produits` / `site_formules` : `actif`, `prix_personnalise`, etc. Le produit reste unique.
 - [ ] **8.2** Migrer les copies existantes (noms avec suffixe UUID) vers ce modèle.
 - [ ] **8.3** Supprimer la logique de copie et `normalize_name`.
+- [ ] **8.4** Migrer les pages **Produits** et **Formules** en Vue, directement sur le nouveau modèle de catalogue (décision du 2026-10-19 : pas de migration avant, pour ne pas les refaire deux fois).
 
 ## Sprint 9 — Paramétrage par organisation (dé-OMB-iser le code)
 
@@ -279,16 +305,14 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **9.2** Fuseau horaire (`Europe/Paris` ×6), types de prestation et règle « mariage → coefficient » (`commandes-modals.js`) en paramètres.
 - [ ] **9.3** `main.py` (titre API), `config.py` (URL `omb-frontend.onrender.com`) → neutres / configurables.
 
-## Sprint T — Theming (marque blanche) — _peut démarrer à tout moment, indépendant du reste_
+## Sprint T — Theming (marque blanche) — _revu le 2026-10-19 : se fait en Vue_
 
-État actuel : 0 variable CSS, ~385 couleurs en dur dans le CSS, ~92 dans les pages HTML, ~100 dans le JS, « Oh My Brunch » en dur dans 11 fichiers.
+État de l'ancien frontend : 0 variable CSS, ~385 couleurs en dur dans le CSS, ~92 dans les pages HTML, ~100 dans le JS, « Oh My Brunch » en dur dans 11 fichiers. → On ne le retouche pas : le theming se construit directement dans les écrans Vue.
 
-- [ ] **T.1** Recenser les ~10 couleurs principales et leur donner un **rôle** (`--color-primary`, `--color-primary-text`, `--color-brand-dark`, `--color-danger`…). Regrouper les variantes involontaires (`#f5c05c` / `#f5c842` / `#f4a460`…).
-- [ ] **T.2** Créer `frontend/css/theme.css` (valeurs OMB par défaut), le charger en premier dans toutes les pages.
-- [ ] **T.3** Remplacer les couleurs en dur par `var(--…)` : `style.css`, puis `admin.css`, `login.css` (aucun changement visuel attendu).
-- [ ] **T.4** Idem pour les `style="…"` des pages HTML et les couleurs dans le JS.
-- [ ] **T.5** Remplacer nom et logo par `data-brand-name` / `data-brand-logo`.
-- [ ] **T.6** `frontend/js/theme.js` : `applyTheme(theme)` + cache `localStorage` (pas de flash au chargement). Test avec un thème bleu écrit en dur.
+- [ ] **T.1** Recenser les ~10 couleurs principales et leur donner un **rôle** (`--color-primary`, `--color-primary-text`, `--color-brand-dark`, `--color-danger`…). Regrouper les variantes involontaires (`#f5c05c` / `#f5c842` / `#f4a460`…). → **fait dans le socle Vue (V1)**.
+- [-] **T.2 à T.4** ~~Remplacer les couleurs en dur de l'ancien frontend par des variables~~ → abandonné (Vue utilise les variables dès le départ).
+- [ ] **T.5** Nom et logo de l'organisation affichés depuis une configuration (composant Vue), plus en dur.
+- [ ] **T.6** `applyTheme(theme)` dans le socle Vue + cache `localStorage` (pas de flash au chargement). Test avec un thème bleu écrit en dur.
 - [ ] **T.7** (avec Sprint 6) Colonnes thème sur `organisations`, logos dans Supabase Storage, route `GET /organisation/theme`, couleur de texte calculée automatiquement pour le contraste.
 - [ ] **T.8** (commercialisation) Sous-domaine par client pour thémer la page de connexion ; manifest PWA par organisation.
 
@@ -298,8 +322,8 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 
 ## Sprint 10 — Nouvelles fonctionnalités
 
-- [ ] **10.1** Choisir le framework (recommandation : Vue) et l'intégrer pour les **nouveaux** écrans.
-- [ ] **10.2** Migrer les écrans existants au fil des modifications (pas de réécriture d'un coup).
+- [x] **10.1** ~~Choisir le framework~~ → **Vue**, décidé le 2026-10-19 (→ Sprint V).
+- [-] **10.2** ~~Migrer les écrans existants au fil des modifications~~ → remplacé par le Sprint V (migration planifiée) et la tâche 8.4.
 
 ## Sprint 11 — Infra Hetzner (avant la bascule) -> finalement reporté (décision prise en oct. 2026)
 
@@ -331,4 +355,5 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - **2026-10-09** — Hotfix H1 + H2 déployés. Tâches 1.5b, 1.6, 1.7 faites. **Sprint 1 déployé en production** (fast-forward de `v8`). Tests en prod : 2 bugs anciens de la page Formules trouvés et corrigés. Création de `BACKLOG.md` (mot de passe oublié reporté).
 - **2026-10-10** - déploiement du sprint 2 et tests des nouvelles fonctionnalités directement sur Render. Redéploiement de la base supabase, vers Frankfort depuis l'Oregon. Gain de temps sur l'interface presque par 5 sur chaque transaction.
 - **2026-10-13** — **Sprint P déployé** (P2, P3, P4, P5, P8a/b, P9). Incident au déploiement : le CDN de Render a servi un ancien `auth.js` pendant ~5 min (mélange de versions) → ajout de la P10 (cache busting). P6 écartée (gain minime, contraire à 1.4).
-- **2026-10-19** — Ancien projet Supabase (Oregon) supprimé après vérification des logs (seulement des contrôles de santé, aucune requête `/rest/v1/`) et une pause sans impact sur la production ; dumps et sauvegarde d'environnement effacés de `~/omb-migration` (seul `schema.sql` conservé).
+- **2026-10-19** — Ancien projet Supabase (Oregon) supprimé après vérification des logs (seulement des contrôles de santé, aucune requête `/rest/v1/`) et de `SUPABASE_URL` sur Render (pause impossible sur l'offre payante) ; dumps et sauvegarde d'environnement effacés de `~/omb-migration` (seul `schema.sql` conservé).
+- **2026-10-19** — **Décision : passage du frontend à Vue.js** (conseil d'un développeur : un framework plutôt que du JS écrit à la main), juste après l'existant (Sprint V). Règle « pas de travail inutile » : Sprint 3 revu (XSS bloqué côté backend au lieu de corriger les ~98 `innerHTML`), 4.5 et T.2-T.4 abandonnées, 1.10 / B9 / B10 / T.1 déplacées dans le Sprint V, Produits/Formules migrées en Vue avec le nouveau catalogue (8.4). Trou trouvé à l'inventaire : `nom_client` non validé à la modification (3.1).

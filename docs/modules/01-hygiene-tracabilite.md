@@ -1,6 +1,6 @@
 # 🧼 M1 — Pack hygiène et traçabilité (scan des lots)
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **5 à 6 semaines** · Fin visée : fin janvier 2027
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **5 à 6 semaines** · Fin visée : mi-mars 2027
 > Prérequis : [Phase B](00-fondations.md) (tablette, salariés, inaltérabilité, fichiers, articles/fournisseurs). Revue senior : **S3** avant mise en production.
 
 ## 🎯 Objectif

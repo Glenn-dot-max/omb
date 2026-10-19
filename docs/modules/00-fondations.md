@@ -1,6 +1,6 @@
 # 🧱 Phase B — Les fondations
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **5 à 7 semaines** à plein temps · Fin visée : mi-décembre 2026
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **4 à 6 semaines** à plein temps (le socle Vue est fait avant, à l'étape V) · Fin visée : fin janvier 2027
 > Intervention du développeur senior : **S1 avant B2** (novembre 2026), **S2 en fin de phase** — voir [`dev-senior.md`](../dev-senior.md).
 
 ## 🎯 Objectif
@@ -48,16 +48,17 @@ Organisation (OMB, Traiteur X…)
 - [ ] Une **dépendance FastAPI centrale** fournit le contexte (organisation, site, rôle) et des requêtes déjà filtrées : plus aucun filtre écrit à la main dans les routes.
 - [ ] **Règles RLS** par `organisation_id` dans la base (deuxième barrière).
 - [ ] **Test d'isolation générique** : pour chaque route, une organisation ne voit ni ne modifie rien d'une autre.
-- [ ] **Tâche 1.10** : le frontend obtient rôle et site via `GET /auth/me` (et plus via le token).
+- [ ] Adapter `GET /auth/me` (créée dans le socle Vue, tâche 1.10) pour renvoyer aussi l'organisation et le site.
 - [ ] Uniformiser 403/404 pour une ressource d'une autre organisation → toujours 404 (tâche 2.3c).
 
-## B4 — Le socle frontend (~1 à 2 semaines)
+## B4 — L'interface tablette (~1 semaine)
 
-- [ ] **Vue + Vite** pour tous les nouveaux écrans (Vite empreinte les noms de fichiers → plus de problème de cache, cf. P10).
+> Le **socle Vue + Vite** (connexion, client API, composants de base, couleurs en variables) est construit **avant** la Phase B, pendant le Sprint V (décision du 2026-10-19), avec la migration des écrans existants. Ici, on ajoute seulement ce qui est propre à la tablette.
+
+- [x] ~~Vue + Vite pour tous les nouveaux écrans~~ → Sprint V.
 - [ ] **Deux interfaces** :
   - **bureau** : navigateur, souris, écrans riches ;
   - **tablette** : plein écran (application installable), gros boutons tactiles, identification par **code PIN**, quelques écrans simples, retour visuel clair (« enregistré ✅ » / « pas de réseau ⚠️ »).
-- [ ] Socle commun : connexion, client API, composants de base, couleurs en variables (prépare le theming, Sprint T).
 - [ ] **Tolérance aux coupures Wi-Fi sur la tablette** : version 1 = message clair et nouvel essai ; version 2 = file d'attente hors ligne (à décider avec S1).
 
 ## B5 — Les briques communes (~1 semaine)
