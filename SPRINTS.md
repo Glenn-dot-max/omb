@@ -235,7 +235,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [x] **3.1** `nom_client` **à la modification** : `CarnetCommandeUpdate` (`models.py`, ~ligne 174) n'a pas le validateur de `CarnetCommandeBase` → un nom avec balise passe par `PUT /commandes/{id}/complete`. Factoriser une fonction partagée (comme `check_name`) utilisée par les deux.
 - [x] **3.2** `notes` de commande (création et modification) : refuser `<` et `>` (garder apostrophes et guillemets, utiles en français).
 - [x] **3.3** Types (`routes/types.py`, `TypeCreate` / `TypeUpdate` sans aucune validation) : même règle que les catégories.
-- [ ] **3.4** Admin : franchises (`nom`, `city`, `address`, `phone`) et utilisateurs (`full_name`) : refuser `<` et `>`.
+- [x] **3.4** Admin : franchises (`nom`, `city`, `address`, `phone`) et utilisateurs (`full_name`) : refuser `<` et `>`.
 - [x] **3.5** Données déjà en base : requête en lecture seule pour vérifier qu'aucune valeur existante ne contient `<` ou `>` (nom_client, notes, types, franchises, utilisateurs) ; corriger à la main s'il y en a.
 - [x] **3.6** Ancien frontend, seulement si nécessaire : les 2 `onclick` d'`admin.js` qui insèrent un nom de catégorie/type (`'${cat.name.replace(...)}'`) — vérifier qu'ils sont neutralisés par 3.3 (catégories et types refusent déjà `'` et `"`) ; sinon passer l'id seul.
 - [-] ~~Corriger chaque `innerHTML` avec `escapeHtml()`~~ → abandonné (Vue).

@@ -30,13 +30,14 @@ def check_nom_client(v: str) -> str:
         raise ValueError('Caractères non autorisés dans le nom du client')
     return v.strip()
 
-def check_notes(v: Optional[str]) -> Optional[str]:
-    """Notes d'une commande, en création ET en modification : aucune balise HTML"""
+def check_texte_libre(v: Optional[str]) -> Optional[str]:
+    """Texte facultatif (notes, ville, adresse, tééphone), en création ET en modification :
+    aucune balise HTML, espaces autour retirés"""
     if v is None:
         return v
     v = v.strip()
     if re.search(r'[<>]', v):
-        raise ValueError('Les caractères < et > ne sont pas autorisés dans les notes')
+        raise ValueError('Les caractères < et > ne sont pas autorisés')
     return v
 
 # ================ PRODUIT MODÈLE ================
@@ -170,7 +171,7 @@ class CarnetCommandeBase(BaseModel):
     @field_validator('notes')
     @classmethod
     def validate_notes(cls, v):
-        return check_notes(v)
+        return check_texte_libre(v)
 
 class CarnetCommandeCreate(CarnetCommandeBase):
     class Config:
@@ -198,7 +199,7 @@ class CarnetCommandeUpdate(BaseModel):
     @field_validator('notes')
     @classmethod
     def validate_notes(cls, v):
-        return check_notes(v)
+        return check_texte_libre(v)
     
     class Config:
         extra = 'forbid'
@@ -445,6 +446,16 @@ class FranchiseCreate(BaseModel):
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
 
+    @field_validator('nom')
+    @classmethod
+    def validate_nom(cls, v):
+        return check_name(v)
+
+    @field_validator('city', 'address', 'phone')
+    @classmethod
+    def validate_textes(cls, v):
+        return check_texte_libre(v)
+
 class FranchiseUpdate(BaseModel):
     nom: Optional[str] = None
     city: Optional[str] = None
@@ -453,6 +464,18 @@ class FranchiseUpdate(BaseModel):
     email: Optional[EmailStr] = None
     active: Optional[bool] = None
 
+    @field_validator('nom')
+    @classmethod
+    def validate_nom(cls, v):
+        if v is None:
+            return v
+        return check_name(v)
+
+    @field_validator('city', 'address', 'phone')
+    @classmethod
+    def validate_textes(cls, v):
+        return check_texte_libre(v)
+
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str
@@ -460,12 +483,26 @@ class UserCreate(BaseModel):
     password: str
     role: str = "USER"
 
+    @field_validator('full_name')
+    @classmethod
+    def validate_full_name(cls, v):
+        return check_name(v)
+
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     franchise_id: Optional[str] = None
     role: Optional[str] = None
     active: Optional[bool] = None
+
+    @field_validator('full_name')
+    @classmethod
+    def validate_full_name(cls, v):
+        if v is None:
+            return v
+        return check_name(v)
+
+
 
 class PasswordReset(BaseModel):
     new_password: str = Field(min_length=8, description="Minimum 8 caractères")

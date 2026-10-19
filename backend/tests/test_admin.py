@@ -64,3 +64,34 @@ def test_admin_reset_password_unkown_user(client, admin_headers):
         )
 
     assert response.status_code == 404
+
+# ===============================================================
+# TESTS - Pas de balise dans les textes de l'admin (3.4)
+# ===============================================================
+import pytest
+from pydantic import ValidationError
+from models import FranchiseCreate, FranchiseUpdate, UserCreate, UserUpdate
+
+USER_VALIDE = {"email": "jean.dupont@example.fr", "full_name": "Jean Dupont", "password": "motdepasse123"}
+
+@pytest.mark.parametrize("modele, champs", [
+    (FranchiseCreate, {"nom": "<b>OMB Caen</b>"}),
+    (FranchiseCreate, {"nom": "   "}),
+    (FranchiseCreate, {"nom": "OMB Caen", "city": "<img src=x onerror=alert(1)>"}),
+    (FranchiseCreate, {"nom": "OMB Caen", "address": "1 rue <b>"}),
+    (FranchiseCreate, {"nom": "OMB Caen", "phone": "<svg onload=alert(1)>"}),
+    (FranchiseUpdate, {"nom": "<b>x</b>"}),
+    (FranchiseUpdate, {"city": "<b>x</b>"}),
+    (UserCreate, {**USER_VALIDE, "full_name": "<b>Jean</b>"}),
+    (UserUpdate, {"full_name": "<script>x</script>"}),    
+])
+def test_admin_texte_avec_balise_refuse(modele, champs):
+    with pytest.raises(ValidationError):
+        modele(**champs)
+
+def test_admin_textes_valides_acceptes():
+    """Textes normaux acceptés (apostrophes comprises), espaces autour retirés, champs vides laissés vides"""
+    f = FranchiseCreate(nom="  OMB Caen  ", city=" Caen ", address="12 rue de l'Église", phone="02 31 00 00 00")
+    assert (f.nom, f.city, f.address) == ("OMB Caen", "Caen", "12 rue de l'Église")
+    assert UserUpdate(full_name="  Jean Dupont  ").full_name == "Jean Dupont"
+    assert FranchiseUpdate(active=False).nom is None
