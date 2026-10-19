@@ -58,6 +58,16 @@ def test_modele_modification_nom_client_valide_accepte():
     m = CommandeModification(nom_client ="  Mariage Durand  ")
     assert m.nom_client == "Mariage Durand"
 
+def test_modele_modification_notes_avec_balise_refusees():
+    """À la modificaiton, les notes suivent les mêmes règles qu'à la création (3.2)"""
+    with pytest.raises(ValidationError):
+        CommandeModification(notes="<svg onload=alert(1)>")
+
+def test_modele_modification_notes_valides_acceptees():
+    """Notes valides acceptées, espaces autour retirés"""
+    m = CommandeModification(notes="  Livrer avant 10h  ")
+    assert m.notes == "Livrer avant 10h"
+
 # --- Fausse base pour la route ---
 
 def fake_db(commande_trouvee=True, formules_de_la_commande=(708, 709), liens_formules=None):

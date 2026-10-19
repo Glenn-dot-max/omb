@@ -23,12 +23,21 @@ def check_name(v: str) -> str:
     return v.strip()
 
 def check_nom_client(v: str) -> str:
-    """Règles du nom de client, en cération ET en modification d'une commande"""
+    """Règles du nom de client, en création ET en modification d'une commande"""
     if not v or not v.strip():
         raise ValueError('Le nom du client ne peut pas être vide')
     if re.search(r'[<>"\'\\/]', v):
         raise ValueError('Caractères non autorisés dans le nom du client')
     return v.strip()
+
+def check_notes(v: Optional[str]) -> Optional[str]:
+    """Notes d'une commande, en création ET en modification : aucune balise HTML"""
+    if v is None:
+        return v
+    v = v.strip()
+    if re.search(r'[<>]', v):
+        raise ValueError('Les caractères < et > ne sont pas autorisés dans les notes')
+    return v
 
 # ================ PRODUIT MODÈLE ================
 
@@ -161,13 +170,7 @@ class CarnetCommandeBase(BaseModel):
     @field_validator('notes')
     @classmethod
     def validate_notes(cls, v):
-        if v:
-            v = v.strip()
-            if len(v) > 5000:
-                raise ValueError('Les notes ne peuvent pas dépasser 5000 caractères')
-            if re.search(r'<script|javascript:|onerror=|onclick=', v, re.IGNORECASE):
-                raise ValueError('Contenu non autorisé dans les notes')
-        return v
+        return check_notes(v)
 
 class CarnetCommandeCreate(CarnetCommandeBase):
     class Config:
@@ -191,6 +194,12 @@ class CarnetCommandeUpdate(BaseModel):
         if v is None:
             return v
         return check_nom_client(v)
+
+    @field_validator('notes')
+    @classmethod
+    def validate_notes(cls, v):
+        return check_notes(v)
+    
     class Config:
         extra = 'forbid'
 

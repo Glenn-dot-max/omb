@@ -77,3 +77,15 @@ def test_commande_complete_infos_invalides_refusees(champs):
     contenu = {"formules": [{"formule_id": FORMULE_A, "quantite_finale": 10}]}
     with pytest.raises(ValidationError):
         CommandeComplete(**{**commande(**contenu), **champs})
+
+def test_commande_complete_notes_avec_balise_refusees():
+    """Notes : toute balise est refusée (3.2), même celles que l'ancienne liste noire laissait passer"""
+    contenu = {"formules": [{"formule_id": FORMULE_A, "quantite_finale": 10}]}
+    with pytest.raises(ValidationError):
+        CommandeComplete(**{**commande(**contenu), "notes": "<svg onload=alert(1)>"})
+
+def test_commande_complete_notes_texte_accepte():
+    """Notes : texte normal accepté, apostrophes comprises"""
+    contenu = {"formules": [{"formule_id": FORMULE_A, "quantite_finale": 10}]}
+    c = CommandeComplete(**{**commande(**contenu), "notes": "Allergie : pas d'arachide"})
+    assert c.notes == "Allergie : pas d'arachide"
