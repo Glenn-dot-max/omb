@@ -1,17 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user, is_catalog_admin
 from database import get_supabase_client
-from pydantic import BaseModel
+from models import TypeCreate, TypeUpdate
 
 router = APIRouter(prefix="/types", tags=["types"])
 supabase = get_supabase_client()
-
-# Modèle Pydantic
-class TypeCreate(BaseModel):
-    name: str
-
-class TypeUpdate(BaseModel):
-    name: str
 
 @router.get("/")
 def get_types(current_user: dict = Depends(get_current_user)):

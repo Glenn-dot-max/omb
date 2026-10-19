@@ -418,6 +418,25 @@ class CategorieUpdate(BaseModel):
     class Config:
         extra = 'forbid'
 
+class TypeCreate(BaseModel):
+    name: constr(min_length=1, max_length=100, strip_whitespace=True)
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v):
+        # Même règle que les catégories : ni balise, ni guillemet, ni apostrophe
+        # (l'ancien frontend insère le nom dans un onclick, cf. admin.js)
+        if re.search(r'[<>"\']', v):
+            raise ValueError('Caractères non autorisés dans le nom du type')
+        return v
+
+    class Config:
+        extra = 'forbid'
+
+class TypeUpdate(TypeCreate):
+    """Mêmes champs et mêmes règles qu'à la création"""
+
+
 # ================== ADMIN MODELS ==================
 class FranchiseCreate(BaseModel):
     nom: str
