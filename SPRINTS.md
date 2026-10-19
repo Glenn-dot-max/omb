@@ -244,7 +244,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 ## Sprint 4 — Hygiène du dépôt
 
 - [ ] **4.1** Scripts `backend/scripts/` : lire email/mot de passe via `input()`/`getpass` ou variable d'environnement, plus rien en dur.
-- [ ] **4.2** `requirements-dev.txt` pour `pytest` (garder `httpx` en prod : dépendance de Supabase).
+- [x] **4.2** `requirements-dev.txt` pour `pytest` (garder `httpx` en prod : dépendance de Supabase).
 - [ ] **4.3** Aligner le venv local sur la production : Render tourne en réalité en **Python 3.13** (vu dans les logs du 2026-10-08), alors que `render.yaml` demande 3.11 et que le venv local est en 3.9. Choisir une version, la fixer dans `render.yaml` (vérifier pourquoi elle n'est pas respectée) et recréer le venv local avec la même.
 - [ ] **4.4** Renommer `backend/routes/_init_.py` → `__init__.py`.
 - [-] **4.5** ~~CSS dupliqué dans `frontend/css/style.css`~~ → abandonné le 2026-10-19 (l'ancien CSS sera remplacé par Vue).
@@ -256,6 +256,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   4. GitHub : branche par défaut → `main` (Settings → Branches).
   5. Mettre à jour `CLAUDE.md`, `README.md` et les mémos (« `v8` = production » → `main`), puis supprimer `v8` (local + GitHub) une fois un déploiement depuis `main` vérifié.
 - [ ] **4.8** Ménage des branches (conseil d'un développeur, 2026-10-19) : supprimer les branches déjà fusionnées (local + GitHub), archiver par étiquette puis supprimer les branches jamais fusionnées (`v4`, `copilot/*`, `revert-1-copilot/*`). Commandes préparées le 2026-10-19. Ensuite : supprimer chaque branche dès sa fusion.
+- [x] **4.9** Fichiers `.DS_Store` (macOS) retirés du suivi git avec `git rm --cached` : ils étaient dans `.gitignore` mais avaient été commités avant.
 
 ---
 

@@ -191,14 +191,11 @@ USING (true) WITH CHECK (true);
 
 ```bash
 cd backend
-pip install -r requirements.txt
+python3 -m venv venv
+venv/bin/pip install -r requirements-dev.txt
 ```
 
-Ou sur macOS :
-
-```bash
-pip install -r requirements.txt --break-system-packages
-```
+`requirements-dev.txt` installe les dépendances de production (`requirements.txt`) **et** les outils de test (`pytest`). Render, lui, n'installe que `requirements.txt`.
 
 #### **e) Configurer les variables d'environnement**
 
@@ -513,7 +510,7 @@ SUPABASE_KEY=eyJ...
 ```bash
 # Réinstaller les dépendances
 cd backend
-pip install -r requirements.txt --break-system-packages
+venv/bin/pip install -r requirements-dev.txt
 ```
 
 ---
