@@ -295,36 +295,6 @@ class CommandeFormuleExclusionsUpdate(BaseModel):
     class Config:
         extra = 'forbid'
 
-
-# ================ COMMANDE_PRODUITS MODELS ================
-
-class CommandeProduitBase(UUIDModel):
-    commande_id: UUID
-    produit_id: UUID
-    quantite: float = Field(default=0, ge=0, le=10000)
-    unite: Optional[constr(max_length=50)] = None
-    
-    @field_validator('quantite')
-    @classmethod
-    def validate_quantite(cls, v):
-        if v < 0:
-            raise ValueError('La quantité ne peut pas être négative')
-        if v > 10000:
-            raise ValueError('Quantité trop élevée')
-        return round(v, 2)
-
-class CommandeProduitCreate(CommandeProduitBase):
-    class Config:
-        extra = 'forbid'
-
-class CommandeProduitUpdate(BaseModel):
-    quantite: Optional[float] = Field(None, ge=0, le=10000)
-    unite: Optional[constr(max_length=50)] = None
-    
-    class Config:
-        extra = 'forbid'
-
-
 # ================ FORMULE_PRODUITS MODELS ================
 
 class FormuleProduitBase(UUIDModel):

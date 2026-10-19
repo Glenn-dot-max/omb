@@ -14,17 +14,20 @@ DUPLICATE_ERROR = APIError({
 })
 
 def test_duplicate_produit_in_commande_returns_409(client, admin_headers):
-    """Ajouter un produit déjà présent dans la commande -> 409 (et pas 500)"""
-    with patch("routes.commande_produits.supabase") as mock_db:
+    """La base refuse un doublon (contrainte d'unicité, code 23505) -> 409 (et pas 500)"""
+    with patch("routes.formule_produits.supabase") as mock_db:
+        # Le contrôle de doublon fait par la route répond "aucun doublon" :
+        # c'est la base qui refuse (cas de deux clics simultanés)
+        mock_db.table.return_value.select.return_value.eq.return_value.eq.return_valie.execute.return_value.data = []
         mock_db.table.return_value.insert.return_value.execute.side_effect = DUPLICATE_ERROR
-        response = client.post("/commande-produits/", headers=admin_headers, json={
-            "commande_id": "f4efe8e8-e861-4f1a-91a7-1d9e2608a8d6",
+        response = client.post("/formule-produits/", headers=admin_headers, json={
+            "formule_id": "c9ffddc5-70cf-4cf0-b4c3-960679a94de6",
             "produit_id": "f04478e9-3951-43f0-a5cb-6e21c9e36b9d",
-            "quantite": 2,
-            "unite": "unité"
+            "quantite": 2
         })
 
     assert response.status_code == 409
+
 
 def test_duplicate_formule_in_commande_returns_409(client, admin_headers):
     """Ajouter une formule déjà présente dans la commande -> 409 (et pas 500)"""
