@@ -10,7 +10,6 @@
 - **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13** (création de commande < 1 s, base à Francfort). Python 3.13.
 - **Branche de travail** : aucune en cours (`sprint/p-performance` = `v8`).
 - **Prochaines tâches** : **P10** (cache busting des JS/CSS, incident du déploiement P7) ; **P8c** à partir du ~2026-10-16 (supprimer les anciennes routes backend devenues inutiles, une fois que tous les navigateurs ont la nouvelle version).
-- **À faire hors code** : mettre en pause l'ancien projet Supabase (Oregon) vers le 2026-10-15, puis le supprimer ; effacer les dumps de `~/omb-migration` (garder `schema.sql`).
 - **Ensuite** : Sprint 3 (XSS frontend), puis Sprint 4 (hygiène). Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -332,3 +331,4 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - **2026-10-09** — Hotfix H1 + H2 déployés. Tâches 1.5b, 1.6, 1.7 faites. **Sprint 1 déployé en production** (fast-forward de `v8`). Tests en prod : 2 bugs anciens de la page Formules trouvés et corrigés. Création de `BACKLOG.md` (mot de passe oublié reporté).
 - **2026-10-10** - déploiement du sprint 2 et tests des nouvelles fonctionnalités directement sur Render. Redéploiement de la base supabase, vers Frankfort depuis l'Oregon. Gain de temps sur l'interface presque par 5 sur chaque transaction.
 - **2026-10-13** — **Sprint P déployé** (P2, P3, P4, P5, P8a/b, P9). Incident au déploiement : le CDN de Render a servi un ancien `auth.js` pendant ~5 min (mélange de versions) → ajout de la P10 (cache busting). P6 écartée (gain minime, contraire à 1.4).
+- **2026-10-19** — Ancien projet Supabase (Oregon) supprimé après vérification des logs (seulement des contrôles de santé, aucune requête `/rest/v1/`) et une pause sans impact sur la production ; dumps et sauvegarde d'environnement effacés de `~/omb-migration` (seul `schema.sql` conservé).

@@ -36,12 +36,14 @@ Ordre de construction choisi par Glenn (2026-10-13) : **d'abord le terrain (la p
 ## 📍 Où on en est (2026-10-13)
 
 **En production** (Render, branche `v8`, base Supabase à **Francfort**) :
+
 - Gestion des **commandes** (création, modification, duplication, archivage automatique), des **formules** et des **produits** par franchise, **planning de production** avec export Excel, **administration** (franchises, utilisateurs).
 - Sécurité revue (Sprints 0, 1, 2) et **performances** fortement améliorées (Sprint P) : création d'une commande **~20 s → < 1 s**, création d'une formule **~4,5 s → ~1 s**, requêtes traitées en parallèle.
 - **123 tests automatiques** côté backend.
 
 **Ce qui reste à terminer sur l'existant** (détail dans `SPRINTS.md`) :
-- **P10** : *cache busting* des fichiers JS/CSS (incident du déploiement du 2026-10-13).
+
+- **P10** : _cache busting_ des fichiers JS/CSS (incident du déploiement du 2026-10-13).
 - **P8c** : supprimer les anciennes routes backend devenues inutiles (à partir du ~2026-10-16).
 - **Sprint 3** : protection du frontend contre le XSS (indispensable avant de manipuler des données financières et personnelles).
 - **Sprint 4** : hygiène du code (scripts, dépendances, venv local en Python 3.13…).
@@ -53,16 +55,16 @@ Ordre de construction choisi par Glenn (2026-10-13) : **d'abord le terrain (la p
 
 ## 🧱 Les étapes
 
-| # | Étape | Fiche | Durée estimée (plein temps) | Fin visée | Statut |
-|---|---|---|---|---|---|
-| 0 | Finir l'existant (P10, P8c, Sprints 3 et 4) | [`SPRINTS.md`](SPRINTS.md) | 1,5 à 2 semaines | fin octobre 2026 | 🟡 en cours |
-| B | **Fondations** : organisations/sites, salariés, cloisonnement, migrations, CI, Vue, briques communes, nouveau catalogue | [`00-fondations.md`](docs/modules/00-fondations.md) | 5 à 7 semaines | mi-décembre 2026 | ⚪ à faire |
-| M1 | 🏭 **Pack hygiène et traçabilité** (scan des lots) | [`01-hygiene-tracabilite.md`](docs/modules/01-hygiene-tracabilite.md) | 5 à 6 semaines | fin janvier 2027 | ⚪ à faire |
-| M2 | 🏭 **Tablette : pointage, heures, plannings, rapports** | [`02-tablette-pointage-heures.md`](docs/modules/02-tablette-pointage-heures.md) | 4 à 5 semaines | début mars 2027 | ⚪ à faire |
-| M3 | 🏭 **Recettes, grammages et prix fournisseurs** | [`03-recettes-prix-fournisseurs.md`](docs/modules/03-recettes-prix-fournisseurs.md) | 4 à 5 semaines | début avril 2027 | ⚪ à faire |
-| M4 | 🏢 **Clients, devis (→ planning de production), factures + facture électronique, remplacement d'EBP** | [`04-facturation-clients.md`](docs/modules/04-facturation-clients.md) | 7 à 9 semaines | **début juin 2027** | ⚪ à faire |
-| M5 | 🏭 **Reconnaissance des factures fournisseurs par IA** | [`05-ia-factures-fournisseurs.md`](docs/modules/05-ia-factures-fournisseurs.md) | 3 à 4 semaines | début juillet 2027 | ⚪ à faire |
-| M6 | 🏢 **CRM commercial** | [`06-crm-commercial.md`](docs/modules/06-crm-commercial.md) | 3 à 5 semaines | été 2027 | ⚪ à faire |
+| #   | Étape                                                                                                                   | Fiche                                                                               | Durée estimée (plein temps) | Fin visée           | Statut      |
+| --- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------- | ------------------- | ----------- |
+| 0   | Finir l'existant (P10, P8c, Sprints 3 et 4)                                                                             | [`SPRINTS.md`](SPRINTS.md)                                                          | 1,5 à 2 semaines            | fin octobre 2026    | 🟡 en cours |
+| B   | **Fondations** : organisations/sites, salariés, cloisonnement, migrations, CI, Vue, briques communes, nouveau catalogue | [`00-fondations.md`](docs/modules/00-fondations.md)                                 | 5 à 7 semaines              | mi-décembre 2026    | ⚪ à faire  |
+| M1  | 🏭 **Pack hygiène et traçabilité** (scan des lots)                                                                      | [`01-hygiene-tracabilite.md`](docs/modules/01-hygiene-tracabilite.md)               | 5 à 6 semaines              | fin janvier 2027    | ⚪ à faire  |
+| M2  | 🏭 **Tablette : pointage, heures, plannings, rapports**                                                                 | [`02-tablette-pointage-heures.md`](docs/modules/02-tablette-pointage-heures.md)     | 4 à 5 semaines              | début mars 2027     | ⚪ à faire  |
+| M3  | 🏭 **Recettes, grammages et prix fournisseurs**                                                                         | [`03-recettes-prix-fournisseurs.md`](docs/modules/03-recettes-prix-fournisseurs.md) | 4 à 5 semaines              | début avril 2027    | ⚪ à faire  |
+| M4  | 🏢 **Clients, devis (→ planning de production), factures + facture électronique, remplacement d'EBP**                   | [`04-facturation-clients.md`](docs/modules/04-facturation-clients.md)               | 7 à 9 semaines              | **début juin 2027** | ⚪ à faire  |
+| M5  | 🏭 **Reconnaissance des factures fournisseurs par IA**                                                                  | [`05-ia-factures-fournisseurs.md`](docs/modules/05-ia-factures-fournisseurs.md)     | 3 à 4 semaines              | début juillet 2027  | ⚪ à faire  |
+| M6  | 🏢 **CRM commercial**                                                                                                   | [`06-crm-commercial.md`](docs/modules/06-crm-commercial.md)                         | 3 à 5 semaines              | été 2027            | ⚪ à faire  |
 
 **Total : environ 6 à 8 mois** à plein temps (8 h/jour, 5 jours/semaine), **plus ~30 % de marge** pour les imprévus.
 
@@ -97,14 +99,14 @@ La facture électronique devient obligatoire en **émission** pour les PME et mi
 
 Revue par un développeur senior freelance aux moments clés + un suivi mensuel léger. Détail, questions préparées et budget indicatif dans [`docs/dev-senior.md`](docs/dev-senior.md).
 
-| # | Quand | Sujet |
-|---|---|---|
-| S1 | **novembre 2026**, avant la Phase B (B2) | Architecture : organisations / sites / salariés / catalogue (articles achetés vs produits vendus) |
-| S2 | fin de la Phase B (décembre 2026) | Revue des fondations : migrations, cloisonnement, RLS, socle Vue, tablette |
-| S3 | avant la mise en production de M1/M2 | Traçabilité, inaltérabilité des enregistrements, pointage (conformité) |
-| S4 | **avant la mise en production de M4** (mai–juin 2027) | Facturation : numérotation, avoirs, conservation, intégration de la plateforme agréée, sécurité |
-| S5 | avant le premier client externe | **Audit de sécurité complet + test d'intrusion** (par un spécialiste) |
-| — | **une demi-journée par mois** | Revue de code des dernières semaines et questions accumulées |
+| #   | Quand                                                 | Sujet                                                                                             |
+| --- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| S1  | **novembre 2026**, avant la Phase B (B2)              | Architecture : organisations / sites / salariés / catalogue (articles achetés vs produits vendus) |
+| S2  | fin de la Phase B (décembre 2026)                     | Revue des fondations : migrations, cloisonnement, RLS, socle Vue, tablette                        |
+| S3  | avant la mise en production de M1/M2                  | Traçabilité, inaltérabilité des enregistrements, pointage (conformité)                            |
+| S4  | **avant la mise en production de M4** (mai–juin 2027) | Facturation : numérotation, avoirs, conservation, intégration de la plateforme agréée, sécurité   |
+| S5  | avant le premier client externe                       | **Audit de sécurité complet + test d'intrusion** (par un spécialiste)                             |
+| —   | **une demi-journée par mois**                         | Revue de code des dernières semaines et questions accumulées                                      |
 
 ---
 
@@ -123,3 +125,4 @@ Revue par un développeur senior freelance aux moments clés + un suivi mensuel 
 - **2026-10-10** — On reste sur Render (Hetzner/Docker abandonnés pour l'instant). Base Supabase déménagée à Francfort.
 - **2026-10-13** — Sprint P (performances) déployé. Ambition élargie à une **solution complète pour traiteurs**. Ordre : **terrain d'abord** (hygiène + traçabilité par scan, tablette de pointage et heures, recettes avec grammages et prix fournisseurs, puis IA sur les factures fournisseurs), **bureau ensuite** (clients/devis/factures avec facture électronique, CRM). Glenn passe à **plein temps**. Règle : M4 (facturation) démarre au plus tard début avril 2027. Interventions d'un développeur senior planifiées.
 - **2026-10-14** — Demandes d'OMB intégrées à M4 : **devis validé (client + commerce) → commande → planning de production**, modifiable jusqu'au jour même avec notification à la cuisine, un site par devis, pas d'acompte. OMB utilise **EBP** : M4 remplacera la gestion commerciale, la comptabilité sera confiée à l'expert-comptable. M4 estimé à 7 à 9 semaines (fin visée début juin 2027).
+- **2026-10-19** — Ancien projet Supabase (Oregon) supprimé après vérification des logs (seulement des contrôles de santé, aucune requête `/rest/v1/`) et de `SUPABASE_URL` sur Render (pause impossible sur l'offre payante) ; dumps et sauvegarde d'environnement effacés de `~/omb-migration` (seul `schema.sql` conservé). P10 (cache busting) déployée le 2026-10-14.
