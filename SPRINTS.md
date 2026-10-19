@@ -66,7 +66,7 @@ Les 5 règles :
 - **Q2** — Les produits/formules créés par une franchise doivent-ils rester invisibles aux autres franchises ? (Détermine la correction de la tâche 2.2.)
 - ~~**Q2**~~ — Répondu le 2026-10-10 : un admin peut créer pour une, plusieurs ou toutes les franchises ; une franchise ne crée que pour elle, et ses créations restent invisibles pour les autres. Distinguer visuellement l'origine → `BACKLOG.md` B7.
 - **Q3** — Le dépôt `Glenn-dot-max/omb` reste-t-il public ?
-- **Q4** — `main` a 6 commits absents de `v8` (`73386cf`, `01515f8`, `dbb9c3f`, `0224c67`, `fc3e66c`, `4f4b536`). Leur contenu semble déjà dans `v8` sous d'autres commits → à vérifier avant de réaligner `main` (tâche 4.7).
+- **Q4** — `main` a 6 commits absents de `v8` (`73386cf`, `01515f8`, `dbb9c3f`, `0224c67`, `fc3e66c`, `4f4b536`). Leur contenu semble déjà dans `v8` sous d'autres commits → à vérifier avant de remettre `main` comme branche de production (tâche 4.7).
 
 ---
 
@@ -244,7 +244,13 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **4.4** Renommer `backend/routes/_init_.py` → `__init__.py`.
 - [-] **4.5** ~~CSS dupliqué dans `frontend/css/style.css`~~ → abandonné le 2026-10-19 (l'ancien CSS sera remplacé par Vue).
 - [ ] **4.6** `render.yaml` : déclarer les secrets avec `sync: false`.
-- [ ] **4.7** Réaligner `main` sur `v8` après vérification de Q4.
+- [ ] **4.7** **Revenir à `main` comme branche de production** (décidé le 2026-10-19, à faire en dernier dans le Sprint 4, avant le Sprint V ; pas urgent). Convention standard : `main` = production. Étapes :
+  1. Vérifier Q4 (les 6 commits de `main` absents de `v8` sont-ils déjà dans `v8` sous une autre forme ?) ; archiver `main` par une étiquette `archive/main-avant-bascule`.
+  2. Mettre `main` exactement au niveau de `v8` (`git switch main` → `git reset --hard v8` → `git push --force-with-lease origin main`) — seule fois où on réécrit une branche partagée, justifiée par l'étiquette d'archive.
+  3. Render : passer la **branche suivie** de `v8` à `main` sur le backend **et** le frontend (Settings → Build & Deploy → Branch), vérifier l'Auto-Deploy.
+  4. GitHub : branche par défaut → `main` (Settings → Branches).
+  5. Mettre à jour `CLAUDE.md`, `README.md` et les mémos (« `v8` = production » → `main`), puis supprimer `v8` (local + GitHub) une fois un déploiement depuis `main` vérifié.
+- [ ] **4.8** Ménage des branches (conseil d'un développeur, 2026-10-19) : supprimer les branches déjà fusionnées (local + GitHub), archiver par étiquette puis supprimer les branches jamais fusionnées (`v4`, `copilot/*`, `revert-1-copilot/*`). Commandes préparées le 2026-10-19. Ensuite : supprimer chaque branche dès sa fusion.
 
 ---
 
