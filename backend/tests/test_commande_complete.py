@@ -67,3 +67,13 @@ def test_commande_complete_meme_produit_unites_differentes_accepte():
 def test_commande_complete_lignes_invalides_refusees(contenu):
     with pytest.raises(ValidationError):
         CommandeComplete(**commande(**contenu))
+
+@pytest.mark.parametrize("champs", [
+    {"nombre_couverts": 0}, 
+    {"nom_client": "A"}
+])
+def test_commande_complete_infos_invalides_refusees(champs):
+    """Les règles de la commande elle-même s'appliquent aussi (couverts >=1, nom d'au moins 2 caractères)"""
+    contenu = {"formules": [{"formule_id": FORMULE_A, "quantite_finale": 10}]}
+    with pytest.raises(ValidationError):
+        CommandeComplete(**{**commande(**contenu), **champs})

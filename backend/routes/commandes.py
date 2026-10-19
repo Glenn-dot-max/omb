@@ -2,7 +2,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
-from models import CarnetCommandeCreate, CarnetCommandeUpdate, CommandeComplete, CommandeModification
+from models import CommandeComplete, CommandeModification
 from utils import verify_commande_ownership, check_acces_catalogue
 from datetime import datetime, date, time, timedelta
 from uuid import UUID
@@ -147,18 +147,6 @@ def get_commande(commande_id: str, current_user: dict = Depends(get_current_user
 
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande not found")
-    return response.data[0]
-
-@router.post("/")
-def create_commande(commande: CarnetCommandeCreate, current_user: dict = Depends(get_current_user)):
-    """Create a new commande"""
-
-    commande_data = format_delivery_fields(commande.model_dump())
-    commande_data["franchise_id"] = current_user["franchise_id"]
-
-    check_commande_doublon(commande_data)
-
-    response = supabase.table("carnet_commande").insert(commande_data).execute()
     return response.data[0]
 
 @router.post("/complete")
@@ -375,27 +363,6 @@ def update_commande_complete(commande_id: str, modif: CommandeModification, curr
 
     return {"message": "Commande mise à jour", "id": commande_id}
 
-            
-
-@router.put("/{commande_id}")
-def update_commande(commande_id: str, commande: CarnetCommandeUpdate, current_user: dict = Depends(get_current_user)):
-    """Update an existing commande"""
-    update_data = {k: v for k, v in commande.model_dump().items() if v is not None}
-    update_data = format_delivery_fields(update_data)
-
-    query = supabase.table("carnet_commande").update(update_data).eq("id", commande_id)
-
-    if current_user["role"] != "TECH_ADMIN":
-        if not current_user.get("franchise_id"):
-            raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
-        query = query.eq("franchise_id", current_user["franchise_id"])
-
-    response = query.execute()
-
-    if not response.data:
-        raise HTTPException(status_code=404, detail="Commande not found")
-    return response.data[0]
-
 @router.delete("/{commande_id}")
 def delete_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a commande"""
@@ -471,77 +438,3 @@ def validate_commande(commande_id: str, current_user: dict = Depends(get_current
             status_code=500, 
             detail="Erreur lors de la validation de la commande"
         )
-
-@router.post("/{commande_id}/duplicate")
-def duplicate_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
-    """Duplique une commande avec ses formules, exclusions et produits directs"""
-
-    #1. Récupérer la commande source (scoping franchise)
-    query = supabase.table("carnet_commande").select("*").eq("id", commande_id)
-
-    if current_user["role"] != "TECH_ADMIN":
-        if not current_user.get("franchise_id"):
-            raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
-        query = query.eq("franchise_id", current_user["franchise_id"])
-
-    source_response = query.execute()
-    if not source_response.data:
-        raise HTTPException(status_code=404, detail="Commande introuvable")
-    
-    source = source_response.data[0]
-
-    # 2. Créer la nouvelle commande (copie sans id/archived_at/create_at)
-    new_commande_data = {
-        k: v for k, v in source.items()
-        if k not in ("id", "archived", "archived_at", "created_at")
-    }
-    new_commande_data["archived"] = False
-    new_commande_data["archived_at"] = None
-
-    new_commande_response = supabase.table("carnet_commande").insert(new_commande_data).execute()
-    if not new_commande_response.data:
-        raise HTTPException(status_code=500, detail="Erreur lors de la duplication de la commande")
-    
-    new_commande = new_commande_response.data[0]
-    new_commande_id = new_commande["id"]
-
-    # 3. Copier les commande_formules + leurs exclusions
-    cf_response = supabase.table("commande_formules").select("*").eq("commande_id", commande_id).execute()
-
-    for cf in cf_response.data:
-        new_cf_data = {
-            k: v for k, v in cf.items()
-            if k not in ("id", "created_at")
-        }
-        new_cf_data["commande_id"] = new_commande_id
-
-        new_cf_response = supabase.table("commande_formules").insert(new_cf_data).execute()
-        if not new_cf_response.data:
-            continue
-
-        new_cf_id = new_cf_response.data[0]["id"]
-
-        excl_response = supabase.table("commande_formule_exclusions")\
-            .select("produit_id")\
-            .eq("commande_formule_id", cf["id"])\
-            .execute()
-        
-        for excl in excl_response.data:
-            supabase.table("commande_formule_exclusions").insert({
-                "commande_formule_id": new_cf_id,
-                "produit_id": excl["produit_id"]
-            }).execute()
-
-    # 4. Copier les produits directs
-    cp_response = supabase.table("commande_produits").select("*").eq("commande_id", commande_id).execute()
-
-    for cp in cp_response.data:
-        new_cp_data = {
-            k: v for k, v in cp.items()
-            if k not in ("id", "created_at")
-        }
-        new_cp_data["commande_id"] = new_commande_id
-        supabase.table("commande_produits").insert(new_cp_data).execute()
-
-    logger.info(f"[COMMANDES] Duplication: {commande_id} → {new_commande_id}")
-    return new_commande
