@@ -67,6 +67,7 @@ python3 -m http.server 8080
 
 ## ⚠️ Pièges connus
 
+- **Backend** : Python **3.13** (local : `venv` créé avec `python3.13` ; Render : variable `PYTHON_VERSION=3.13.4`) + **FastAPI** + bibliothèque `supabase` (synchrone) → PostgreSQL chez **Supabase, région Francfort** (`eu-central-1`).
 - **Le backend local (`backend/.env`) pointe sur la base de PRODUCTION.** En test local : noms `TEST …`, supprimer après. (Une base de test séparée est prévue en Phase B.)
 - **Cache** : le navigateur et le **CDN de Render** (`s-maxage=300`) peuvent servir d'anciennes pages jusqu'à 5 min après un déploiement. Depuis la P10, chaque `<script>`/`<link>` local porte `?v=__VERSION__` (remplacé au build Render par le commit) → plus de mélange de versions. **Toute nouvelle balise locale dans l'ancien frontend doit avoir `?v=__VERSION__`.** (Vite règle ça tout seul pour les écrans Vue.)
 - **Ancien frontend en fin de vie** (décision du 2026-10-19 : passage à Vue, Sprint V) : n'y faire que des corrections de bugs bloquants ou de sécurité, aucun travail qui deviendrait inutile avec Vue.
