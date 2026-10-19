@@ -467,15 +467,15 @@ DEBUG=False  # Masque stack traces sensibles
 Backend et frontend sont déployés sur Render. Le redéploiement se déclenche automatiquement à chaque push sur la branche surveillée.
 
 ```bash
-# Merger et pousser pour redéployer
-git checkout main
-git merge v8
-git push origin main
+# En fin de sprint : fusionner la branche du sprint dans main, puis pousser pour redéployer
+git switch main
+git merge --ff-only sprint/xxx
+git push
 ```
 
 | Service        | Type        | Runtime     | URL                                |
 | -------------- | ----------- | ----------- | ---------------------------------- |
-| `omb-backend`  | Web Service | Python 3.11 | `https://omb-backend.onrender.com` |
+| `omb-backend`  | Web Service | Python 3.13 | `https://omb-backend.onrender.com` |
 | `omb-frontend` | Static Site | —           | CDN Global                         |
 
 **Variables d'environnement à configurer sur Render :**

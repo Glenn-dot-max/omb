@@ -39,7 +39,7 @@ Glenn **apprend à coder** en construisant ce projet. Claude est son **tuteur**,
 - **Backend** : Python + **FastAPI** + bibliothèque `supabase` (synchrone) → PostgreSQL chez **Supabase, région Francfort** (`eu-central-1`). Auth JWT maison (`backend/auth.py`), validation **Pydantic** (`backend/models.py`), fonctions partagées dans `backend/utils.py` (`get_or_404`, `verify_commande_ownership`, `fetch_all_paginated`, `check_acces_catalogue`, `normalize_name`) ; règle commune des noms `check_name` dans `models.py`.
 - Routes dans `backend/routes/*.py` — **en `def`, pas en `async def`** (la bibliothèque Supabase est bloquante ; voir pièges).
 - **Frontend** : HTML/CSS + JavaScript sans framework, découpé par page (`frontend/js/commandes/`, `formules/`, `produits/`…). Appels API dans `frontend/js/api.js`, aides communes dans `frontend/js/auth.js` (`apiGet/apiPost/apiPut/apiPatch/apiDelete`, `getErrorMessage`, `preventDoubleClick`, `filterForMyFranchise`, `isInMyFranchise`).
-- **Hébergement** : **Render** (backend Python + site statique frontend), déploiement automatique sur push de la branche **`v8`**. Pas de Docker (abandonné).
+- **Hébergement** : **Render** (backend Python + site statique frontend), déploiement automatique sur push de la branche **`main`**. Pas de Docker (abandonné).
 - **Futur** (Phase B) : organisations/sites, migrations versionnées, CI, **Vue + Vite** pour les nouveaux écrans, interface tablette.
 
 ## ⌨️ Commandes utiles
@@ -57,11 +57,11 @@ python3 -m http.server 8080
 
 ## 🌿 Git et déploiement
 
-- **`v8` = production** (Render déploie chaque push sur `v8`). `main` est en retard et non utilisée.
-- Une **branche par sprint**, créée depuis `v8` ; fusion dans `v8` en **fast-forward** en fin de sprint.
-- **Hotfix** pour un bug en production : petite branche depuis `v8` → fusion dans `v8` → puis fusionner `v8` dans la branche de sprint en cours.
+- **`main` = production** (Render déploie chaque push sur `main`, backend et frontend). Depuis le 2026-10-19 ; l'ancienne branche de production `v8` a été supprimée.
+- Une **branche par sprint**, créée depuis `main` ; fusion dans `main` en **fast-forward** en fin de sprint.
+- **Hotfix** pour un bug en production : petite branche depuis `main` → fusion dans `main` → puis fusionner `main` dans la branche de sprint en cours.
 - **Ordre de déploiement quand backend et frontend changent** : backend d'abord (« Deploy live »), puis frontend (désactiver temporairement l'Auto-Deploy du frontend sur Render, Manual Deploy, puis le réactiver).
-- **Supprimer chaque branche une fois fusionnée** (conseil d'un développeur, 2026-10-19 : trop de branches) : en local `git branch -d <branche>` (refuse si elle n'est pas fusionnée), et sur GitHub `git push origin --delete <branche>` si elle y avait été poussée. Une branche jamais fusionnée qu'on veut abandonner : poser d'abord une étiquette `git tag archive/<branche> <branche>` (+ `git push origin --tags`) pour ne rien perdre. Branches permanentes : `v8` (production) et `main` (en attente de la tâche 4.7).
+- **Supprimer chaque branche une fois fusionnée** (conseil d'un développeur, 2026-10-19 : trop de branches) : en local `git branch -d <branche>` (refuse si elle n'est pas fusionnée), et sur GitHub `git push origin --delete <branche>` si elle y avait été poussée. Une branche jamais fusionnée qu'on veut abandonner : poser d'abord une étiquette `git tag archive/<branche> <branche>` (+ `git push origin --tags`) pour ne rien perdre. branche permanente : main (production).
 - **Rétrocompatibilité** : quand une nouvelle route remplace une ancienne, garder l'ancienne quelques jours après le déploiement (navigateurs avec l'ancienne version en cache), puis la supprimer.
 - **Retour arrière** : Render → Events → déploiement précédent → Rollback (backend et frontend ensemble).
 

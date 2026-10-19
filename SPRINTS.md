@@ -10,7 +10,8 @@
 - **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13**, P10 (cache busting) le 2026-10-14 (création de commande < 1 s, base à Francfort ; ancien projet Oregon supprimé le 2026-10-19). Python 3.13.
 - **Branche de travail** : aucune en cours.
 - **Décision du 2026-10-19** : le frontend passe à **Vue.js** (Sprint V, juste après l'existant). Règle : **ne plus faire de travail sur l'ancien frontend qui deviendrait inutile avec Vue** (sauf bug bloquant ou faille de sécurité en production).
-- **Prochaines tâches** : **Sprint 4** (hygiène, sans la 4.5 ; 4.7 retour à `main` et 4.8 ménage des branches en dernier) → **Sprint V** (Vue). Sprint 3 (XSS côté backend) terminé le 2026-10-19 ; Hotfix H3 (Errno 11) déployé le 2026-10-19.
+- **Prochaines tâches** : **Sprint V** (passage à Vue), en commençant par **V0** (décider la cohabitation ancien/nouveau frontend sur Render). Sprint 4 terminé le 2026-10-19 ; la production est désormais la branche **`main`**.
+
 - Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -249,13 +250,14 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **4.4** Renommer `backend/routes/_init_.py` → `__init__.py`.
 - [-] **4.5** ~~CSS dupliqué dans `frontend/css/style.css`~~ → abandonné le 2026-10-19 (l'ancien CSS sera remplacé par Vue).
 - [x] **4.6** `render.yaml` : déclarer les secrets avec `sync: false`.→ backend/render.yaml supprimé : il n'était pas lu (il annonçait 3.11 alors que Render tourne en 3.13), les réglages sont dans le tableau de bord Render
-- [ ] **4.7** **Revenir à `main` comme branche de production** (décidé le 2026-10-19, à faire en dernier dans le Sprint 4, avant le Sprint V ; pas urgent). Convention standard : `main` = production. Étapes :
+- [x] **4.7** **Revenir à `main` comme branche de production** (décidé le 2026-10-19, à faire en dernier dans le Sprint 4, avant le Sprint V ; pas urgent). Convention standard : `main` = production. Étapes :
   1. Vérifier Q4 (les 6 commits de `main` absents de `v8` sont-ils déjà dans `v8` sous une autre forme ?) ; archiver `main` par une étiquette `archive/main-avant-bascule`.
   2. Mettre `main` exactement au niveau de `v8` (`git switch main` → `git reset --hard v8` → `git push --force-with-lease origin main`) — seule fois où on réécrit une branche partagée, justifiée par l'étiquette d'archive.
   3. Render : passer la **branche suivie** de `v8` à `main` sur le backend **et** le frontend (Settings → Build & Deploy → Branch), vérifier l'Auto-Deploy.
   4. GitHub : branche par défaut → `main` (Settings → Branches).
   5. Mettre à jour `CLAUDE.md`, `README.md` et les mémos (« `v8` = production » → `main`), puis supprimer `v8` (local + GitHub) une fois un déploiement depuis `main` vérifié.
-- [ ] **4.8** Ménage des branches (conseil d'un développeur, 2026-10-19) : supprimer les branches déjà fusionnées (local + GitHub), archiver par étiquette puis supprimer les branches jamais fusionnées (`v4`, `copilot/*`, `revert-1-copilot/*`). Commandes préparées le 2026-10-19. Ensuite : supprimer chaque branche dès sa fusion.
+     → fait le 2026-10-19 ; Q4 vérifiée : les 6 commits de main étaient déjà dans v8 sous une forme plus récente (ou s'annulaient) ; archive archive/main-avant-bascule
+- [x] **4.8** Ménage des branches (conseil d'un développeur, 2026-10-19) : supprimer les branches déjà fusionnées (local + GitHub), archiver par étiquette puis supprimer les branches jamais fusionnées (`v4`, `copilot/*`, `revert-1-copilot/*`). Commandes préparées le 2026-10-19. Ensuite : supprimer chaque branche dès sa fusion.
 - [x] **4.9** Fichiers `.DS_Store` (macOS) retirés du suivi git avec `git rm --cached` : ils étaient dans `.gitignore` mais avaient été commités avant.
 
 ---
