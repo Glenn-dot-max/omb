@@ -31,7 +31,7 @@ def check_nom_client(v: str) -> str:
     return v.strip()
 
 def check_texte_libre(v: Optional[str]) -> Optional[str]:
-    """Texte facultatif (notes, ville, adresse, tééphone), en création ET en modification :
+    """Texte facultatif (notes, ville, adresse, téléphone), en création ET en modification :
     aucune balise HTML, espaces autour retirés"""
     if v is None:
         return v
