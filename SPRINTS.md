@@ -10,7 +10,7 @@
 - **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13**, P10 (cache busting) le 2026-10-14 (création de commande < 1 s, base à Francfort ; ancien projet Oregon supprimé le 2026-10-19). Python 3.13.
 - **Branche de travail** : aucune en cours.
 - **Décision du 2026-10-19** : le frontend passe à **Vue.js** (Sprint V, juste après l'existant). Règle : **ne plus faire de travail sur l'ancien frontend qui deviendrait inutile avec Vue** (sauf bug bloquant ou faille de sécurité en production).
-- **Prochaines tâches** : **Sprint V** (passage à Vue), en commençant par **V0** (décider la cohabitation ancien/nouveau frontend sur Render). Sprint 4 terminé le 2026-10-19 ; la production est désormais la branche **`main`**.
+- **Prochaines tâches** : **Sprint V** (passage à Vue, **migration progressive** sous `/app/`, 4 à 5 semaines → début décembre), en commençant par **V0** (Node 24 + projet `frontend-vue/`). Sprint 4 terminé le 2026-10-19 ; la production est désormais la branche **`main`**.
 
 - Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
@@ -264,20 +264,32 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 
 # PHASE V — Passage du frontend à Vue.js (décidé le 2026-10-19)
 
-## Sprint V — Vue + Vite, migration progressive des écrans
+## Sprint V — Vue + Vite, migration progressive des écrans (revu le 2026-10-19 au soir)
 
 > **Pourquoi** : un framework plutôt que du JavaScript écrit à la main (conseil d'un développeur, 2026-10-19) → XSS réglé par conception (`{{ }}` toujours échappé ; **ne jamais utiliser `v-html`** avec une donnée saisie), composants réutilisables, code standard pour un futur développeur. Vite empreinte les noms de fichiers → cache réglé sans la P10.
-> **Méthode** : pas de réécriture d'un coup. Ancien et nouveau frontend **cohabitent** ; chaque page migrée remplace l'ancienne dès qu'elle est prête et testée.
-> **Durée estimée** : 4 à 5 semaines (en apprenant Vue). Revue du socle par le développeur senior (S1, novembre).
+> **Méthode (décision de Glenn, 2026-10-19)** : **migration progressive** — chaque écran migré passe en production dès qu'il est prêt et testé ; l'ancien et le nouveau frontend **cohabitent** le temps de la migration. Glenn tape le code (mode tuteur conservé). (Une migration « d'un coup » a été envisagée puis écartée : trop de risques concentrés le jour de la bascule.)
+> **Cohabitation** : l'application Vue est servie **sur le même site Render**, sous **`/app/`** (ex. `omb-frontend.onrender.com/app/mon-compte`). Même adresse = même `localStorage` → **la connexion (`omb_token`) est partagée** entre ancien et nouveau frontend, sans se reconnecter. Quand un écran est migré : le menu de l'ancien frontend pointe vers la page Vue, l'ancienne page HTML redirige vers elle, puis on supprime ses fichiers.
+> **Choix techniques** : Vue 3 + Vite (`base: '/app/'`), **JavaScript** (pas TypeScript), `<script setup>` (Composition API), Vue Router (historique sous `/app/` + réécriture Render `/app/* → /app/index.html`), Pinia (utilisateur connecté), client API maison basé sur `fetch` (repris de `auth.js`/`api.js`), **CSS actuel réutilisé tel quel** (pas de refonte graphique pendant la migration), Vitest pour les règles métier. **Node 24** (Vite 8 exige Node 22.18+ ; Node 20 échoue à l'installation, vérifié).
+> **Règle de migration** : à fonctionnalité **identique** (pas de nouveautés, sauf B1/B9/B10 notées ci-dessous) ; chaque écran est comparé à l'ancien avec une liste de tests manuels avant sa mise en ligne.
+> **Ordre** : du moins risqué au plus utilisé — pages simples → Admin (utilisé seulement par le TECH_ADMIN) → Planning → Commandes (le plus utilisé, quand Vue sera bien maîtrisé) → connexion. **Produits et Formules : migrées au Sprint 8** avec le nouveau catalogue (pour ne pas les refaire deux fois).
+> **Durée estimée** : **4 à 5 semaines** à plein temps (apprentissage de Vue compris) → fin visée **début décembre 2026**. Revue du socle par le développeur senior (S1, novembre).
+> **Branches** : une branche courte par étape (`sprint/v0-…`, `sprint/v1-…`), fusionnée dans `main` puis supprimée, comme d'habitude.
 
-- [ ] **V0** Décider la cohabitation ancien/nouveau frontend sur Render (même site statique avec un dossier Vue construit par Vite, ou second site statique) et la structure du projet (`frontend-vue/` ?). À valider avant de coder.
-- [ ] **V1 Socle** (~1 semaine) : Vite + Vue 3, routeur, client API (token, erreurs, `getErrorMessage`), garde de connexion, **`GET /auth/me`** pour le rôle et la franchise (**tâche 1.10**), couleurs en variables CSS (**T.1**), build sur Render.
-- [ ] **V2 Pages simples** : connexion, changement et réinitialisation du mot de passe, mon compte, aide. Première mise en production d'une page Vue. Occasion de réactiver « mot de passe oublié » (`BACKLOG.md` B1).
-- [ ] **V3 Commandes** (la plus grosse page) : liste, création, modification, duplication, archivées. Intégrer **B9** (récapitulatif avant création) et **B10** (bouton « remonter en haut »).
-- [ ] **V4 Planning** (avec l'export Excel).
-- [ ] **V5 Admin** (franchises, utilisateurs, catégories, types).
-- [ ] **V6** Supprimer les fichiers de l'ancien frontend devenus inutiles à chaque page migrée.
-- **Produits et Formules** : **pas migrées dans ce sprint** → elles le seront pendant le **Sprint 8** (nouveau catalogue), pour ne pas les refaire deux fois.
+- [ ] **V0 Mise en place** (~1 jour) : Node 24, créer `frontend-vue/` avec `create-vue` (Router, Pinia, Vitest, ESLint, Prettier), premier `npm run dev`, `npm run build`, test d'exemple ; `frontend-vue/` documenté dans `CLAUDE.md` et le `README`.
+- [ ] **V1 Socle** (~1 semaine)
+  - [ ] V1.1 Comprendre Vue sur un exemple : composant, `ref`/`computed`, `v-if`/`v-for`, événements, props.
+  - [ ] V1.2 Reprendre le CSS actuel (`style.css`, `admin.css`, `login.css`) + les couleurs en variables CSS (**T.1**).
+  - [ ] V1.3 Client API : `apiGet/apiPost/apiPut/apiPatch/apiDelete`, token, erreurs lisibles (`getErrorMessage`), déconnexion si 401, URL du backend selon l'environnement (variable Vite à la place de `config.js`).
+  - [ ] V1.4 Utilisateur connecté (Pinia) : token lu dans le même `localStorage` que l'ancien frontend, **rôle et franchise lus via `GET /auth/me`** (**tâche 1.10**) ; la décision sur le stockage du token (ancienne **3.7**) est prise ici mais appliquée quand la connexion sera migrée.
+  - [ ] V1.5 Routeur sous `/app/` : une route par page, **garde** (connecté obligatoire, sinon renvoi vers l'ancienne page de connexion ; admin réservé au TECH_ADMIN), redirection si `must_change_password`.
+  - [ ] V1.6 Mise en page commune : menu de navigation selon le rôle (liens vers les pages Vue **ou** les anciennes pages pas encore migrées), notifications (remplace `toast.js`), anti double-clic.
+  - [ ] V1.7 **Mise en production du socle** : build Render qui construit `frontend-vue/` et publie le résultat sous `/app/` du site actuel, réécriture `/app/*`, variable `NODE_VERSION=24` ; vérifier que l'ancien frontend n'est pas affecté.
+- [ ] **V2 Pages simples** (3 à 4 jours, une mise en ligne par page) : mon compte, aide, changement de mot de passe, réinitialisation du mot de passe (+ réactiver « mot de passe oublié », `BACKLOG.md` **B1**).
+- [ ] **V3 Admin** (3 à 4 jours) : franchises, utilisateurs (création, modification, réinitialisation du mot de passe, activation), catégories, types.
+- [ ] **V4 Planning** (~1 semaine) : filtres (dates, type de prestation, catégorie, franchise), calculs, **export Excel** (ExcelJS), notes.
+- [ ] **V5 Commandes** (1,5 à 2 semaines) : liste (actives / archivées, filtres, franchise pour l'admin), archivage auto à l'ouverture, création en un appel, modification en un appel, duplication (formulaire pré-rempli), suppression, validation, exclusions de produits dans les formules, coefficient « mariage », badges ; + **B9** (récapitulatif avant création) et **B10** (bouton « remonter en haut ») ; autoriser les apostrophes dans le nom du client (backend + écran).
+- [ ] **V6 Connexion** (1 à 2 jours) : page de connexion en Vue, page d'accueil (`index.html`) qui redirige vers l'application Vue ; application de la décision sur le stockage du token.
+- [ ] **V7 Ménage** : après chaque migration, suppression des fichiers devenus inutiles de l'ancien frontend ; à la fin du sprint, il ne reste dans `frontend/` que Produits et Formules (migrées au Sprint 8, tâche **8.4**).
 
 ---
 
@@ -311,7 +323,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **8.1** Table `site_produits` / `site_formules` : `actif`, `prix_personnalise`, etc. Le produit reste unique.
 - [ ] **8.2** Migrer les copies existantes (noms avec suffixe UUID) vers ce modèle.
 - [ ] **8.3** Supprimer la logique de copie et `normalize_name`.
-- [ ] **8.4** Migrer les pages **Produits** et **Formules** en Vue, directement sur le nouveau modèle de catalogue (décision du 2026-10-19 : pas de migration avant, pour ne pas les refaire deux fois).
+- [ ] **8.4** Migrer les pages **Produits** et **Formules** en Vue, directement sur le nouveau modèle de catalogue (décision du 2026-10-19 : pas de migration avant, pour ne pas les refaire deux fois) ; puis supprimer l'ancien `frontend/`.
 
 ## Sprint 9 — Paramétrage par organisation (dé-OMB-iser le code)
 
