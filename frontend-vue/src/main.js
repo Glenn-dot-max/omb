@@ -1,4 +1,5 @@
-import './assets/main.css'
+// CSS de l'ancien frontend, réutilisé tel quel pendant la migration (même apparence)
+import '../../frontend/css/style.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
