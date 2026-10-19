@@ -14,6 +14,7 @@ from limiter import limiter
 from routes import produits, commandes, formules, formule_produits, commande_formules, commande_produits, categories, types, unite, planning, auth, admin
 from datetime import date, datetime
 from postgrest.exceptions import APIError
+import httpx
 
 
 # ============================================
@@ -78,6 +79,17 @@ app.add_middleware(
 # ============================================
 # GESTIONNAIRES D'ERREURS
 # ============================================
+
+@app.exception_handler(httpx.HTTPError)
+async def network_error_handler(request: Request, exc: httpx.HTTPError):
+    """Coupure réseau entre le backend et Supabase (ex. [Errno 11]) : réponse 503 propre.
+    Gérée ici (et pas en erreur 500 brute) pour que la réponse garde les en-têtes CORS :
+    le navigateur affiche alors un vrai message au lieu d'une fausse erreur CORS."""
+    logger.error(f"Erreur réseau vers Supabase sur {request.method} {request.url.path} : {exc!r}")
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Service momentanément indisponible, veuillez réessayer."},
+    )
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
