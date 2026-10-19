@@ -10,7 +10,7 @@
 - **Production** : Render déploie `v8` — **Sprint P déployé le 2026-10-13**, P10 (cache busting) le 2026-10-14 (création de commande < 1 s, base à Francfort ; ancien projet Oregon supprimé le 2026-10-19). Python 3.13.
 - **Branche de travail** : aucune en cours.
 - **Décision du 2026-10-19** : le frontend passe à **Vue.js** (Sprint V, juste après l'existant). Règle : **ne plus faire de travail sur l'ancien frontend qui deviendrait inutile avec Vue** (sauf bug bloquant ou faille de sécurité en production).
-- **Prochaines tâches** : **Sprint 3 revu** (XSS : validation côté backend, en cours) → **Sprint 4** (hygiène, sans la 4.5) → **Sprint V** (Vue). Sprint P terminé le 2026-10-19 (P8c) ; Hotfix H3 (Errno 11) déployé le 2026-10-19.
+- **Prochaines tâches** : **Sprint 4** (hygiène, sans la 4.5 ; 4.7 retour à `main` et 4.8 ménage des branches en dernier) → **Sprint V** (Vue). Sprint 3 (XSS côté backend) terminé le 2026-10-19 ; Hotfix H3 (Errno 11) déployé le 2026-10-19.
 - Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
 ---
@@ -239,7 +239,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [x] **3.5** Données déjà en base : requête en lecture seule pour vérifier qu'aucune valeur existante ne contient `<` ou `>` (nom_client, notes, types, franchises, utilisateurs) ; corriger à la main s'il y en a.
 - [x] **3.6** Ancien frontend, seulement si nécessaire : les 2 `onclick` d'`admin.js` qui insèrent un nom de catégorie/type (`'${cat.name.replace(...)}'`) — vérifier qu'ils sont neutralisés par 3.3 (catégories et types refusent déjà `'` et `"`) ; sinon passer l'id seul.
 - [-] ~~Corriger chaque `innerHTML` avec `escapeHtml()`~~ → abandonné (Vue).
-- [ ] **3.7** Discussion (à reprendre avec le socle Vue) : token JWT dans `localStorage` vs cookie `httpOnly`.
+- [-] **3.7** Discussion (à reprendre avec le socle Vue) : token JWT dans `localStorage` vs cookie `httpOnly`.
 
 ## Sprint 4 — Hygiène du dépôt
 
@@ -368,3 +368,4 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - **2026-10-13** — **Sprint P déployé** (P2, P3, P4, P5, P8a/b, P9). Incident au déploiement : le CDN de Render a servi un ancien `auth.js` pendant ~5 min (mélange de versions) → ajout de la P10 (cache busting). P6 écartée (gain minime, contraire à 1.4).
 - **2026-10-19** — Ancien projet Supabase (Oregon) supprimé après vérification des logs (seulement des contrôles de santé, aucune requête `/rest/v1/`) et de `SUPABASE_URL` sur Render (pause impossible sur l'offre payante) ; dumps et sauvegarde d'environnement effacés de `~/omb-migration` (seul `schema.sql` conservé).
 - **2026-10-19** — **Décision : passage du frontend à Vue.js** (conseil d'un développeur : un framework plutôt que du JS écrit à la main), juste après l'existant (Sprint V). Règle « pas de travail inutile » : Sprint 3 revu (XSS bloqué côté backend au lieu de corriger les ~98 `innerHTML`), 4.5 et T.2-T.4 abandonnées, 1.10 / B9 / B10 / T.1 déplacées dans le Sprint V, Produits/Formules migrées en Vue avec le nouveau catalogue (8.4). Trou trouvé à l'inventaire : `nom_client` non validé à la modification (3.1).
+- **2026-10-19** — **Sprint 3 terminé** (XSS bloqué côté backend) : `nom_client` validé aussi à la modification (vrai trou), notes sans balise (l'ancienne liste noire laissait passer `<svg onload=…>`), types validés, franchises et noms d'utilisateurs sans balise ; règles partagées `check_nom_client`, `check_texte_libre` ; aucune donnée existante concernée. 111 → 137 tests.
