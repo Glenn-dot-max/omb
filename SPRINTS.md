@@ -247,7 +247,7 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [x] **4.1** Scripts `backend/scripts/` : lire email/mot de passe via `input()`/`getpass` ou variable d'environnement, plus rien en dur. -> dossier backend/scripts supprimé (2026-10-19): les 4 scripts étaient obsolètes, la page Admin crée les comptes. Les mots de passe restent dans l'historique git, d'où le changement du mot de passe admin."
 - [x] **4.2** `requirements-dev.txt` pour `pytest` (garder `httpx` en prod : dépendance de Supabase).
 - [x] **4.3** Aligner le venv local sur la production : Render tourne en réalité en **Python 3.13** (vu dans les logs du 2026-10-08), alors que `render.yaml` demande 3.11 et que le venv local est en 3.9. Choisir une version, la fixer dans `render.yaml` (vérifier pourquoi elle n'est pas respectée) et recréer le venv local avec la même. → Python 3.13 en local et PYTHON_VERSION=3.13.4 sur Render (2026-10-19)
-- [ ] **4.4** Renommer `backend/routes/_init_.py` → `__init__.py`.
+- [x] **4.4** Renommer `backend/routes/_init_.py` → `__init__.py`.
 - [-] **4.5** ~~CSS dupliqué dans `frontend/css/style.css`~~ → abandonné le 2026-10-19 (l'ancien CSS sera remplacé par Vue).
 - [x] **4.6** `render.yaml` : déclarer les secrets avec `sync: false`.→ backend/render.yaml supprimé : il n'était pas lu (il annonçait 3.11 alors que Render tourne en 3.13), les réglages sont dans le tableau de bord Render
 - [x] **4.7** **Revenir à `main` comme branche de production** (décidé le 2026-10-19, à faire en dernier dans le Sprint 4, avant le Sprint V ; pas urgent). Convention standard : `main` = production. Étapes :
