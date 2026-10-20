@@ -80,7 +80,7 @@ def get_me(current_user: dict = Depends(get_current_user)):
     
     # Récupérer les détails complets depuis la DB
     response = supabase.table("users")\
-        .select("*, franchises(nom)")\
+        .select("id, email, franchise_id, role, must_change_password, franchises(nom)")\
         .eq("id", current_user["user_id"])\
         .execute()
     
@@ -98,7 +98,8 @@ def get_me(current_user: dict = Depends(get_current_user)):
         "email": user["email"],
         "franchise_id": user["franchise_id"],
         "franchise_nom": franchise_nom,
-        "role": user.get("role", "USER")
+        "role": user.get("role", "USER"),
+        "must_change_password": bool(user.get("must_change_password")),
     }
 
 # ===============================================

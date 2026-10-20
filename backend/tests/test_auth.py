@@ -240,3 +240,29 @@ def test_change_password_returns_new_token(client, auth_headers):
     assert "access_token" in response.json()
 
 
+# ===============================================================
+# TESTS - route /auth/me (Sprint V : utilisée par el frontend Vue)
+# ===============================================================
+
+@pytest.mark.parametrize("doit_changer", [True, False])
+def test_me_renvoie_les_infos_et_must_change_password(client, auth_headers, doit_changer):
+    """auth/me renvoie rôle, franchise et must_change_password (lu en base), jamais le hash"""
+    fake = MagicMock()
+    fake.data = [{
+        "id": "user-123", "email": "user@test.com", "franchise_id": "franchise-abc", "role": "USER",
+        "franchises": {"nom": "Paris"}, "must_change_password": doit_changer,
+    }]
+    with patch("routes.auth.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = fake
+        response = client.get("/auth/me", headers=auth_headers)
+        colonnes = mock_db.table.return_value.select.call_args[0][0]
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["must_change_password"] is doit_changer
+    assert data["franchise_nom"] == "Paris"
+    assert data["role"] == "USER"
+    # Liste Blanche de colonnes : jamais "*" (qui ramènerait aussi password_hash)
+    assert "*" not in colonnes
+    assert "password_hash" not in colonnes
+    
