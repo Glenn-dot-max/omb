@@ -281,8 +281,8 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 - [ ] **V1 Socle** (~1 semaine)
   - [ ] V1.1 Comprendre Vue sur un exemple : composant, `ref`/`computed`, `v-if`/`v-for`, événements, props.
   - [x] V1.2a Reprendre le CSS actuel tel quel (import de `../frontend/css/style.css`, partagé avec l'ancien frontend).
-  - [ ] V1.2b **Thème** (~1 jour) : recenser les ~385 couleurs de `style.css`/`admin.css`/`login.css`, les regrouper en ~10 rôles (**T.1**), créer `frontend/css/theme.css` (valeurs OMB) chargé en premier par les deux frontends, remplacer les couleurs en dur par `var(--…)` (**T.2/T.3**, script de remplacement testé sur une copie, aucun changement visuel attendu).
-  - [ ] V1.2c **Marque** : `src/config/marque.js` (nom, emoji/logo, couleur du navigateur) utilisé par la barre de navigation et le titre des pages (**T.5**) ; plus tard chargé depuis le backend par organisation (**T.7**).
+  - [x] V1.2b **Thème** (~1 jour) : recenser les ~385 couleurs de `style.css`/`admin.css`/`login.css`, les regrouper en ~10 rôles (**T.1**), créer `frontend/css/theme.css` (valeurs OMB) chargé en premier par les deux frontends, remplacer les couleurs en dur par `var(--…)` (**T.2/T.3**, script de remplacement testé sur une copie, aucun changement visuel attendu).
+  - [x] V1.2c **Marque** : `src/config/marque.js` (nom, emoji/logo, couleur du navigateur) utilisé par la barre de navigation et le titre des pages (**T.5**) ; plus tard chargé depuis le backend par organisation (**T.7**).
   - [ ] V1.3 Client API : `apiGet/apiPost/apiPut/apiPatch/apiDelete`, token, erreurs lisibles (`getErrorMessage`), déconnexion si 401, URL du backend selon l'environnement (variable Vite à la place de `config.js`).
   - [ ] V1.4 Utilisateur connecté (Pinia) : token lu dans le même `localStorage` que l'ancien frontend, **rôle et franchise lus via `GET /auth/me`** (**tâche 1.10**) ; la décision sur le stockage du token (ancienne **3.7**) est prise ici mais appliquée quand la connexion sera migrée.
   - [ ] V1.5 Routeur sous `/app/` : une route par page, **garde** (connecté obligatoire, sinon renvoi vers l'ancienne page de connexion ; admin réservé au TECH_ADMIN), redirection si `must_change_password`.
@@ -341,10 +341,10 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
 
 État de l'ancien frontend : 0 variable CSS, ~385 couleurs en dur dans le CSS, ~92 dans les pages HTML, ~100 dans le JS, « Oh My Brunch » en dur dans 11 fichiers. → Le **CSS est partagé** entre l'ancien frontend et Vue : le passer en variables sert aux deux (contrairement aux couleurs dans le HTML/JS de l'ancien frontend, qu'on ne retouche pas).
 
-- [ ] **T.1** Recenser les ~10 couleurs principales et leur donner un **rôle** (`--color-primary`, `--color-primary-text`, `--color-brand-dark`, `--color-danger`…). Regrouper les variantes involontaires (`#f5c05c` / `#f5c842` / `#f4a460`…). → **V1.2b**.
-- [ ] **T.2/T.3** `frontend/css/theme.css` chargé en premier + couleurs de `style.css`, `admin.css`, `login.css` remplacées par `var(--…)` → **V1.2b** (aucun changement visuel attendu).
+- [x] **T.1** Recenser les ~10 couleurs principales et leur donner un **rôle** (`--color-primary`, `--color-primary-text`, `--color-brand-dark`, `--color-danger`…). Regrouper les variantes involontaires (`#f5c05c` / `#f5c842` / `#f4a460`…). → **V1.2b**.
+- [x] **T.2/T.3** `frontend/css/theme.css` chargé en premier + couleurs de `style.css`, `admin.css`, `login.css` remplacées par `var(--…)` → **V1.2b** (aucun changement visuel attendu).
 - [-] **T.4** ~~Couleurs dans le HTML et le JS de l'ancien frontend~~ → abandonné (pages réécrites en Vue).
-- [ ] **T.5** Nom et logo de l'organisation affichés depuis une configuration (`src/config/marque.js`), plus en dur → **V1.2c**.
+- [x] **T.5** Nom et logo de l'organisation affichés depuis une configuration (`src/config/marque.js`), plus en dur → **V1.2c**.
 - [ ] **T.6** `applyTheme(theme)` dans le socle Vue + cache `localStorage` (pas de flash au chargement). Test avec un thème bleu écrit en dur.
 - [ ] **T.7** (avec Sprint 6) Colonnes thème sur `organisations`, logos dans Supabase Storage, route `GET /organisation/theme`, couleur de texte calculée automatiquement pour le contraste.
 - [ ] **T.8** (commercialisation) Sous-domaine par client pour thémer la page de connexion ; manifest PWA par organisation.
