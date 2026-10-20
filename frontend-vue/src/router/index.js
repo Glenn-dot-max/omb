@@ -11,6 +11,12 @@ const router = createRouter({
       name: 'accueil',
       component: AccueilView,
     },
+    {
+      path: '/mon-compte',
+      name: 'mon-compte',
+      // Chargée seulement quand on ouvre la page (fichier séparé, application plus légère au démarrage)
+      component: () => import('../views/MonCompteView.vue'),
+    },
   ],
 })
 

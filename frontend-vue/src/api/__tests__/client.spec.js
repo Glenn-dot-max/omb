@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { apiGet, apiPost, apiDelete, getErrorMessage, ApiError } from '../client'
+import {
+  apiGet,
+  apiPost,
+  apiDelete,
+  getErrorMessage,
+  ApiError,
+  saveToken,
+  getToken,
+} from '../client'
 import { allerALaConnexion } from '../navigation'
 
 // On remplace la redirection (impossible dans les tests) par une fausse fonction qu'on peut surveiller
@@ -108,5 +116,13 @@ describe('client API', () => {
     fetch.mockResolvedValue(reponse(200))
 
     await expect(apiDelete('/types/1')).resolves.toBeNull()
+  })
+})
+
+describe('token', () => {
+  it('saveToken enregistre le token lu ensuite par getToken (même clé que l’ancien frontend)', () => {
+    saveToken('nouveau-jeton')
+    expect(getToken()).toBe('nouveau-jeton')
+    expect(localStorage.getItem('omb_token')).toBe('nouveau-jeton')
   })
 })

@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 import { marque } from '@/config/marque'
 
 const store = useUtilisateurStore()
+const router = useRouter()
 const menuOuvert = ref(false)
 
 // Pages pas encore migrées : liens vers l'ancien frontend.
@@ -15,8 +17,10 @@ const liens = [
   { texte: 'Planning', href: '/pages/planning.html' },
 ]
 
-function allerVers(adresse) {
-  window.location.href = adresse
+// Page déjà migrée en Vue : on change de page sans recharger
+function allerAMonCompte() {
+  menuOuvert.value = false
+  router.push({ name: 'mon-compte' })
 }
 
 // Fermer le menu utilisateur quand on clique ailleurs dans la page
@@ -56,7 +60,7 @@ onBeforeUnmount(() => document.removeEventListener('click', fermerSiClicDehors))
       <div class="user-franchise">{{ store.utilisateur.franchise_nom || 'Aucune franchise' }}</div>
     </div>
     <div class="menu-divider"></div>
-    <button class="menu-btn" @click="allerVers('/pages/mon-compte.html')">👤 Mon compte</button>
+    <button class="menu-btn" @click="allerAMonCompte">👤 Mon compte</button>
     <button class="logout-btn" @click="store.deconnecter()">🚪 Déconnexion</button>
   </div>
 </template>

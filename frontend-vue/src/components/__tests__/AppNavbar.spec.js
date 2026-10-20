@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { createRouter, createMemoryHistory } from 'vue-router'
 import AppNavbar from '../AppNavbar.vue'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 
@@ -11,12 +12,13 @@ vi.mock('@/api/navigation', () => ({ allerALaConnexion: vi.fn() }))
 vi.mock('@/config/marque', () => ({ marque: { nom: 'Traiteur Test', emoji: '🍽️' } }))
 
 let pinia
+let router
 
 function monter(utilisateur) {
   const store = useUtilisateurStore()
   store.utilisateur = utilisateur
   return {
-    wrapper: mount(AppNavbar, { global: { plugins: [pinia] }, attachTo: document.body }),
+    wrapper: mount(AppNavbar, { global: { plugins: [pinia, router] }, attachTo: document.body }),
     store,
   }
 }
@@ -24,6 +26,14 @@ function monter(utilisateur) {
 beforeEach(() => {
   pinia = createPinia()
   setActivePinia(pinia)
+  const page = { template: '<div />' }
+  router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'accueil', component: page },
+      { path: '/mon-compte', name: 'mon-compte', component: page },
+    ],
+  })
 })
 
 describe('AppNavbar', () => {
@@ -56,6 +66,14 @@ describe('AppNavbar', () => {
     const spy = vi.spyOn(store, 'deconnecter').mockImplementation(() => {})
     await wrapper.find('.logout-btn').trigger('click')
     expect(spy).toHaveBeenCalledOnce()
+    wrapper.unmount()
+  })
+  it('le menu « Mon compte » ouvre la page Vue Mon compte', async () => {
+    const { wrapper } = monter({ email: 'paris@omb.fr', role: 'USER', franchise_nom: 'Paris' })
+    await wrapper.find('.menu-btn').trigger('click')
+    await router.isReady()
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('mon-compte')
     wrapper.unmount()
   })
 })

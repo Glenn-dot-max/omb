@@ -11,6 +11,11 @@ const API_URL = import.meta.env.VITE_API_URL
 const TOKEN_KEY = 'omb_token'
 const USER_KEY = 'omb_user'
 
+// Après un changement de mot de passe, le serveur renvoie un nouveau token (l'ancien est invalidé)
+export function saveToken(token) {
+  localStorage.setItem(TOKEN_KEY, token)
+}
+
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY)
 }
