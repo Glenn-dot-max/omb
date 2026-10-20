@@ -36,6 +36,7 @@ Thumbs.db
 # Frontend
 node_modules/
 dist/
+frontend/app/
 build/
 
 # Dossiers temporaires

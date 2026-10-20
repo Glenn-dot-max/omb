@@ -55,6 +55,12 @@ venv/bin/python -m uvicorn main:app --reload --port 8000
 python3 -m http.server 8080
 ```
 
+# Frontend Vue (depuis frontend-vue/) — Node 24
+
+npm run dev # → http://localhost:5173/app/ (avec backend 8000 + ancien frontend 8080)
+npx vitest run # tests
+npm run build # construction
+
 ## 🌿 Git et déploiement
 
 - **`main` = production** (Render déploie chaque push sur `main`, backend et frontend). Depuis le 2026-10-19 ; l'ancienne branche de production `v8` a été supprimée.
