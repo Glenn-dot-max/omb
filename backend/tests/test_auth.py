@@ -237,8 +237,11 @@ def test_change_password_returns_new_token(client, auth_headers):
         })
 
     assert response.status_code == 200
-    assert "access_token" in response.json()
-
+    # Un VRAI token, utilisable, au nom du même utilisateur (bug H4 : le texte "new_token" était renvoyé)
+    from jose import jwt
+    import os
+    payload = jwt.decode(response.json()["access_token"], os.getenv("SECRET_KEY"), algorithms=["HS256"])
+    assert payload["user_id"] == "user-123"
 
 # ===============================================================
 # TESTS - route /auth/me (Sprint V : utilisée par el frontend Vue)
@@ -265,4 +268,29 @@ def test_me_renvoie_les_infos_et_must_change_password(client, auth_headers, doit
     # Liste Blanche de colonnes : jamais "*" (qui ramènerait aussi password_hash)
     assert "*" not in colonnes
     assert "password_hash" not in colonnes
-    
+
+# ================================================================
+# TESTS - changement de mot de passe (hotfix H4)
+# ================================================================
+
+def test_change_password_ancien_mot_de_passe_faux_400(client, auth_headers):
+    """Mauvais mot de passe actuel -> 400 (et pas 401, qui veut dire "session expirée" et déconnecte)"""
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "user-123", "password_hash": hash_password("AncienMdp1")}]
+    with patch("routes.auth.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.post("/auth/change-password", headers=auth_headers, json={
+            "old_password": "Faux1234", "new_password": "NouveauMdp1"
+        })
+    assert response.status_code == 400
+    mock_db.table.return_value.update.assert_not_called()
+
+@pytest.mark.parametrize("nouveau", ["court1A", "sansmajuscule1", "SANSMINUSCULE1", "SansChiffre"])
+def test_change_password_nouveau_trop_faible_422(client, auth_headers, nouveau):
+    """Mêmes règles qu'à la réinitialisation : 8 caractères, majuscule, minuscule, chiffre (vérifiées par le seveur)"""
+    with patch("routes.auth.supabase") as mock_db: 
+        response = client.post("/auth/change-password", headers=auth_headers, json={
+            "old_password": "AncienMdp1", "new_password": nouveau
+        })
+        mock_db.table.assert_not_called()
+    assert response.status_code == 422

@@ -40,6 +40,19 @@ def check_texte_libre(v: Optional[str]) -> Optional[str]:
         raise ValueError('Les caractères < et > ne sont pas autorisés')
     return v
 
+
+def check_mot_de_passe(v: str) -> str:
+    """Règles d'un nouveau mot de passe (changement ET réinitialisation) : majuscule, minuscule, chiffre.
+    La longueur (8 caractères minimum) est vérifiée par constr(min_length=8) sur le champ."""
+    if not re.search(r'[A-Z]', v):
+        raise ValueError('Le mot de passe doit contenir au moins une majuscule')
+    if not re.search(r'[a-z]', v):
+        raise ValueError('Le mot de passe doit contenir au moins une minuscule')
+    if not re.search(r'[0-9]', v):
+        raise ValueError('Le mot de passe doit contenir au moins un chiffre')
+    return v
+
+
 # ================ PRODUIT MODÈLE ================
 
 class ProduitBase(BaseModel):
@@ -364,7 +377,13 @@ class LoginResponse(BaseModel):
 # ===========================================
 class ChangePasswordRequest(BaseModel):
     old_password: str
-    new_password: str
+    new_password: constr(min_length=8, max_length=100)
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_new_password(cls, v):
+        return check_mot_de_passe(v)
+
 
 class ForgotPasswordRequest(BaseModel):
     email: str
@@ -376,12 +395,7 @@ class ResetPasswordRequest(BaseModel):
     @field_validator('new_password')
     @classmethod
     def validate_new_password(cls, v):
-        if not re.search(r'[A-Z]', v):
-            raise ValueError('Le mot de passe doit contenir au moins une majuscule')
-        if not re.search(r'[a-z]', v):
-            raise ValueError('Le mot de passe doit contenir au moins une minuscule')
-        if not re.search(r'[0-9]', v):
-            raise ValueError('Le mot de passe doit contenir au moins un chiffre')
+        return check_mot_de_passe(v)
         return v
 
 

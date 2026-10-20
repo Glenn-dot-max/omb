@@ -126,7 +126,8 @@ def change_password(
 
     # 2. Vérifier l'ancien mot de passe
     if not verify_password(request.old_password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Ancien mot de passe incorrect")
+        # 400 et pas 401 : 401 veut dire "session expirée" et déconnecte l'utilisateur côté frontend
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
     
     # 3. Vérifier que le nouveau mot de passe est différent de l'ancien
     if request.old_password == request.new_password:
@@ -153,7 +154,7 @@ def change_password(
         "role": current_user["role"],
     })
 
-    return {"message": "Mot de passe changé avec succès", "access_token": "new_token"}
+    return {"message": "Mot de passe changé avec succès", "access_token": new_token}
 
 # ===============================================
 # FORGOT PASSWORD - DEMANDE ET RÉINITIALISATION

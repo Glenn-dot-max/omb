@@ -154,6 +154,10 @@ Branche : `sprint/1-nettoyage-backend` (en cours).
 
 - [x] **H3** Logs Render : `httpx.ReadError: [Errno 11] Resource temporarily unavailable` dans `httpcore/_sync/http2.py` (`GET /formules/`, `GET /unite/` en même temps) → la tâche **1.9** se produit en production et bloque l'ajout de formules à la création d'une commande. Cause probable : depuis P2, plusieurs threads partagent la connexion HTTP/2 unique du client Supabase. Correctif : client `httpx` en **HTTP/1.1** passé à Supabase (`database.py`) + gestionnaire `httpx.HTTPError` → **503** propre avec en-têtes CORS (`main.py`). Non reproduit en local (Mac) : surveiller les logs Render.
 
+## 🚑 Hotfix H4 — Déconnexion après un changement de mot de passe (2026-10-20)
+
+- [x] **H4** `POST /auth/change-password` renvoyait le **texte** `"new_token"` au lieu du nouveau token → l'utilisateur était déconnecté juste après avoir changé son mot de passe (notamment à la première connexion). Le test ne vérifiait que la présence du champ. Corrigé + test qui décode le token. Au passage : mauvais mot de passe actuel → **400** au lieu de 401 (401 déconnecte), et règles de solidité du nouveau mot de passe vérifiées **par le serveur** (`check_mot_de_passe`, partagée avec la réinitialisation).
+
 ## Sprint 2 — Isolation entre franchises et perte de données
 
 - [x] **2.1 Archivage destructif** — décision du 2026-10-10 : la route d'archivage **manuel** (`PATCH /commandes/{id}/archive`, qui supprimait pour les franchises) n'était appelée par aucun bouton → **supprimée** (backend + `archiveCommande()` dans `api.js`). L'archivage **automatique** (`auto-archive` + onglet « Archivées ») est conservé.
@@ -287,15 +291,14 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - [x] V1.4 Utilisateur connecté (Pinia) : token lu dans le même `localStorage` que l'ancien frontend, **rôle et franchise lus via `GET /auth/me`** (**tâche 1.10**) ; la décision sur le stockage du token (ancienne **3.7**) est prise ici mais appliquée quand la connexion sera migrée.
   - [x] V1.5 Routeur sous `/app/` : une route par page, **garde** (connecté obligatoire, sinon renvoi vers l'ancienne page de connexion ; admin réservé au TECH_ADMIN), redirection si `must_change_password`.
   - [x] V1.6 Mise en page commune : menu de navigation selon le rôle (liens vers les pages Vue **ou** les anciennes pages pas encore migrées), notifications (remplace `toast.js`), anti double-clic.
-  - [ ] V1.7 **Vue « cachée » en production** : site frontend Render → Root Directory vide, Build Command `cd frontend-vue && npm ci && npm run build && cd .. && rm -rf frontend/app && cp -R frontend-vue/dist frontend/app && V=${RENDER_GIT_COMMIT:-$(date +%s)} find frontend -name "*.html" -exec perl -pi -e 's/__VERSION__/$ENV{V}/g' {} +`, Publish Directory `frontend`, `NODE_VERSION=24`, réécriture `/app/* → /app/index.html` (anciennes valeurs notées pour un retour arrière : Root Directory `frontend`, ancienne Build Command). Vérifier l'ancien frontend **et** `…/app/`.
+  - [x] V1.7 **Vue « cachée » en production** : site frontend Render → Root Directory vide, Build Command `cd frontend-vue && npm ci && npm run build && cd .. && rm -rf frontend/app && cp -R frontend-vue/dist frontend/app && V=${RENDER_GIT_COMMIT:-$(date +%s)} find frontend -name "*.html" -exec perl -pi -e 's/__VERSION__/$ENV{V}/g' {} +`, Publish Directory `frontend`, `NODE_VERSION=24`, réécriture `/app/* → /app/index.html` (anciennes valeurs notées pour un retour arrière : Root Directory `frontend`, ancienne Build Command). Vérifier l'ancien frontend **et** `…/app/`.
 - [ ] **V2 Pages simples** (3 à 4 jours, chaque page testée sur `/app/` en production) : mon compte, aide, changement de mot de passe, réinitialisation du mot de passe (+ réactiver « mot de passe oublié », `BACKLOG.md` **B1**).
 - [ ] **V3 Admin** (3 à 4 jours) : franchises, utilisateurs (création, modification, réinitialisation du mot de passe, activation), catégories, types.
 - [ ] **V4 Planning** (~1 semaine) : filtres (dates, type de prestation, catégorie, franchise), calculs, **export Excel** (ExcelJS), notes.
 - [ ] **V5 Commandes** (1,5 à 2 semaines) : liste (actives / archivées, filtres, franchise pour l'admin), archivage auto à l'ouverture, création en un appel, modification en un appel, duplication (formulaire pré-rempli), suppression, validation, exclusions de produits dans les formules, coefficient « mariage », badges ; + **B9** (récapitulatif avant création) et **B10** (bouton « remonter en haut ») ; autoriser les apostrophes dans le nom du client (backend + écran).
 - [ ] **V6 Connexion** (1 à 2 jours) : page de connexion en Vue, page d'accueil (`index.html`) qui redirige vers l'application Vue ; application de la décision sur le stockage du token.
 - [ ] **V7 Recette** : tous les écrans migrés repassés sur `…/app/` avec leur liste de tests manuels, par Glenn puis par 1 ou 2 personnes d'OMB (en leur donnant l'adresse).
-- [ ] **V8 Bascule (une seule mise à jour pour les utilisateurs)** : dans l'ancien frontend, les liens du menu pointent vers les pages Vue, les anciennes pages migrées redirigent vers `/app/…`, la connexion et `index.html` mènent à Vue ; vérifications en production ; retour arrière = revenir au commit précédent (Render → Rollback). Prévenir OMB du jour de la bascule.
-- [ ] **V9 Ménage** (quelques jours après la bascule) : suppression des fichiers devenus inutiles de l'ancien frontend (il ne reste que Produits et Formules, migrées au Sprint 8, tâche **8.4**).
+- [ ] **V8 Ménage** (quelques jours après la bascule) : suppression des fichiers devenus inutiles de l'ancien frontend (il ne reste que Produits et Formules, migrées au Sprint 8, tâche **8.4**).
 
 ---
 
