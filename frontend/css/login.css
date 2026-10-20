@@ -10,7 +10,7 @@
 
 body {
   font-family: "Montserrat", Arial, sans-serif;
-  background: linear-gradient(135deg, #3d2517 0%, #6b4233 100%);
+  background: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-light) 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -89,7 +89,7 @@ body::before {
 }
 
 .login-header h1 {
-  color: #3d2517;
+  color: var(--color-brand-dark);
   font-size: 32px;
   font-weight: 700;
   margin-bottom: 10px;
@@ -97,7 +97,7 @@ body::before {
 }
 
 .login-header p {
-  color: #6b4233;
+  color: var(--color-brand-light);
   font-size: 16px;
   font-weight: 400;
 }
@@ -160,7 +160,7 @@ body::before {
 .form-group label {
   display: block;
   margin-bottom: 10px;
-  color: #3d2517;
+  color: var(--color-brand-dark);
   font-weight: 600;
   font-size: 14px;
   text-transform: uppercase;
@@ -170,19 +170,19 @@ body::before {
 .form-group input {
   width: 100%;
   padding: 15px 20px;
-  border: 2px solid #e8ded0;
+  border: 2px solid var(--color-border-warm);
   border-radius: 10px;
   font-size: 16px;
   font-family: inherit;
   transition: all 0.3s;
-  background-color: #faf7f2;
+  background-color: var(--color-bg-cream);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #f5c05c;
+  border-color: var(--color-primary);
   background-color: white;
-  box-shadow: 0 0 0 4px rgba(245, 192, 92, 0.1);
+  box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0.1);
 }
 
 .form-group input::placeholder {
@@ -193,8 +193,8 @@ body::before {
 .btn-login {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #f5c05c 0%, #e5b04c 100%);
-  color: #3d2517;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  color: var(--color-brand-dark);
   border: none;
   border-radius: 10px;
   font-size: 16px;
@@ -203,13 +203,13 @@ body::before {
   letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(245, 192, 92, 0.3);
+  box-shadow: 0 4px 15px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .btn-login:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(245, 192, 92, 0.4);
-  background: linear-gradient(135deg, #e5b04c 0%, #f5c05c 100%);
+  box-shadow: 0 8px 25px rgba(var(--color-primary-rgb), 0.4);
+  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary) 100%);
 }
 
 .btn-login:active {
@@ -230,7 +230,7 @@ body::before {
 }
 
 .forgot-password a {
-  color: #6b4233;
+  color: var(--color-brand-light);
   font-size: 14px;
   text-decoration: none;
   font-weight: 600;
@@ -238,7 +238,7 @@ body::before {
 }
 
 .forgot-password a:hover {
-  color: #f5c05c;
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
@@ -247,7 +247,7 @@ body::before {
   text-align: center;
   margin-top: 30px;
   padding-top: 25px;
-  border-top: 1px solid #e8ded0;
+  border-top: 1px solid var(--color-border-warm);
 }
 
 .franchise-info p {
@@ -298,14 +298,14 @@ body::before {
   justify-content: space-between;
   align-items: center;
   padding: 25px 30px;
-  border-bottom: 2px solid #e8ded0;
-  background: linear-gradient(135deg, #faf7f2 0%, #fff 100%);
+  border-bottom: 2px solid var(--color-border-warm);
+  background: linear-gradient(135deg, var(--color-bg-cream) 0%, #fff 100%);
   border-radius: 16px 16px 0 0;
 }
 
 .modal-header h3 {
   margin: 0;
-  color: #3d2517;
+  color: var(--color-brand-dark);
   font-size: 20px;
   font-weight: 700;
 }
@@ -320,7 +320,7 @@ body::before {
 }
 
 .close-modal:hover {
-  color: #3d2517;
+  color: var(--color-brand-dark);
 }
 
 .modal-body {
@@ -328,7 +328,7 @@ body::before {
 }
 
 .modal-body p {
-  color: #6b4233;
+  color: var(--color-brand-light);
   font-size: 15px;
   margin-bottom: 20px;
   line-height: 1.6;
@@ -336,11 +336,11 @@ body::before {
 
 .modal-footer {
   padding: 20px 30px;
-  border-top: 2px solid #e8ded0;
+  border-top: 2px solid var(--color-border-warm);
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  background: #faf7f2;
+  background: var(--color-bg-cream);
   border-radius: 0 0 16px 16px;
 }
 
@@ -361,8 +361,8 @@ body::before {
 
 .btn-primary {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #f5c05c 0%, #e5b04c 100%);
-  color: #3d2517;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  color: var(--color-brand-dark);
   border: none;
   border-radius: 8px;
   font-weight: 700;
@@ -372,7 +372,7 @@ body::before {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 192, 92, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.4);
 }
 
 /* Responsive */
@@ -417,14 +417,14 @@ body::before {
 
 .warning-banner strong {
   font-weight: 700;
-  color: #6b4233;
+  color: var(--color-brand-light);
 }
 
 /* Indicateur de force du mot de passe */
 .password-strength {
   margin-top: 8px;
   height: 4px;
-  background: #e8ded0;
+  background: var(--color-border-warm);
   border-radius: 2px;
   overflow: hidden;
 }

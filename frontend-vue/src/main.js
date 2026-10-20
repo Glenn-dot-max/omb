@@ -1,4 +1,5 @@
-// CSS de l'ancien frontend, réutilisé tel quel pendant la migration (même apparence)
+// Thème (couleurs de la marque) puis CSS de l'ancien frontend, partagés pendant la migration
+import '../../frontend/css/theme.css'
 import '../../frontend/css/style.css'
 
 import { createApp } from 'vue'
@@ -6,6 +7,9 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { marque } from './config/marque'
+
+document.title = marque.nom
 
 const app = createApp(App)
 

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useUtilisateurStore } from '@/stores/utilisateur'
+import { marque } from '@/config/marque'
 
 const store = useUtilisateurStore()
 const menuOuvert = ref(false)
@@ -30,7 +31,7 @@ onBeforeUnmount(() => document.removeEventListener('click', fermerSiClicDehors))
 
 <template>
   <nav class="navbar">
-    <h1>🥐 Oh My Brunch</h1>
+    <h1>{{ marque.emoji }} {{ marque.nom }}</h1>
     <ul class="nav-links">
       <li v-for="lien in liens" :key="lien.href">
         <a :href="lien.href">{{ lien.texte }}</a>

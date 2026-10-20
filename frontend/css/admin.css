@@ -38,9 +38,9 @@
 }
 
 .tab-btn.active {
-  color: #d4a574;
-  border-bottom-color: #d4a574;
-  background-color: #fdf8f3;
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+  background-color: var(--color-bg-cream-2);
 }
 
 /* CONTENU DES ONGLETS */
@@ -125,7 +125,7 @@
 }
 
 .admin-table thead {
-  background-color: #d4a574;
+  background-color: var(--color-accent);
   color: white;
 }
 
@@ -144,7 +144,7 @@
 }
 
 .admin-table tbody tr:hover {
-  background-color: #fdf8f3;
+  background-color: var(--color-bg-cream-2);
 }
 
 .admin-table td {
@@ -212,7 +212,7 @@
    ============================================== */
 
 .btn-primary {
-  background-color: #d4a574;
+  background-color: var(--color-accent);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -229,7 +229,7 @@
 .btn-primary:hover {
   background-color: #c49563;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+  box-shadow: 0 4px 12px rgba(var(--color-accent-rgb), 0.3);
 }
 
 .btn-secondary {
@@ -390,8 +390,8 @@ form {
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #d4a574;
-  box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.1);
 }
 
 .form-group textarea {
@@ -465,6 +465,6 @@ form {
    ============================================== */
 
 .navbar .nav-links a.active {
-  background-color: #d4a574;
+  background-color: var(--color-accent);
   color: white;
 }

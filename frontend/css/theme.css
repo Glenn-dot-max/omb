@@ -1,0 +1,39 @@
+/* ==============================================
+   THÈME — couleurs de la marque (marque blanche)
+   ==============================================
+   Toutes les couleurs propres à la marque sont définies ICI, et seulement ici.
+   style.css, admin.css, login.css et les écrans Vue utilisent var(--…).
+   Pour un autre traiteur : changer ces valeurs (plus tard : chargées depuis le backend, tâche T.7).
+   Les couleurs « génériques » (gris, rouge d'erreur, vert de succès…) restent dans les fichiers CSS.
+   Valeurs actuelles : Oh My Brunch. */
+
+:root {
+  /* Couleur principale (doré) */
+  --color-primary: #f5c05c;
+  --color-primary-rgb:
+    245, 192, 92; /* pour les transparences : rgba(var(--color-primary-rgb), 0.2) */
+  --color-primary-hover: #e5b04c;
+  --color-primary-bright: #f5c842;
+  --color-primary-deep: #e6b636;
+  --color-primary-glow-rgb: 245, 196, 66;
+
+  /* Couleur d'accent (caramel, orange) */
+  --color-accent: #d4a574;
+  --color-accent-rgb: 212, 165, 116;
+  --color-accent-orange: #f5a623;
+
+  /* Couleur de la marque (brun) : barre de navigation, titres, textes forts */
+  --color-brand-dark: #3d2517;
+  --color-brand-dark-rgb: 61, 37, 23;
+  --color-brand: #503224;
+  --color-brand-rgb: 80, 50, 36;
+  --color-brand-light: #6b4233;
+
+  /* Fonds et bordures chaudes */
+  --color-bg-cream: #faf7f2;
+  --color-bg-cream-2: #fdf8f3;
+  --color-bg-warm: #fff8e7;
+  --color-border-warm: #e8ded0;
+  --color-border-warm-2: #e8e0d5;
+  --color-border-tan: #d4bfa8;
+}
