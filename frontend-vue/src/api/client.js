@@ -1,9 +1,8 @@
-// =================================================
+// ==============================================
 // CLIENT API : appels au backend avec le token, erreurs lisibles,
-// renvoie vers la connexion quand la session a expiré.
+// renvoi vers la connexion quand la session a expiré.
 // (Repris de frontend/js/auth.js, en une seule fonction commune.)
-// =================================================
-import { data } from 'react-router-dom'
+// ==============================================
 import { allerALaConnexion } from './navigation'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -21,7 +20,7 @@ export function removeToken() {
   localStorage.removeItem(USER_KEY)
 }
 
-// Erreur renvoyée par l'API : un message lisible + le code HTTP (404, 409, 422...)
+// Erreur renvoyée par l'API : un message lisible + le code HTTP (404, 409, 422…)
 export class ApiError extends Error {
   constructor(message, status) {
     super(message)
@@ -36,6 +35,9 @@ export class ApiError extends Error {
 export function getErrorMessage(body) {
   if (Array.isArray(body?.errors) && body.errors.length > 0) {
     return body.errors.map((e) => e.msg).join(' ')
+  }
+  if (Array.isArray(body?.detail)) {
+    return body.detail.map((e) => e.msg).join(' ')
   }
   return body?.detail || 'Erreur inattendue, veuillez réessayer.'
 }
@@ -57,7 +59,10 @@ async function request(method, endpoint, data) {
   try {
     response = await fetch(`${API_URL}${endpoint}`, options)
   } catch {
-    throw new ApiError('Impossible de joindre le serveur. Vérfiez votre connexion et réessayez.', 0)
+    throw new ApiError(
+      'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.',
+      0,
+    )
   }
 
   // Token expiré ou invalide : on oublie la session et on renvoie vers la connexion

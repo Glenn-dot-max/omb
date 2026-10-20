@@ -28,6 +28,13 @@ describe('getErrorMessage', () => {
     }
     expect(getErrorMessage(body)).toBe('Les caractères < et > ne sont pas autorisés')
   })
+  it('erreur FastAPI par défaut (liste dans detail) : les messages', () => {
+    expect(
+      getErrorMessage({
+        detail: [{ msg: 'Field required' }, { msg: 'Input should be a valid UUID' }],
+      }),
+    ).toBe('Field required Input should be a valid UUID')
+  })
   it('erreur simple : le texte de detail', () => {
     expect(getErrorMessage({ detail: 'Commande not found' })).toBe('Commande not found')
   })
