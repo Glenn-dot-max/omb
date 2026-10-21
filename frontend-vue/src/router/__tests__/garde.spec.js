@@ -2,12 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { verifierAcces } from '../garde'
 import { apiGet, getToken } from '@/api/client'
-import { allerALaConnexion, allerAChangerMotDePasse } from '@/api/navigation'
+import { allerALaConnexion } from '@/api/navigation'
 
 vi.mock('@/api/client', () => ({ apiGet: vi.fn(), getToken: vi.fn(), removeToken: vi.fn() }))
 vi.mock('@/api/navigation', () => ({
   allerALaConnexion: vi.fn(),
-  allerAChangerMotDePasse: vi.fn(),
 }))
 
 const USER = {
@@ -45,11 +44,16 @@ describe('garde du routeur', () => {
     expect(apiGet).toHaveBeenCalledOnce()
   })
 
-  it('mot de passe à changer : renvoie vers le changement de mot de passe', async () => {
+  it('mot de passe à changer : redirige vers la page de changement', async () => {
     apiGet.mockResolvedValue({ ...USER, must_change_password: true })
 
-    expect(await verifierAcces(pageNormale)).toBe(false)
-    expect(allerAChangerMotDePasse).toHaveBeenCalledOnce()
+    expect(await verifierAcces(pageNormale)).toEqual({ name: 'changer-mot-de-passe' })
+  })
+
+  it('mot de passe à changer : la page de changement elle-même reste accessible', async () => {
+    apiGet.mockResolvedValue({ ...USER, must_change_password: true })
+
+    expect(await verifierAcces({ name: 'changer-mot-de-passe', meta: {} })).toBe(true)
   })
 
   it("page admin refusée à un utilisateur de franchise : retour à l'accueil", async () => {

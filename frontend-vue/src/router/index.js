@@ -19,8 +19,13 @@ const router = createRouter({
     },
     {
       path: '/aide',
-      name: '/aide',
+      name: 'aide',
       component: () => import('../views/AideView.vue'),
+    },
+    {
+      path: '/changer-mot-de-passe',
+      name: 'changer-mot-de-passe',
+      component: () => import('../views/ChangerMotDePasseView.vue'),
     },
   ],
   // Liens vers une ancre (#commandes...): faire défiler jusqu'à la secion ; sinon revenir en haut

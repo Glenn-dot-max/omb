@@ -1,5 +1,5 @@
 import { getToken } from '@/api/client'
-import { allerALaConnexion, allerAChangerMotDePasse } from '@/api/navigation'
+import { allerALaConnexion } from '@/api/navigation'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 
 // Vérifiée avant chaque changement de page (router.beforeEach).
@@ -23,10 +23,9 @@ export async function verifierAcces(to) {
     }
   }
 
-  // 3. Mot de passe provisoire : il faut le changer avant tout
-  if (store.utilisateur.must_change_password) {
-    allerAChangerMotDePasse()
-    return false
+  // 3. Mot de passe provisoire : il faut le changer avant tout (page Vue dédiée)
+  if (store.utilisateur.must_change_password && to.name !== 'changer-mot-de-passe') {
+    return { name: 'changer-mot-de-passe' }
   }
 
   // 4. Pages réservées au TECH_ADMIN
