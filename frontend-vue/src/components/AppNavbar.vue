@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 import { marque } from '@/config/marque'
 
@@ -41,7 +41,7 @@ onBeforeUnmount(() => document.removeEventListener('click', fermerSiClicDehors))
         <a :href="lien.href">{{ lien.texte }}</a>
       </li>
       <li v-if="store.estTechAdmin"><a href="/pages/admin.html">🔧 Admin</a></li>
-      <li><a href="/pages/aide.html">❓ Aide</a></li>
+      <li><RouterLink :to="{ name: 'aide' }">❓ Aide</RouterLink></li>
     </ul>
   </nav>
 

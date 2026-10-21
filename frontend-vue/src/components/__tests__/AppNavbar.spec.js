@@ -32,6 +32,7 @@ beforeEach(() => {
     routes: [
       { path: '/', name: 'accueil', component: page },
       { path: '/mon-compte', name: 'mon-compte', component: page },
+      { path: '/aide', name: 'aide', component: page },
     ],
   })
 })
@@ -74,6 +75,12 @@ describe('AppNavbar', () => {
     await router.isReady()
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('mon-compte')
+    wrapper.unmount()
+  })
+  it('le lien Aide mène à la page Vue (sans recharger)', () => {
+    const { wrapper } = monter({ email: 'paris@omb.fr', role: 'USER', franchise_nom: 'Paris' })
+    const lien = wrapper.findAll('.nav-links a').find((a) => a.text().includes('Aide'))
+    expect(lien.attributes('href')).toBe('/aide') // Adresse du routeur (devient /app/aide dans le naviguateur)
     wrapper.unmount()
   })
 })
