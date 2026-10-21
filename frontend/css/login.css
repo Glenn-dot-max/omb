@@ -10,13 +10,20 @@
 
 body {
   font-family: "Montserrat", Arial, sans-serif;
-  background: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-dark) 0%,
+    var(--color-brand-light) 100%
+  );
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  /* Seulement l'horizontal (le grand logo en filigrane) : le défilement vertical doit rester 
+  possible quand la carte dépasse l'écran (petit écran, zoom, clavier d'une tablette */
+  overflow-x: hidden;
+  padding: 20px 0;
 }
 
 /* Logo en filigrane (arrière-plan) */
@@ -193,7 +200,11 @@ body::before {
 .btn-login {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-hover) 100%
+  );
   color: var(--color-brand-dark);
   border: none;
   border-radius: 10px;
@@ -209,7 +220,11 @@ body::before {
 .btn-login:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(var(--color-primary-rgb), 0.4);
-  background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-hover) 0%,
+    var(--color-primary) 100%
+  );
 }
 
 .btn-login:active {
@@ -361,7 +376,11 @@ body::before {
 
 .btn-primary {
   padding: 12px 24px;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-hover) 100%
+  );
   color: var(--color-brand-dark);
   border: none;
   border-radius: 8px;
