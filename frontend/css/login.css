@@ -476,3 +476,14 @@ body::before {
   margin-top: 8px;
   line-height: 1.5;
 }
+
+/* Écrans tactiles (tablette) : des cibles assez grandes pour le doigt. Sans effet à la souris. */
+@media (pointer: coarse) {
+  button,
+  .btn,
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+}

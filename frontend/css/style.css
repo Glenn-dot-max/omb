@@ -1,3 +1,7 @@
+/* Points de rupture communs (responsive) :
+   480px = téléphone · 768px = tablette portrait · 1024px = tablette paysage
+   → @media (max-width: 1024px) { … } etc. Vérifier chaque écran à 768×1024, 1024×768 et 1440px. */
+
 /* Reset de base */
 * {
   margin: 0;
@@ -1616,7 +1620,11 @@ select.filter-select {
 
 /* AUJOURD'HUI - Marron + Or (urgent) */
 .today-section .section-header {
-  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand) 0%,
+    var(--color-brand-light) 100%
+  );
   color: var(--color-primary-bright);
   border-left-color: var(--color-primary-bright);
   box-shadow: 0 4px 12px rgba(var(--color-primary-glow-rgb), 0.3);
@@ -1633,7 +1641,11 @@ select.filter-select {
 
 /* DEMAIN - Or dégradé (très important) */
 .tomorrow-section .section-header {
-  background: linear-gradient(135deg, var(--color-primary-bright) 0%, var(--color-primary-deep) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-bright) 0%,
+    var(--color-primary-deep) 100%
+  );
   color: var(--color-brand);
   border-left-color: var(--color-brand);
   box-shadow: 0 4px 12px rgba(var(--color-primary-glow-rgb), 0.4);
@@ -1645,7 +1657,11 @@ select.filter-select {
 
 /* CETTE SEMAINE - Marron clair */
 .week-section .section-header {
-  background: linear-gradient(135deg, #8b6f5c 0%, var(--color-brand-light) 100%);
+  background: linear-gradient(
+    135deg,
+    #8b6f5c 0%,
+    var(--color-brand-light) 100%
+  );
   color: var(--color-bg-warm);
   border-left-color: var(--color-primary-bright);
 }
@@ -1723,7 +1739,11 @@ select.filter-select {
    =============================================== */
 
 .product-bandeau {
-  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand) 0%,
+    var(--color-brand-light) 100%
+  );
   color: var(--color-primary-bright);
   padding: 0.8rem 1.2rem;
   text-align: center;
@@ -2410,7 +2430,11 @@ select.filter-select {
 }
 
 .data-table thead {
-  background: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-light) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-dark) 0%,
+    var(--color-brand-light) 100%
+  );
   color: white;
 }
 
@@ -2770,4 +2794,15 @@ select.filter-select {
   color: #6c757d;
   background: #f1f3f5;
   border: 1px solid #dee2e6;
+}
+
+/* Écrans tactiles (tablette) : des cibles assez grandes pour le doigt. Sans effet à la souris. */
+@media (pointer: coarse) {
+  button,
+  .btn,
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
 }
