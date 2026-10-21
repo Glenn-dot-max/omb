@@ -20,23 +20,19 @@ Glenn développe en apprenant, avec l'aide d'une IA (explications, code, tests, 
 
 ## 📅 Plan des interventions
 
-| # | Quand | Durée | Sujet | Livrable attendu | Statut |
-|---|---|---|---|---|---|
-| S1 | **novembre 2026**, pendant le Sprint V, avant la Phase B | 1 jour | Socle Vue (structure, client API, cohabitation avec l'ancien frontend) + architecture des fondations : organisations / sites / salariés, cloisonnement, nouveau catalogue (articles achetés vs produits vendus), tablette (hors ligne ?) | Modèle de données validé (ou corrigé), liste des risques | ⚪ à planifier |
-| S2 | fin de Phase B (janvier 2027) | ½ à 1 jour | Revue des fondations : migrations, RLS, tests d'isolation, socle Vue, tablette | Liste de corrections avant les modules | ⚪ |
-| S3 | avant mise en production de M1 / M2 | ½ jour | Traçabilité, inaltérabilité des enregistrements, journal d'audit, pointage | Validation ou corrections | ⚪ |
-| S4 | **avant mise en production de M4** (mai 2027) | 1 jour | Facturation : numérotation, avoirs, conservation, intégration de la plateforme agréée, sécurité | Feu vert pour la facture électronique | ⚪ |
-| S5 | avant le **premier client externe** | selon devis | **Audit de sécurité complet + test d'intrusion** (spécialiste en sécurité) | Rapport d'audit, corrections | ⚪ |
-| — | **chaque mois** | ½ jour | Revue de code des dernières semaines + questions accumulées | Remarques, bonnes pratiques | ⚪ |
-
-## 💶 Budget indicatif
-
-- Un développeur senior freelance en France facture couramment **500 à 800 € par jour** (selon expérience et région).
-- Avec ce plan (S1 à S4 + ½ jour par mois) : **quelques milliers d'euros par an**, plus le **test d'intrusion** (S5) sur devis.
+| #   | Quand                                                    | Durée       | Sujet                                                                                                                                                                                                                                    | Livrable attendu                                         | Statut         |
+| --- | -------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | -------------- |
+| S1  | **novembre 2026**, pendant le Sprint V, avant la Phase B | 1 jour      | Socle Vue (structure, client API, cohabitation avec l'ancien frontend) + architecture des fondations : organisations / sites / salariés, cloisonnement, nouveau catalogue (articles achetés vs produits vendus), tablette (hors ligne ?) | Modèle de données validé (ou corrigé), liste des risques | ⚪ à planifier |
+| S2  | fin de Phase B (janvier 2027)                            | ½ à 1 jour  | Revue des fondations : migrations, RLS, tests d'isolation, socle Vue, tablette                                                                                                                                                           | Liste de corrections avant les modules                   | ⚪             |
+| S3  | avant mise en production de M1 / M2                      | ½ jour      | Traçabilité, inaltérabilité des enregistrements, journal d'audit, pointage                                                                                                                                                               | Validation ou corrections                                | ⚪             |
+| S4  | **avant mise en production de M4** (mai 2027)            | 1 jour      | Facturation : numérotation, avoirs, conservation, intégration de la plateforme agréée, sécurité                                                                                                                                          | Feu vert pour la facture électronique                    | ⚪             |
+| S5  | avant le **premier client externe**                      | selon devis | **Audit de sécurité complet + test d'intrusion** (spécialiste en sécurité)                                                                                                                                                               | Rapport d'audit, corrections                             | ⚪             |
+| —   | **chaque mois**                                          | ½ jour      | Revue de code des dernières semaines + questions accumulées                                                                                                                                                                              | Remarques, bonnes pratiques                              | ⚪             |
 
 ## 📋 Préparer chaque intervention
 
 À envoyer avant le rendez-vous :
+
 - [`ROADMAP.md`](../ROADMAP.md), la fiche du module concerné dans [`docs/modules/`](modules/), [`SPRINTS.md`](../SPRINTS.md), [`BACKLOG.md`](../BACKLOG.md), le `README.md` ;
 - l'accès en lecture au dépôt GitHub ;
 - la liste des questions (ci-dessous pour S1).
