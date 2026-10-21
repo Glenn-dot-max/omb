@@ -1,6 +1,6 @@
 # 📖 M3 — Recettes, grammages et prix fournisseurs
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **4 à 5 semaines** · Fin visée : fin juillet 2027 (après M4, ordre revu le 2026-10-19)
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **4 à 5 semaines** · Fin visée : à recalculer (dates retirées le 2026-10-21)
 > Prérequis : [Phase B](00-fondations.md) (nouveau catalogue : articles achetés, fournisseurs). Prépare [M5 — IA factures fournisseurs](05-ia-factures-fournisseurs.md) et le chiffrage des devis ([M4](04-facturation-clients.md)).
 
 ## 🎯 Objectif

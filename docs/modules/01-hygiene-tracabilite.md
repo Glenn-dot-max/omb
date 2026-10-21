@@ -1,6 +1,6 @@
 # 🧼 M1 — Pack hygiène et traçabilité (scan des lots)
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **5 à 6 semaines** · Fin visée : mi-mars 2027
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **5 à 6 semaines** · Ordre : après le pointage (M2) (réunion du 2026-10-21) · Fin visée : à recalculer (dates retirées le 2026-10-21)
 > Prérequis : [Phase B](00-fondations.md) (tablette, salariés, inaltérabilité, fichiers, articles/fournisseurs). Revue senior : **S3** avant mise en production.
 
 ## 🎯 Objectif
@@ -71,3 +71,4 @@ Remplacer les classeurs papier d'hygiène par la tablette, et **savoir en quelqu
 ## 📓 Informations reçues
 
 - **2026-10-13** — Priorité n°1 de Glenn : pack hygiène + traçabilité des produits **par scan**.
+- **2026-10-21** — Réunion OMB : le pack hygiène vient **après** la production, le planning de service et le pointage. Périmètre confirmé : **relevés de températures**, **plan de nettoyage**, **scanette entrée/sortie** des produits.

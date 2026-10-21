@@ -1,6 +1,6 @@
 # 🧱 Phase B — Les fondations
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **4 à 6 semaines** à plein temps (le socle Vue est fait avant, à l'étape V) · Fin visée : fin janvier 2027
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **4 à 6 semaines** à plein temps (le socle Vue est fait avant, à l'étape V) · Fin visée : à recalculer (dates retirées le 2026-10-21)
 > Intervention du développeur senior : **S1 avant B2** (novembre 2026), **S2 en fin de phase** — voir [`dev-senior.md`](../dev-senior.md).
 
 ## 🎯 Objectif

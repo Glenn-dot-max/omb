@@ -4,7 +4,7 @@
 > Le détail de chaque module est dans [`docs/modules/`](docs/modules/), les interventions du développeur senior dans [`docs/dev-senior.md`](docs/dev-senior.md).
 > Le suivi des tâches techniques en cours est dans [`SPRINTS.md`](SPRINTS.md), les idées non prioritaires dans [`BACKLOG.md`](BACKLOG.md).
 >
-> Dernière mise à jour : **2026-10-19**. Ce fichier est alimenté au fil des informations données par Glenn.
+> Dernière mise à jour : **2026-10-21**. Ce fichier est alimenté au fil des informations données par Glenn.
 >
 > _L'ancienne roadmap technique (sprints d'août 2026, Docker/Hetzner) est conservée dans l'historique git (dernière version : commit `6b43933`, 2026-08-14)._
 
@@ -33,43 +33,38 @@ Ordre de construction choisi par Glenn (2026-10-13) : **d'abord le terrain (la p
 
 ---
 
-## 📍 Où on en est (2026-10-19)
+## 📍 Où on en est (2026-10-21)
 
-**En production** (Render, branche `v8`, base Supabase à **Francfort**) :
+**En production** (Render, branche `main`, base Supabase à **Francfort**) :
 
 - Gestion des **commandes** (création, modification, duplication, archivage automatique), des **formules** et des **produits** par franchise, **planning de production** avec export Excel, **administration** (franchises, utilisateurs).
-- Sécurité revue (Sprints 0, 1, 2) et **performances** fortement améliorées (Sprint P) : création d'une commande **~20 s → < 1 s**, création d'une formule **~4,5 s → ~1 s**, requêtes traitées en parallèle.
-- **123 tests automatiques** côté backend.
+- Sécurité revue (Sprints 0 à 4) et **performances** fortement améliorées (Sprint P) : création d'une commande **~20 s → < 1 s**.
+- **Étape V en cours** : application Vue (socle, pages simples, PrimeVue) en ligne mais cachée sous `/app/` jusqu'à la bascule.
 
-**Ce qui reste à terminer sur l'existant** (détail dans `SPRINTS.md`) :
+**Réunion OMB du 2026-10-21** : le contrat court jusqu'à **fin janvier 2027** ⏰ 2027-01-31. D'ici là, **priorité absolue : terminer le planning de production** (Commandes et Planning en Vue, avec les retours de la cuisine). Ordre ensuite : fondations → **planning de service** → **pointage** → **pack hygiène**.
 
-- **P8c** : supprimer les anciennes routes backend devenues inutiles.
-- **Sprint 3 (revu)** : protection contre le XSS **côté backend** (refuser les balises à l'enregistrement) — l'ancien frontend n'est plus corrigé puisqu'il passe à Vue.
-- **Sprint 4** : hygiène du code (scripts, dépendances, venv local en Python 3.13…).
-
-**Décidé le 2026-10-19** : le frontend passe à **Vue.js** juste après (étape V). Règle : aucun travail sur l'ancien frontend qui deviendrait inutile avec Vue.
-
-**Rien n'est encore commencé** sur Vue, les fondations multi-traiteurs (Phase B) ni les nouveaux modules.
+**Dates retirées en attendant d'être recalculées** avec ce nouvel ordre (décision du 2026-10-21) : seules les durées estimées sont gardées.
 
 ---
 
 ## 🧱 Les étapes
 
-| #   | Étape                                                                                                                   | Fiche                                                                               | Durée estimée (plein temps) | Fin visée           | Statut      |
-| --- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------- | ------------------- | ----------- |
-| 0   | Finir l'existant (P8c, Sprint 3 revu, Sprint 4)                                                                         | [`SPRINTS.md`](SPRINTS.md)                                                          | ~1 semaine                  | fin octobre 2026    | 🟡 en cours |
-| V   | **Passage du frontend à Vue.js**, migration progressive (pages simples, Admin, Planning, Commandes, connexion ; Produits/Formules avec le nouveau catalogue) | [`SPRINTS.md`](SPRINTS.md) (Sprint V) | 4 à 5 semaines | début décembre 2026 | 🟡 en cours |
-| B   | **Fondations** : organisations/sites, salariés, cloisonnement, migrations, CI, interface tablette, briques communes, nouveau catalogue | [`00-fondations.md`](docs/modules/00-fondations.md)                   | 4 à 6 semaines              | fin janvier 2027    | ⚪ à faire  |
-| M1  | 🏭 **Pack hygiène et traçabilité** (scan des lots)                                                                      | [`01-hygiene-tracabilite.md`](docs/modules/01-hygiene-tracabilite.md)               | 5 à 6 semaines              | mi-mars 2027        | ⚪ à faire  |
-| M4  | 🏢 **Clients, devis (→ planning de production), factures + facture électronique, remplacement d'EBP**                   | [`04-facturation-clients.md`](docs/modules/04-facturation-clients.md)               | 7 à 9 semaines              | **fin mai 2027**    | ⚪ à faire  |
-| M2  | 🏭 **Tablette : pointage, heures, plannings, rapports**                                                                 | [`02-tablette-pointage-heures.md`](docs/modules/02-tablette-pointage-heures.md)     | 4 à 5 semaines              | fin juin 2027       | ⚪ à faire  |
-| M3  | 🏭 **Recettes, grammages et prix fournisseurs**                                                                         | [`03-recettes-prix-fournisseurs.md`](docs/modules/03-recettes-prix-fournisseurs.md) | 4 à 5 semaines              | fin juillet 2027    | ⚪ à faire  |
-| M5  | 🏭 **Reconnaissance des factures fournisseurs par IA**                                                                  | [`05-ia-factures-fournisseurs.md`](docs/modules/05-ia-factures-fournisseurs.md)     | 3 à 4 semaines              | fin août 2027       | ⚪ à faire  |
-| M6  | 🏢 **CRM commercial**                                                                                                   | [`06-crm-commercial.md`](docs/modules/06-crm-commercial.md)                         | 3 à 5 semaines              | automne 2027        | ⚪ à faire  |
+| #   | Étape | Fiche | Durée estimée (plein temps) | Statut |
+| --- | ----- | ----- | --------------------------- | ------ |
+| 0   | Finir l'existant (P8c, Sprint 3 revu, Sprint 4) | [`SPRINTS.md`](SPRINTS.md) | ~1 semaine | ✅ fait |
+| V   | **Passage du frontend à Vue.js + PrimeVue**, migration progressive ; **Planning et Commandes avec les retours de la cuisine** (priorité absolue, ⏰ 2027-01-31) | [`SPRINTS.md`](SPRINTS.md) (Sprint V) | 6 à 7 semaines | 🟡 en cours |
+| B   | **Fondations** : organisations/sites, salariés, cloisonnement, migrations, CI, interface tablette, briques communes, nouveau catalogue | [`00-fondations.md`](docs/modules/00-fondations.md) | 4 à 6 semaines | ⚪ à faire |
+| M7  | 🏭 **Planning de service et livraisons** | [`07-service-livraisons.md`](docs/modules/07-service-livraisons.md) | 3 à 4 semaines | ⚪ à faire |
+| M2  | 🏭 **Pointage et RH sur tablette** (repris depuis le début avec Max) | [`02-tablette-pointage-heures.md`](docs/modules/02-tablette-pointage-heures.md) | 4 à 5 semaines | ⚪ à faire |
+| M1  | 🏭 **Pack hygiène** (températures, nettoyage, scanette entrée/sortie) | [`01-hygiene-tracabilite.md`](docs/modules/01-hygiene-tracabilite.md) | 5 à 6 semaines | ⚪ à faire |
+| M4  | 🏢 **Clients, devis (→ planning de production), factures + facture électronique, remplacement d'EBP** | [`04-facturation-clients.md`](docs/modules/04-facturation-clients.md) | 7 à 9 semaines | ⚪ à faire |
+| M3  | 🏭 **Recettes, grammages et prix fournisseurs** | [`03-recettes-prix-fournisseurs.md`](docs/modules/03-recettes-prix-fournisseurs.md) | 4 à 5 semaines | ⚪ à faire |
+| M5  | 🏭 **Reconnaissance des factures fournisseurs par IA** | [`05-ia-factures-fournisseurs.md`](docs/modules/05-ia-factures-fournisseurs.md) | 3 à 4 semaines | ⚪ à faire |
+| M6  | 🏢 **CRM commercial** | [`06-crm-commercial.md`](docs/modules/06-crm-commercial.md) | 3 à 5 semaines | ⚪ à faire |
 
 **Total : environ 7 à 9 mois** à plein temps (8 h/jour, 5 jours/semaine), **plus ~30 % de marge** pour les imprévus.
 
-**Ordre revu le 2026-10-19** : avec les ~5 semaines de l'étape V, M1 se termine vers mi-mars ; pour respecter la règle ci-dessous, **M4 passe juste après M1**, avant M2 et M3. Conséquence : les devis démarrent sans les coûts de revient (ils arriveront avec M3). ❓ (Glenn) Alternative : M2 avant M4, si on accepte un démarrage de M4 fin avril (moins de marge avant septembre 2027).
+**Ordre revu le 2026-10-21** (réunion OMB) : production d'abord (V, puis fondations), puis planning de service (M7), pointage (M2) et pack hygiène (M1). ⚠️ **Conflit à arbitrer** : en additionnant les durées, M4 démarrerait bien après début avril 2027, ce qui ne respecte plus la règle ci-dessous. ❓ (Glenn) À trancher quand les dates seront recalculées : réduire la première version de M7/M2/M1, ou intercaler M4 avant M1.
 
 Légende : ⚪ à faire · 🟡 en cours · ✅ fait · ⏸️ en pause
 
@@ -130,3 +125,4 @@ Revue par un développeur senior freelance aux moments clés + un suivi mensuel 
 - **2026-10-14** — Demandes d'OMB intégrées à M4 : **devis validé (client + commerce) → commande → planning de production**, modifiable jusqu'au jour même avec notification à la cuisine, un site par devis, pas d'acompte. OMB utilise **EBP** : M4 remplacera la gestion commerciale, la comptabilité sera confiée à l'expert-comptable. M4 estimé à 7 à 9 semaines (fin visée début juin 2027).
 - **2026-10-19** — Ancien projet Supabase (Oregon) supprimé après vérification des logs (seulement des contrôles de santé, aucune requête `/rest/v1/`) et de `SUPABASE_URL` sur Render (pause impossible sur l'offre payante) ; dumps et sauvegarde d'environnement effacés de `~/omb-migration` (seul `schema.sql` conservé). P10 (cache busting) déployée le 2026-10-14.
 - **2026-10-19** — **Passage du frontend à Vue.js** (conseil d'un développeur), en étape V juste après l'existant (~4 à 5 semaines). Règle : aucun travail sur l'ancien frontend qui deviendrait inutile (Sprint 3 revu : XSS bloqué côté backend). Produits/Formules migrées avec le nouveau catalogue. Calendrier décalé d'environ 5 semaines ; **M4 avancé juste après M1** pour démarrer avant début avril 2027.
+- **2026-10-21** — **Réunion avec OMB.** Contrat jusqu'à fin janvier 2027 : priorité absolue au **planning de production**. Nouvel ordre : Vue (Planning + Commandes avec les retours de la cuisine) → fondations → **planning de service** (nouvelle fiche M7) → **pointage** (repris depuis le début avec Max et le père de Glenn) → **pack hygiène** (températures, nettoyage, scanette). Retours de la cuisine intégrés au Sprint V (V4, V5) : numéro de semaine, notes en rouge et sous-catégories séparées dans l'export, liste des commandes en blocs (prochains jours / semaine en cours / semaine prochaine), création en écrans successifs avec récapitulatif, « sans service » par défaut, repas du personnel, adultes/enfants et pondération en % pour les mariages, recherche « contient », bouton « Quitter ». Types de prestation et clé de tri : en attente de Max et Pascal. Tout est construit en Vue avec PrimeVue. Dates retirées en attendant d'être recalculées.

@@ -1,6 +1,6 @@
 # 🤝 M6 — CRM commercial
 
-> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **3 à 5 semaines** · Fin visée : automne 2027
+> Retour à la [feuille de route](../../ROADMAP.md) · Statut : ⚪ à faire · Durée estimée : **3 à 5 semaines** · Fin visée : à recalculer (dates retirées le 2026-10-21)
 > Prérequis : [M4 — Clients, devis, factures](04-facturation-clients.md) (les clients et les devis existent déjà ; le CRM les enrichit).
 
 ## 🎯 Objectif

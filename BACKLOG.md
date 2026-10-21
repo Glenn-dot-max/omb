@@ -59,6 +59,8 @@
 
 ### B9 — Récapitulatif à confirmer avant de créer une commande
 
+> ➡️ **Déplacé dans `SPRINTS.md`, tâche V5** (réunion du 2026-10-21 : création de commande en écrans successifs, le 4e écran est ce récapitulatif). Détail gardé ici pour référence.
+
 - **Ajouté le** : 2026-10-11
 - **Pourquoi c'est reporté** : amélioration d'interface demandée par Glenn pendant P3 ; à faire après P3 (ou avec P3c si le temps le permet).
 - **Idée** : quand l'utilisateur clique sur « Créer », afficher d'abord un **récapitulatif** de la commande, qu'il doit **confirmer une seconde fois** avant l'envoi :
@@ -85,6 +87,27 @@
   - style en classes CSS (pas en `style="…"`), pour préparer le Sprint T (theming) ;
   - accessibilité : un vrai `<button>` avec un `aria-label="Remonter en haut de la page"`.
 - **Lié à** : Sprint T, Sprint 10 (Vue).
+
+### B11 — Fiches produits
+
+- **Ajouté le** : 2026-10-21 (réunion OMB, « à garder en tête »)
+- **Pourquoi c'est reporté** : priorité au planning de production, puis service, pointage et hygiène.
+- **Idée** : une fiche par produit (description, photo, allergènes, conditionnement…). À rapprocher des fiches techniques du module Recettes ([`03-recettes-prix-fournisseurs.md`](docs/modules/03-recettes-prix-fournisseurs.md)) et du nouveau catalogue (Sprint 8) pour ne pas faire deux fois la même chose.
+- **Lié à** : M3, Sprint 8.
+
+### B12 — Associer des formules à du matériel
+
+- **Ajouté le** : 2026-10-21 (réunion OMB, « à garder en tête »)
+- **Pourquoi c'est reporté** : dépend du planning de service (M7), où le matériel à emporter est géré.
+- **Idée** : une formule peut demander du matériel (ex. un **atelier pain/cake**) ; commander la formule ajoute automatiquement ce matériel à la check-list de chargement.
+- **Lié à** : M7 ([`07-service-livraisons.md`](docs/modules/07-service-livraisons.md)).
+
+### B13 — Logo pour le raccourci bureau
+
+- **Ajouté le** : 2026-10-21 (réunion OMB)
+- **Idée** : un logo sympa pour le raccourci de l'application sur le bureau (icône de l'onglet et de l'application installée sur l'écran d'accueil d'une tablette).
+- **À savoir pour le faire** : avec la marque blanche, le logo se déclare dans la configuration de marque (`frontend-vue/src/config/marque.js`) et dans les fichiers d'icône de `frontend-vue/public/`, jamais en dur dans un composant ; à faire au plus tard à la bascule V8.
+- **Lié à** : Sprint V (V8), Sprint T.
 
 ---
 
