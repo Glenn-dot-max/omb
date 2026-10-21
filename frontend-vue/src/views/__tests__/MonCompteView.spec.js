@@ -51,6 +51,15 @@ describe('MonCompteView', () => {
     expect(wrapper.text()).toContain('Aucune franchise')
   })
 
+  it('affiche exactement 3 champs de mot de passe, chacun avec un id unique', () => {
+    const wrapper = monter()
+    const ids = wrapper.findAll('input').map((champ) => champ.attributes('id'))
+    expect(ids).toEqual([
+      'ancien-mot-de-passe',
+      'nouveau-mot-de-passe',
+      'confirmation-mot-de-passe',
+    ])
+  })
   it('change le mot de passe et enregistre le nouveau token', async () => {
     apiPost.mockResolvedValue({ message: 'ok', access_token: 'nouveau-jeton' })
     const wrapper = monter()

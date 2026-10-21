@@ -47,28 +47,14 @@ const { executer: changerMotDePasse, enCours } = useAction(async () => {
     <div class="form-group">
       <label for="ancien-mot-de-passe">{{ props.libelleAncien }}</label>
       <ChampMotDePasse id="ancien-mot-de-passe" v-model="ancien" autocomplete="current-password" />
-      <ChampMotDePasse id="nouveau-mot-de-passe" v-model="nouveau" autocomplete="new-password" />
-      <ChampMotDePasse
-        id="confirmation-mot-de-passe"
-        v-model="confirmation"
-        autocomplete="new-password"
-      />
     </div>
     <div class="form-group">
       <label for="nouveau-mot-de-passe">Nouveau mot de passe *</label>
-      <ChampMotDePasse id="ancien-mot-de-passe" v-model="ancien" autocomplete="current-password" />
       <ChampMotDePasse id="nouveau-mot-de-passe" v-model="nouveau" autocomplete="new-password" />
-      <ChampMotDePasse
-        id="confirmation-mot-de-passe"
-        v-model="confirmation"
-        autocomplete="new-password"
-      />
       <small class="aide-champ">Minimum 8 caractères, avec majuscule, minuscule et chiffre</small>
     </div>
     <div class="form-group">
       <label for="confirmation-mot-de-passe">Confirmer le nouveau mot de passe *</label>
-      <ChampMotDePasse id="ancien-mot-de-passe" v-model="ancien" autocomplete="current-password" />
-      <ChampMotDePasse id="nouveau-mot-de-passe" v-model="nouveau" autocomplete="new-password" />
       <ChampMotDePasse
         id="confirmation-mot-de-passe"
         v-model="confirmation"
