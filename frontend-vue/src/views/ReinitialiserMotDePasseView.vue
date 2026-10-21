@@ -5,6 +5,7 @@ import { apiPostPublic } from '@/api/client'
 import { allerALaConnexion } from '@/api/navigation'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
+import ChampMotDePasse from '@/components/ChampMotDePasse.vue'
 import { verifierNouveauMotDePasse } from '@/utils/motDePasse'
 
 // Page ouverte depuis le lien de l'email : …/reinitialiser-mot-de-passe?token=…
@@ -41,12 +42,10 @@ const { executer: reinitialiser, enCours } = useAction(async () => {
       <form v-else @submit.prevent="reinitialiser">
         <div class="form-group">
           <label for="nouveau-mot-de-passe">Nouveau mot de passe *</label>
-          <input
+          <ChampMotDePasse
             id="nouveau-mot-de-passe"
             v-model="nouveau"
-            type="password"
             autocomplete="new-password"
-            required
           />
           <small class="aide-champ"
             >Minimum 8 caractères, avec majuscule, minuscule et chiffre</small
@@ -54,12 +53,10 @@ const { executer: reinitialiser, enCours } = useAction(async () => {
         </div>
         <div class="form-group">
           <label for="confirmation-mot-de-passe">Confirmer le mot de passe *</label>
-          <input
+          <ChampMotDePasse
             id="confirmation-mot-de-passe"
             v-model="confirmation"
-            type="password"
             autocomplete="new-password"
-            required
           />
         </div>
         <button type="submit" class="btn" :disabled="enCours">

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { apiPost, saveToken } from '@/api/client'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
+import ChampMotDePasse from '@/components/ChampMotDePasse.vue'
 import { verifierNouveauMotDePasse } from '@/utils/motDePasse'
 
 // Formulaire de changement de mot de passe, utilisé par « Mon compte » et par
@@ -45,33 +46,33 @@ const { executer: changerMotDePasse, enCours } = useAction(async () => {
   <form @submit.prevent="changerMotDePasse">
     <div class="form-group">
       <label for="ancien-mot-de-passe">{{ props.libelleAncien }}</label>
-      <input
-        id="ancien-mot-de-passe"
-        v-model="ancien"
-        type="password"
-        autocomplete="current-password"
-        required
+      <ChampMotDePasse id="ancien-mot-de-passe" v-model="ancien" autocomplete="current-password" />
+      <ChampMotDePasse id="nouveau-mot-de-passe" v-model="nouveau" autocomplete="new-password" />
+      <ChampMotDePasse
+        id="confirmation-mot-de-passe"
+        v-model="confirmation"
+        autocomplete="new-password"
       />
     </div>
     <div class="form-group">
       <label for="nouveau-mot-de-passe">Nouveau mot de passe *</label>
-      <input
-        id="nouveau-mot-de-passe"
-        v-model="nouveau"
-        type="password"
+      <ChampMotDePasse id="ancien-mot-de-passe" v-model="ancien" autocomplete="current-password" />
+      <ChampMotDePasse id="nouveau-mot-de-passe" v-model="nouveau" autocomplete="new-password" />
+      <ChampMotDePasse
+        id="confirmation-mot-de-passe"
+        v-model="confirmation"
         autocomplete="new-password"
-        required
       />
       <small class="aide-champ">Minimum 8 caractères, avec majuscule, minuscule et chiffre</small>
     </div>
     <div class="form-group">
       <label for="confirmation-mot-de-passe">Confirmer le nouveau mot de passe *</label>
-      <input
+      <ChampMotDePasse id="ancien-mot-de-passe" v-model="ancien" autocomplete="current-password" />
+      <ChampMotDePasse id="nouveau-mot-de-passe" v-model="nouveau" autocomplete="new-password" />
+      <ChampMotDePasse
         id="confirmation-mot-de-passe"
         v-model="confirmation"
-        type="password"
         autocomplete="new-password"
-        required
       />
     </div>
     <button type="submit" class="btn" :disabled="enCours">
