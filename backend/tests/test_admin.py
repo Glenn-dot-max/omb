@@ -95,3 +95,85 @@ def test_admin_textes_valides_acceptes():
     assert (f.nom, f.city, f.address) == ("OMB Caen", "Caen", "12 rue de l'Église")
     assert UserUpdate(full_name="  Jean Dupont  ").full_name == "Jean Dupont"
     assert FranchiseUpdate(active=False).nom is None
+
+
+# ===============================================================
+# TESTS - Garde-fous de l'admin sur son propre compte (V3.1)
+# ===============================================================
+
+def test_admin_ne_peut_pas_se_desactiver(client, admin_headers):
+    """DELETE sur son propre compte -> 400, et rien n'est écrit en base"""
+    with patch("routes.admin.supabase") as mock_db:
+        response = client.delete("/admin/users/admin-456", headers=admin_headers)
+        mock_db.table.return_value.update.assert_not_called()
+
+    assert response.status_code == 400
+
+def test_admin_peut_desactiver_un_autre_compte(client, admin_headers):
+    """Cas de réussite : désactiver un autre utilisateur fonctionne"""
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "user-1", "active": False}]
+
+    with patch("routes.admin.supabase") as mock_db:
+        mock_db.table.return_value.update.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.delete("/admin/users/user-1", headers=admin_headers)
+        mock_db.table.return_value.update.assert_called_once_with({"active": False})
+
+    assert response.status_code == 200
+
+@pytest.mark.parametrize("changement", [
+    {"active": False},
+    {"role": "USER"},
+    {"role": "catalog_admin"},
+])
+
+def test_admin_ne_peut_pas_se_retrograder_ni_se_desactiver(client, admin_headers, changement):
+    """PUT sur son propre compte qui change son rôle ou le désactive -> 400, rien n'est écrit"""
+    with patch("routes.admin.supabase") as mock_db:
+        response = client.put("/admin/users/admin-456", json=changement, headers=admin_headers)
+        mock_db.table.return_value.update.assert_not_called()
+
+    assert response.status_code == 400
+
+def test_admin_peut_modifier_son_nom(client, admin_headers):
+    """Cas de réussite : modifier son propre nom (et renvoyer le même rôle) reste possible"""
+    mock_response = MagicMock()
+    mock_response.data = [{"id": "admin-456", "full_name": "Glenn", "role": "TECH_ADMIN", "password_hash": "secret"}]
+
+    with patch("routes.admin.supabase") as mock_db:
+        mock_db.table.return_value.update.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.put(
+            "/admin/users/admin-456",
+            json={"full_name": "Glenn", "role": "tech_admin", "active": True},
+            headers=admin_headers,
+        )
+
+    assert response.status_code == 200
+    assert response.json()["full_name"] == "Glenn"
+
+def test_reponses_utilisateur_en_liste_blanche(client, admin_headers):
+    """Création et modification ne renvoient que les colonnes publiques (jamais password_hash ni reset_token_hash)"""
+    ligne_en_base = {
+        "id": "user-1", "email": "a@omb.fr", "full_name": "Jean Dupont", "role": "USER",
+        "franchise_id": "f-1", "active": True, "must_change_password": True, "created_at": "2026-10-21",
+        "password_hash": "secret", "reset_token_hash": "secret2", "password_changed_at": "2026-10-21",
+    }
+    vide = MagicMock()
+    vide.data = []
+    cree = MagicMock()
+    cree.data = [dict(ligne_en_base)]
+
+    with patch("routes.admin.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = vide
+        mock_db.table.return_value.insert.return_value.execute.return_value = cree
+        mock_db.table.return_value.update.return_value.eq.return_value.execute.return_value = cree
+        creation = client.post(
+            "/admin/users",
+            json={"email": "a@omb.fr", "full_name": "Jean Dupont", "password": "motdepasse123", "franchise_id": "f-1"},
+            headers=admin_headers,
+        )
+        modification = client.put("/admin/users/user-1", json={"full_name": "Jean Dupont"}, headers=admin_headers)
+
+    for response in (creation, modification):
+        assert response.status_code == 200
+        assert set(response.json()) == {"id", "email", "full_name", "role", "franchise_id", "active", "must_change_password", "created_at"}

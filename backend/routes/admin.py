@@ -15,6 +15,11 @@ supabase = get_supabase_client()
 # Colonnes de la table users qu'on a le droit de renvoyer au naviguateur.
 # Ne JAMAIS y ajouter passord_hash ni rest_token_hash.
 USER_PUBLIC_COLUMNS = "id, email, full_name, role, franchise_id, active, must_change_password, created_at, franchises(nom)"
+USER_PUBLIC_FIELDS = {"id", "email", "full_name", "role", "franchise_id", "active", "must_change_password", "created_at"}
+
+def colonnes_publiques(utilisateur: dict) -> dict:
+    """Ne garde que les colonnes qu'on a le droit de renvoyer au navigateur (liste blanche)"""
+    return {k: v for k, v in utilisateur.items() if k in USER_PUBLIC_FIELDS}
 
 # ======================================
 # FRANCHISE - CRUD
@@ -126,12 +131,7 @@ def create_user(user: UserCreate, current_user: dict = Depends(is_tech_admin)):
     }
 
     response = supabase.table("users").insert(user_data).execute()
-
-    # Ne pas retourner le password hash
-    result = response.data[0]
-    result.pop("password_hash", None)
-
-    return result
+    return colonnes_publiques(response.data[0])
 
 @router.put("/users/{user_id}")
 def update_user(
@@ -149,14 +149,18 @@ def update_user(
 
     if not update_data:
         raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
-    
+
+    # Un admin ne peut ni se désactiver ni changer son propre rôle (il perdrait l'accès à l'admin)
+    if user_id == current_user["user_id"] and (
+        update_data.get("active") is False
+        or ("role" in update_data and update_data["role"] != current_user["role"])
+    ):
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas modifier votre propre rôle ni désactiver votre propre compte")
+
     response = supabase.table("users").update(update_data).eq("id", user_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
-    
-    result = response.data[0]
-    result.pop("password_hash", None)
-    return result
+    return colonnes_publiques(response.data[0])
 
 @router.post("/users/{user_id}/reset-password")
 def reset_password(
@@ -184,6 +188,8 @@ def reset_password(
 @router.delete("/users/{user_id}")
 def delete_user(user_id: str, current_user: dict = Depends(is_tech_admin)):
     """Désactive un utilisateur (TECH ADMIN UNIQUEMENT)"""
+    if user_id == current_user["user_id"]:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas désactiver votre propre compte")
     response = supabase.table("users").update({"active": False}).eq("id", user_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Utilisateur introuvable")
