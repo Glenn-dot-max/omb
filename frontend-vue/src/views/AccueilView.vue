@@ -2,6 +2,7 @@
 import { useUtilisateurStore } from '@/stores/utilisateur'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
+import Button from 'primevue/button'
 
 const store = useUtilisateurStore()
 const notifications = useNotificationsStore()
@@ -18,8 +19,7 @@ const { executer: tester, enCours } = useAction(async () => {
     <h2>Application Vue</h2>
     <p>Bonjour {{ store.utilisateur.email }} ({{ store.utilisateur.role }}).</p>
     <p>Socle en place. Les écrans migrés apparaîtront ici.</p>
-    <button class="btn" :disabled="enCours" @click="tester">
-      {{ enCours ? 'Patiente…' : 'Tester une notification' }}
-    </button>
+    <!-- Premier composant PrimeVue : bouton avec indicateur de chargement intégré -->
+    <Button label="Tester une notification" :loading="enCours" @click="tester" />
   </main>
 </template>
