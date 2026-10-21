@@ -3,6 +3,7 @@ import {
   apiGet,
   apiPost,
   apiDelete,
+  apiPostPublic,
   getErrorMessage,
   ApiError,
   saveToken,
@@ -124,5 +125,26 @@ describe('token', () => {
     saveToken('nouveau-jeton')
     expect(getToken()).toBe('nouveau-jeton')
     expect(localStorage.getItem('omb_token')).toBe('nouveau-jeton')
+  })
+})
+
+describe('appels publics (sans connexion)', () => {
+  it("n'envoie pas de token et ne renvoie pas vers la connexion", async () => {
+    fetch.mockResolvedValue(reponse(200, { message: 'ok' }))
+
+    await apiPostPublic('/auth/forgot-pasword', { email: 'a@b.fr' })
+
+    expect(fetch.mock.calls[0][1].headers.Authorization).toBeUndefined()
+    expect(allerALaConnexion).not.toHaveBeenCalled()
+  })
+
+  it('erreur du seveur : ApiError avec le message, sans déconnexion', async () => {
+    localStorage.setItem('omb_token', 'jeton-123')
+    fetch.mockResolvedValue(reponse(400, { detail: 'Lien invalide ou expiré' }))
+
+    await expect(apiPostPublic('/auth/reset-password', {})).rejects.toThrow(
+      'Lien invalide ou expiré',
+    )
+    expect(localStorage.getItem('omb_token')).toBe('jeton-123')
   })
 })

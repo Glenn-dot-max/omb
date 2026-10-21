@@ -27,6 +27,19 @@ const router = createRouter({
       name: 'changer-mot-de-passe',
       component: () => import('../views/ChangerMotDePasseView.vue'),
     },
+    // Pages publiques (sans connexion)
+    {
+      path: '/mot-de-passe-oublie',
+      name: 'mot-de-passe-oublie',
+      component: () => import('../views/MotDePasseOublieView.vue'),
+      meta: { publique: true },
+    },
+    {
+      path: '/reinitialiser-mot-de-passe',
+      name: 'reinitialiser-mot-de-passe',
+      component: () => import('../views/ReinitialiserMotDePasseView.vue'),
+      meta: { publique: true },
+    },
   ],
   // Liens vers une ancre (#commandes...): faire défiler jusqu'à la secion ; sinon revenir en haut
   scrollBehavior(to) {

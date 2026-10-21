@@ -73,4 +73,12 @@ describe('garde du routeur', () => {
 
     expect(await verifierAcces(pageNormale)).toBe(false)
   })
+
+  it('page publique : accessible sans token, sans appel au serveur', async () => {
+    getToken.mockReturnValue(null)
+
+    expect(await verifierAcces({ meta: { publique: true } })).toBe(true)
+    expect(allerALaConnexion).not.toHaveBeenCalled()
+    expect(apiGet).not.toHaveBeenCalled()
+  })
 })

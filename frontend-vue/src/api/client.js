@@ -47,14 +47,17 @@ export function getErrorMessage(body) {
   return body?.detail || 'Erreur inattendue, veuillez réessayer.'
 }
 
-async function request(method, endpoint, data) {
-  const token = getToken()
-  if (!token) {
-    allerALaConnexion()
-    throw new ApiError('Vous devez être connecté.', 401)
+// publique = true : page sans connexion (mot de passe oublié, réinitialisation) -> pas de token
+async function request(method, endpoint, data, { publique = false } = {}) {
+  const options = { method, headers: {} }
+  if (!publique) {
+    const token = getToken()
+    if (!token) {
+      allerALaConnexion()
+      throw new ApiError('Vous devez être connecté.', 401)
+    }
+    options.headers.Authorization = `Bearer ${token}`
   }
-
-  const options = { method, headers: { Authorization: `Bearer ${token}` } }
   if (data !== undefined) {
     options.headers['Content-Type'] = 'application/json'
     options.body = JSON.stringify(data)
@@ -97,3 +100,5 @@ export const apiPost = (endpoint, data) => request('POST', endpoint, data)
 export const apiPut = (endpoint, data) => request('PUT', endpoint, data)
 export const apiPatch = (endpoint, data) => request('PATCH', endpoint, data)
 export const apiDelete = (endpoint) => request('DELETE', endpoint)
+// Appel sans connexion (pages publiques)
+export const apiPostPublic = (endpoint, data) => request('POST', endpoint, data, { publique: true })

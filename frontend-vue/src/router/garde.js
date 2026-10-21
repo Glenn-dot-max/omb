@@ -5,6 +5,11 @@ import { useUtilisateurStore } from '@/stores/utilisateur'
 // Vérifiée avant chaque changement de page (router.beforeEach).
 // Renvoie true (on y va), false (on annule) ou une autre route (on redirige).
 export async function verifierAcces(to) {
+  // 0. Pages publiques (mot de passe oublié, réinitialisation) : aucune vérification
+  if (to.meta.publique) {
+    return true
+  }
+
   // 1. Pas de token : pas connecté
   if (!getToken()) {
     allerALaConnexion()
