@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { verifierNouveauMotDePasse } from '../motDePasse'
+import { verifierNouveauMotDePasse, genererMotDePasse } from '../motDePasse'
 
 describe('verifierNouveauMotDePasse (mêmes règles que le serveur)', () => {
   it('mot de passe valide : aucune erreur', () => {
@@ -35,5 +35,26 @@ describe('verifierNouveauMotDePasse (mêmes règles que le serveur)', () => {
     ],
   ])('refus : %s -> %s', (ancien, nouveau, confirmation, message) => {
     expect(verifierNouveauMotDePasse(ancien, nouveau, confirmation)).toBe(message)
+  })
+})
+
+describe('genererMotDePasse (mot de passe provisioire)', () => {
+  it('respecte toujours les règles du serveur (essayé 200 fois)', () => {
+    for (let i = 0; i < 200; i++) {
+      const motDePasse = genererMotDePasse()
+      expect(motDePasse).toHaveLength(12)
+      expect(verifierNouveauMotDePasse('', motDePasse, motDePasse)).toBeNull()
+    }
+  })
+
+  it('ne contient pas de caractères faciles à confondre (I, l, O, 0, 1)', () => {
+    for (let i = 0; i < 200; i++) {
+      expect(genererMotDePasse()).not.toMatch(/[IlO01]/)
+    }
+  })
+
+  it('donne u mot de passe différent à chaque fois', () => {
+    const motsDePasse = new Set(Array.from({ length: 50 }, () => genererMotDePasse()))
+    expect(motsDePasse.size).toBe(50)
   })
 })
