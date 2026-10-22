@@ -5,6 +5,7 @@ import { useUtilisateurStore } from '@/stores/utilisateur'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
 import { dateIso, formaterDate, libelleSemaines } from '@/utils/planning'
+import { exporterPlanning } from '@/utils/exportPlanning'
 import TableauPlanning from '@/components/planning/TableauPlanning.vue'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -90,6 +91,23 @@ const { executer: generer, enCours } = useAction(async () => {
     resultat.value = await apiGet(adresseDuPlanning())
   } catch (e) {
     notifications.erreur(e.message)
+  }
+})
+
+// Export Excel du planning affiché (mêmes filtres que la génération)
+const { executer: exporter, enCours: exportEnCours } = useAction(async () => {
+  try {
+    // Bouton bloqué au moins 1 seconde : l'export est si rapide qu'un double-clic
+    // en lancerait deux sans cette pause
+    await Promise.all([
+      exporterPlanning(resultat.value, {
+        afficherTotaux: filtres.value.afficherTotaux,
+        categorie: filtres.value.categorie,
+      }),
+      new Promise((resolve) => setTimeout(resolve, 1000)),
+    ])
+  } catch (e) {
+    notifications.erreur(`Export Excel impossible : ${e.message}`)
   }
 })
 
@@ -192,6 +210,16 @@ const commandesNonValidees = computed(() => resultat.value?.commandes_non_valide
           <strong>{{ libelleSemaines(resultat.periode.debut, resultat.periode.fin) }}</strong>
           · {{ resultat.commandes_count }} commande(s)
         </p>
+        <div v-if="aDesCommandes" class="boutons export">
+          <Button
+            type="button"
+            label="Exporter en Excel"
+            severity="secondary"
+            outlined
+            :loading="exportEnCours"
+            @click="exporter"
+          />
+        </div>
         <TableauPlanning
           v-if="aDesCommandes"
           :planning="resultat.planning"
@@ -231,6 +259,9 @@ const commandesNonValidees = computed(() => resultat.value?.commandes_non_valide
 .avertissement ul {
   margin: 8px 0 0;
   padding-left: 20px;
+}
+.export {
+  margin-bottom: 12px;
 }
 .resume {
   margin-bottom: 12px;

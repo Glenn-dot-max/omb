@@ -7,12 +7,14 @@ import PlanningView from '../PlanningView.vue'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 import { useNotificationsStore } from '@/stores/notifications'
 import { apiGet, ApiError } from '@/api/client'
+import { exporterPlanning } from '@/utils/exportPlanning'
 
 vi.mock('@/api/client', async () => {
   const vrai = await vi.importActual('@/api/client')
   return { ApiError: vrai.ApiError, apiGet: vi.fn() }
 })
 vi.mock('@/api/navigation', () => ({ allerALaConnexion: vi.fn() }))
+vi.mock('@/utils/exportPlanning', () => ({ exporterPlanning: vi.fn() }))
 
 const REPONSE = {
   periode: { debut: '2026-10-26', fin: '2026-11-01' },
@@ -159,6 +161,37 @@ describe('PlanningView', () => {
     await generer()
     expect(wrapper.text()).toContain('1 commande(s) non validée(s)')
     expect(wrapper.text()).toContain('Leroy : 28/10/2026 à 10:00')
+  })
+
+  it('exporte en Excel le planning affiché, avec les options choisies', async () => {
+    await monter()
+    await choisir(Select, 'planning-categorie', 'salé')
+    await generer()
+    const bouton = wrapper.findAll('button').find((b) => b.text() === 'Exporter en Excel')
+    await bouton.trigger('click')
+    await flushPromises()
+    expect(exporterPlanning).toHaveBeenCalledWith(REPONSE, {
+      afficherTotaux: true,
+      categorie: 'salé',
+    })
+  })
+
+  it('un double-clic sur « Exporter » ne lance qu’un seul export', async () => {
+    await monter()
+    await generer()
+    const bouton = wrapper.findAll('button').find((b) => b.text() === 'Exporter en Excel')
+    await bouton.trigger('click')
+    await flushPromises()
+    await bouton.trigger('click') // l'export est déjà terminé, mais le bouton reste bloqué
+    await flushPromises()
+    expect(exporterPlanning).toHaveBeenCalledTimes(1)
+  })
+
+  it('pas de bouton d’export sans commande', async () => {
+    apiGet.mockResolvedValue({ periode: REPONSE.periode, commandes_count: 0, planning: {} })
+    await monter()
+    await generer()
+    expect(wrapper.text()).not.toContain('Exporter en Excel')
   })
 
   it('indique qu’il n’y a aucune commande sur la période', async () => {
