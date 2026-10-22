@@ -7,3 +7,7 @@ export const TYPES_PRESTATION = [
   { valeur: 'mariage', libelle: 'Mariage' },
   { valeur: 'NC', libelle: 'Non classé' },
 ]
+
+export function libelleType(valeur) {
+  return TYPES_PRESTATION.find((t) => t.valeur === valeur)?.libelle || valeur || 'Non classé'
+}
