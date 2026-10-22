@@ -38,6 +38,11 @@ const router = createRouter({
       name: 'planning',
       component: () => import('../views/PlanningView.vue'),
     },
+    {
+      path: '/commandes',
+      name: 'commandes',
+      component: () => import('../views/CommandesView.vue'),
+    },
     // Pages publiques (sans connexion)
     {
       path: '/mot-de-passe-oublie',
