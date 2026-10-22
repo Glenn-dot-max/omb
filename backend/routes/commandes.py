@@ -306,6 +306,13 @@ def update_commande_complete(commande_id: str, modif: CommandeModification, curr
             exclude={"formules_modifiees", "formules_ajoutees", "produits_ajoutes"}
         ).items() if v is not None
     }
+    # Les champs non envoyés ne sont pas modifiés : il faut donc effacer EXPLICITEMENT
+    # ce qui n'a plus de sens (adultes/enfants d'une commande qui n'est plus un mariage,
+    # nombre de repas quand il n'y a plus de repas du personnel)
+    if champs.get("type_prestation", "mariage") != "mariage":
+        champs.update(nb_adultes=None, nb_enfants=None, taux_enfant=None)
+    if champs.get("repas_personnel") is False:
+        champs["nb_repas_personnel"] = None
     if champs:
         supabase.table("carnet_commande").update(format_delivery_fields(champs)).eq("id", commande_id).execute()
 

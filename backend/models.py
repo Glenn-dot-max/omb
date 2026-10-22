@@ -142,6 +142,24 @@ class FormuleUpdate(BaseModel):
 
 # ================ CARNET_COMMANDE MODELS ================
 
+def check_mariage_et_repas(c, creation: bool):
+    """Règles communes à la création et à la modification d'une commande (V5.1) :
+    - adultes / enfants / taux enfant : seulement pour un mariage, et couverts = adultes + enfants ;
+    - repas du personnel : un nombre (au moins 1) si et seulement si « oui ».
+    En modification, seuls les champs envoyés ensemble sont comparés (la base a les autres)."""
+    champs_mariage = (c.nb_adultes, c.nb_enfants, c.taux_enfant)
+    if c.type_prestation is not None or creation:
+        if c.type_prestation != "mariage" and any(v is not None for v in champs_mariage):
+            raise ValueError("Adultes, enfants et taux enfant ne concernent que les mariages")
+    if None not in (c.nb_adultes, c.nb_enfants, c.nombre_couverts):
+        if c.nb_adultes + c.nb_enfants != c.nombre_couverts:
+            raise ValueError("Le nombre de couverts doit être égal à adultes + enfants")
+    if c.repas_personnel and not c.nb_repas_personnel:
+        raise ValueError("Indiquez le nombre de repas du personnel (au moins 1)")
+    if c.repas_personnel is False and c.nb_repas_personnel:
+        raise ValueError("Nombre de repas du personnel indiqué sans repas du personnel")
+    return c
+
 class CarnetCommandeBase(BaseModel):
     nom_client: constr(min_length=2, max_length=200, strip_whitespace=True)
     nombre_couverts: int = Field(default=1, ge=1, le=10000)
@@ -153,6 +171,13 @@ class CarnetCommandeBase(BaseModel):
     notes: Optional[constr(max_length=5000)] = None
     avec_service: bool = True
     validated: bool = True
+    # Mariages (V5.1) : convives en deux nombres, et part d'un enfant en % d'un adulte
+    nb_adultes: Optional[int] = Field(None, ge=0, le=10000)
+    nb_enfants: Optional[int] = Field(None, ge=0, le=10000)
+    taux_enfant: Optional[int] = Field(None, ge=0, le=100)
+    # Service (V5.1) : repas à prévoir pour le personnel
+    repas_personnel: bool = False
+    nb_repas_personnel: Optional[int] = Field(None, ge=0, le=1000)
     
     @field_validator('nom_client')
     @classmethod
@@ -187,6 +212,9 @@ class CarnetCommandeBase(BaseModel):
         return check_texte_libre(v)
 
 class CarnetCommandeCreate(CarnetCommandeBase):
+    @model_validator(mode='after')
+    def check_coherence(self):
+        return check_mariage_et_repas(self, creation=True)
     class Config:
         extra = 'forbid'
 
@@ -201,6 +229,15 @@ class CarnetCommandeUpdate(BaseModel):
     notes: Optional[constr(max_length=5000)] = None
     avec_service: Optional[bool] = None
     validated: Optional[bool] = None
+    nb_adultes: Optional[int] = Field(None, ge=0, le=10000)
+    nb_enfants: Optional[int] = Field(None, ge=0, le=10000)
+    taux_enfant: Optional[int] = Field(None, ge=0, le=100)
+    repas_personnel: Optional[bool] = None
+    nb_repas_personnel: Optional[int] = Field(None, ge=0, le=1000)
+
+    @model_validator(mode='after')
+    def check_coherence(self):
+        return check_mariage_et_repas(self, creation=False)
 
     @field_validator('nom_client')
     @classmethod
