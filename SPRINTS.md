@@ -8,10 +8,10 @@
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
 - **Production** : Render déploie `main` — **Sprint P déployé le 2026-10-13**, P10 (cache busting) le 2026-10-14 (création de commande < 1 s, base à Francfort ; ancien projet Oregon supprimé le 2026-10-19). Python 3.13.
-- **Branche de travail** : aucune (V2.6 et V3 fusionnées dans `main` et déployées le 2026-10-22, branches supprimées).
+- **Branche de travail** : aucune (V2.6, V3 puis V4 fusionnées dans `main` le 2026-10-22).
 - **Décision du 2026-10-19** : le frontend passe à **Vue.js** (Sprint V, juste après l'existant). Règle : **ne plus faire de travail sur l'ancien frontend qui deviendrait inutile avec Vue** (sauf bug bloquant ou faille de sécurité en production).
 - **Réunion OMB du 2026-10-21** : ⏰ 2027-01-31 (fin du contrat) — **priorité absolue : terminer le planning de production** (Commandes + Planning en Vue/PrimeVue, avec les retours de la cuisine intégrés en V4 et V5). Ordre ensuite : fondations (Phase B) → **planning de service** → **pointage** (repris depuis le début avec Max et le père de Glenn) → pack hygiène. Détail dans [ROADMAP.md](ROADMAP.md) (journal du 2026-10-21).
-- **Prochaines tâches** : **V4 Planning** (avec les retours de la cuisine). V0 à V3 terminés et en ligne, cachés sous `/app/` (Admin Vue sous `/app/admin`, 154 tests backend, 111 tests Vue).
+- **Prochaines tâches** : **V5 Commandes** (avec les retours de la cuisine ; d'abord trancher la question de la pondération). V0 à V4 terminés, cachés sous `/app/` (Admin sous `/app/admin`, Planning + export Excel sous `/app/planning` ; 154 tests backend, 156 tests Vue). 🧪 Faire valider l'export Excel Vue par la cuisine sur les vraies commandes.
 
 - Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
@@ -303,10 +303,10 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - [x] V3.3 Onglet Utilisateurs (filtre par franchise, création avec mot de passe provisoire généré, rôle et franchise, réinitialisation du mot de passe, activation).
   - [x] V3.4 Route `/admin` réservée au TECH_ADMIN, lien du menu, vérification tablette.
   - [x] V3.5 **Harmonisation PrimeVue des pages V2** : `InputText`, `Button` avec `:loading`, sur Mon compte, changement obligatoire, mot de passe oublié, réinitialisation ; `ChampMotDePasse` gardé mais construit avec `InputGroup` + `InputText` + `Button` (l'œil du `Password` de PrimeVue n'est ni atteignable au clavier ni annoncé aux lecteurs d'écran) ; styles de formulaire communs dans `src/styles/formulaires.css` (`.formulaire`, `.champ`, `.boutons`…) ; test `harmonisation.spec.js` qui refuse les anciennes classes `.btn`/`.form-group` dans les écrans Vue ; PrimeVue installé pour tous les tests dans `vitest.setup.js`. La barre de navigation et les notifications restent telles quelles jusqu'à la bascule.
-- [ ] **V4 Planning** (~1 semaine + retours cuisine) : filtres (dates, type de prestation, catégorie, franchise), calculs, **export Excel** (ExcelJS), notes. + **retours de la cuisine (réunion du 2026-10-21)** :
-  - [ ] **Numéro de semaine** (ISO) en haut du tableau et en haut de l'export Excel.
-  - [ ] Export Excel : **case en rouge quand une commande a une note** (la cuisine va alors lire le bon de commande) ; la zone de texte des notes est conservée (elle servira quand le commerce transmettra les bons par l'interface).
-  - [ ] Export Excel : **sous-catégories séparées** par une bordure double et un intitulé en gras.
+- [x] **V4 Planning** (~1 semaine + retours cuisine) : filtres (dates, type de prestation, catégorie, franchise), calculs, **export Excel** (ExcelJS), notes. + **retours de la cuisine (réunion du 2026-10-21)** :
+  - [x] **Numéro de semaine** (ISO) en haut du tableau et en haut de l'export Excel.
+  - [x] Export Excel : **case en rouge quand une commande a une note** (la cuisine va alors lire le bon de commande) ; la zone de texte des notes est conservée (elle servira quand le commerce transmettra les bons par l'interface).
+  - [x] Export Excel : **sous-catégories séparées** par un **trait épais** sur toute la largeur (le trait double n'est pas affiché par Numbers) et un intitulé en gras.
   - [-] Mariages : afficher le **nombre d'adultes et d'enfants** plutôt que le total → **déplacé en V5** : ces deux nombres n'existent pas encore en base (colonnes ajoutées en V5) ; l'affichage dans le planning sera fait avec.
   - Découpage (2026-10-22) : **V4.1** fonctions de calcul pures (`src/utils/planning.js` : regroupement Sucré/Salé → catégorie → produits, totaux, numéro de semaine ISO, formats) · **V4.2** page Planning (filtres, appel API, commandes non validées, tableau à l'écran) · **V4.3** export Excel (ExcelJS installé par npm et chargé seulement au clic, + retours cuisine) · **V4.4** route, menu, comparaison avec l'ancien export, tablette.
   - Constaté en préparant la V4 : l'ancienne page envoie `franchise=` alors que le backend attend `franchise_id=` → **le filtre par franchise de l'admin n'a jamais fonctionné** (toutes les franchises sont toujours affichées). Corrigé dans la page Vue ; l'ancienne page n'est pas corrigée (fin de vie).
@@ -316,8 +316,9 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - [ ] **Création en écrans successifs** (`Stepper`) : 1. infos générales · 2. formules et produits · 3. service · 4. **récapitulatif avant validation** (remplace **B9**). Le même parcours sert à la modification et à la duplication.
   - [ ] Écran 1 : **type de prestation demandé avant le nombre de couverts**.
   - [ ] Mariages uniquement : convives en **deux champs, adultes et enfants** (`InputNumber`) ; « coefficient mariage » renommé **« pondération de la production »**, saisi **en pourcentage** (ex. 80 %, `InputNumber` avec suffixe « % ») au lieu d'un décimal, appliqué par défaut aux quantités des formules et produits, modifiable. ❓ (Glenn) À confirmer en début de V5 : la pondération s'applique-t-elle aux enfants seulement (10 enfants à 80 % = 8 parts) ou à toute la commande comme l'actuel `coefficient_ponderation` ?
-  - [ ] Écran 2 : **recherche de formules qui trouve tout ce qui *contient* le texte tapé** (`Select`/`AutoComplete` avec `filterMatchMode="contains"`, sans tenir compte des accents ni des majuscules).
+  - [ ] Écran 2 : **recherche de formules qui trouve tout ce qui _contient_ le texte tapé** (`Select`/`AutoComplete` avec `filterMatchMode="contains"`, sans tenir compte des accents ni des majuscules).
   - [ ] Écran 3 : **« Sans service » par défaut** (80 % des commandes) ; si « avec service » : « prévoir des repas pour le personnel ? » + combien.
+  - [ ] **Notes** (demande du 2026-10-22) : question « La commande a-t-elle une note ? » **Oui / Non** (Non par défaut) ; si **Oui**, la zone de texte s'ouvre, **pré-remplie avec « Voir le bon de commande »** (modifiable). Si on repasse à Non, la note est vidée. Le planning et l'export signalent déjà les commandes avec une note (« VOIR NOTES » en rouge).
   - [ ] Fenêtre de commande : **un clic hors de la fenêtre ne ferme plus rien** (`Dialog` avec `:dismissableMask="false"`) ; on quitte uniquement par un bouton **« Quitter »**, avec confirmation si des données ont été saisies.
   - [ ] Backend (avec tests) : nouvelles colonnes `nb_adultes`, `nb_enfants`, pondération en %, repas du personnel (oui/non + nombre) ; migration de l'ancien `coefficient_ponderation` (décimal → %).
   - [-] **Types de prestation et clé de tri** (mariages, boutique/particuliers, pro, sous-types petit-déjeuner/pause/buffet ; aucun type par défaut, création bloquée tant que rien n'est choisi) : ❓ (Max/Pascal) en attente de leur décision.
