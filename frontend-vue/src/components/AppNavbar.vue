@@ -8,13 +8,13 @@ const store = useUtilisateurStore()
 const router = useRouter()
 const menuOuvert = ref(false)
 
-// Pages pas encore migrées : liens vers l'ancien frontend.
-// Quand une page sera migrée, son lien deviendra un <RouterLink> vers /app/...
+// Pages migrées en Vue : « route » (nom de la route, sans recharger la page).
+// Pages pas encore migrées : « href » vers l'ancien frontend.
 const liens = [
   { texte: 'Produits', href: '/pages/produits.html' },
   { texte: 'Formules', href: '/pages/formules.html' },
   { texte: 'Commandes', href: '/pages/commandes.html' },
-  { texte: 'Planning', href: '/pages/planning.html' },
+  { texte: 'Planning', route: 'planning' },
 ]
 
 // Page déjà migrée en Vue : on change de page sans recharger
@@ -37,8 +37,9 @@ onBeforeUnmount(() => document.removeEventListener('click', fermerSiClicDehors))
   <nav class="navbar">
     <h1>{{ marque.emoji }} {{ marque.nom }}</h1>
     <ul class="nav-links">
-      <li v-for="lien in liens" :key="lien.href">
-        <a :href="lien.href">{{ lien.texte }}</a>
+      <li v-for="lien in liens" :key="lien.texte">
+        <RouterLink v-if="lien.route" :to="{ name: lien.route }">{{ lien.texte }}</RouterLink>
+        <a v-else :href="lien.href">{{ lien.texte }}</a>
       </li>
       <li v-if="store.estTechAdmin"><RouterLink :to="{ name: 'admin' }">🔧 Admin</RouterLink></li>
       <li><RouterLink :to="{ name: 'aide' }">❓ Aide</RouterLink></li>
