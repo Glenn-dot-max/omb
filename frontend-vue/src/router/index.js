@@ -33,6 +33,11 @@ const router = createRouter({
       component: () => import('../views/AdminView.vue'),
       meta: { techAdmin: true },
     },
+    {
+      path: '/planning',
+      name: 'planning',
+      component: () => import('../views/PlanningView.vue'),
+    },
     // Pages publiques (sans connexion)
     {
       path: '/mot-de-passe-oublie',
