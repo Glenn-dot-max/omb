@@ -334,11 +334,6 @@ def get_planning_production(
             
             produits_directs = commande_produits_map.get(commande_id, [])
 
-            quantite = cp["quantite"] * coefficient
-            # Si commande mariage, arrondir à l'unité supérieure
-            if commande.get("type_prestation") == "mariage":
-                quantite = float(math.ceil(quantite))
-            
             for cp in produits_directs:
                 produit_id = cp["produit_id"]
                 quantite = quantite_produite(cp["quantite"], commande)
