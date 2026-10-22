@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import AppNavbar from '@/components/AppNavbar.vue'
 import AppNotifications from '@/components/AppNotifications.vue'
+import ConfirmDialog from 'primevue/confirmdialog'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 
 const store = useUtilisateurStore()
@@ -12,4 +13,6 @@ const store = useUtilisateurStore()
   <AppNavbar v-if="store.estConnecte" />
   <RouterView />
   <AppNotifications />
+  <!-- Fenêtre de confirmation partagée par tous les écrans (useConfirm) -->
+  <ConfirmDialog />
 </template>

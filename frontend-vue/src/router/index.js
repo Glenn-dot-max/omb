@@ -27,6 +27,12 @@ const router = createRouter({
       name: 'changer-mot-de-passe',
       component: () => import('../views/ChangerMotDePasseView.vue'),
     },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      meta: { techAdmin: true },
+    },
     // Pages publiques (sans connexion)
     {
       path: '/mot-de-passe-oublie',
