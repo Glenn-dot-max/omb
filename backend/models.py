@@ -26,8 +26,9 @@ def check_nom_client(v: str) -> str:
     """Règles du nom de client, en création ET en modification d'une commande"""
     if not v or not v.strip():
         raise ValueError('Le nom du client ne peut pas être vide')
-    if re.search(r'[<>"\'\\/]', v):
-        raise ValueError('Caractères non autorisés dans le nom du client')
+    # L'apostrophe est autorisée (L'Équipe, O'Brien) : Vue affiche toujours le texte tel quel
+    if re.search(r'[<>"\\/]', v):
+        raise ValueError('Caractères non autorisés dans le nom du client (< > " \\ /)')
     return v.strip()
 
 def check_texte_libre(v: Optional[str]) -> Optional[str]:

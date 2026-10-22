@@ -14,6 +14,17 @@ import math
 router = APIRouter(prefix="/planning", tags=["planning"])
 supabase = get_supabase_client()
 
+def quantite_produite(quantite: float, commande: dict) -> float:
+    """Quantité à produire pour une commande : pondérée par son coefficient (1.0 = 100%).
+    Arrondie à l'unité supérieure si la commande est pondérée (V5.3a : toutes les commandes)
+    ou si c'est un mariage (comme avant). round(..., 6) évite qu'un calcul comme
+    1.1 x 50 = 55.0000000001 soit arrondi à 56."""
+    coefficient = commande.get("coefficient_ponderation") or 1.0
+    resultat = quantite * coefficient
+    if coefficient != 1.0 or commande.get("type_prestation") == "mariage":
+        resultat = float(math.ceil(round(resultat, 6)))
+    return resultat
+
 @router.get("/production")
 def get_planning_production(
     date_debut: str, 
@@ -323,14 +334,14 @@ def get_planning_production(
             
             produits_directs = commande_produits_map.get(commande_id, [])
 
-            coefficient = commande.get("coefficient_ponderation") or 1.0
+            quantite = cp["quantite"] * coefficient
+            # Si commande mariage, arrondir à l'unité supérieure
+            if commande.get("type_prestation") == "mariage":
+                quantite = float(math.ceil(quantite))
             
             for cp in produits_directs:
                 produit_id = cp["produit_id"]
-                quantite = cp["quantite"] * coefficient
-                # Si commande mariage, arrondir à l'unité supérieure
-                if commande.get("type_prestation") == "mariage":
-                    quantite = float(math.ceil(quantite))
+                quantite = quantite_produite(cp["quantite"], commande)
                 unite = cp["unite"]
                 
                 prod_info = produits_infos.get(produit_id)
@@ -386,10 +397,7 @@ def get_planning_production(
 
                     quantite_par_personne = fp["quantite"]
                     unite = fp["unite"]
-                    quantite_totale = quantite_par_personne * quantite_finale * coefficient
-                    # Si commande mariage, arrondir à l'unité supérieure
-                    if commande.get("type_prestation") == "mariage":
-                        quantite_totale = float(math.ceil(quantite_totale))
+                    quantite_totale = quantite_produite(quantite_par_personne * quantite_finale, commande)
                     
                     prod_info = produits_infos.get(produit_id)
                     if not prod_info:
@@ -423,12 +431,9 @@ def get_planning_production(
             
             # Ajouter la commande au planning
             planning[delivery_date]["commandes"].append(commande_data)
-            # Si c'est une commande mariage avec coefficient != 1, enregistrer qu'on a arrondi
-            try:
-                if commande.get("type_prestation") == "mariage" and (commande.get("coefficient_ponderation") or 1.0) != 1.0:
-                    rounded_commandes.add(str(commande_id))
-            except Exception:
-                pass
+            # Commande pondérée : ses quantités ont été arrondies à l'unité supérieure
+            if (commande.get("coefficient_ponderation") or 1.0) != 1.0:
+                rounded_commandes.add(str(commande_id))
         
         # =========================================
         # ÉTAPE 6: FINALISATION
