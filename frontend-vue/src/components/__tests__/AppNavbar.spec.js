@@ -33,6 +33,7 @@ beforeEach(() => {
       { path: '/', name: 'accueil', component: page },
       { path: '/mon-compte', name: 'mon-compte', component: page },
       { path: '/aide', name: 'aide', component: page },
+      { path: '/admin', name: 'admin', component: page },
     ],
   })
 })
@@ -44,9 +45,10 @@ describe('AppNavbar', () => {
     expect(wrapper.text()).not.toContain('Oh My Brunch')
     wrapper.unmount()
   })
-  it('affiche le lien Admin au TECH_ADMIN', () => {
+  it('affiche au TECH_ADMIN le lien Admin, qui mène à la page Vue (sans recharger)', () => {
     const { wrapper } = monter({ email: 'admin@omb.fr', role: 'TECH_ADMIN', franchise_nom: null })
-    expect(wrapper.text()).toContain('Admin')
+    const lien = wrapper.findAll('.nav-links a').find((a) => a.text().includes('Admin'))
+    expect(lien.attributes('href')).toBe('/admin') // devient /app/admin dans le navigateur
     wrapper.unmount()
   })
 

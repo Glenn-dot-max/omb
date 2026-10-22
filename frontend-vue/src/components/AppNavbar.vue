@@ -40,7 +40,7 @@ onBeforeUnmount(() => document.removeEventListener('click', fermerSiClicDehors))
       <li v-for="lien in liens" :key="lien.href">
         <a :href="lien.href">{{ lien.texte }}</a>
       </li>
-      <li v-if="store.estTechAdmin"><a href="/pages/admin.html">🔧 Admin</a></li>
+      <li v-if="store.estTechAdmin"><RouterLink :to="{ name: 'admin' }">🔧 Admin</RouterLink></li>
       <li><RouterLink :to="{ name: 'aide' }">❓ Aide</RouterLink></li>
     </ul>
   </nav>
