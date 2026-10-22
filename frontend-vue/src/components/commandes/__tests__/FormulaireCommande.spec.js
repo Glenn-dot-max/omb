@@ -1,0 +1,149 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import FormulaireCommande from '../FormulaireCommande.vue'
+import EcranInfos from '../EcranInfos.vue'
+import { useNotificationsStore } from '@/stores/notifications'
+import { commandeVide } from '@/utils/nouvelleCommande'
+import { apiPost, ApiError } from '@/api/client'
+
+vi.mock('@/api/client', async () => {
+  const vrai = await vi.importActual('@/api/client')
+  return { ApiError: vrai.ApiError, apiPost: vi.fn() }
+})
+vi.mock('@/api/navigation', () => ({ allerALaConnexion: vi.fn() }))
+
+let wrapper
+async function ouvrir() {
+  wrapper = mount(FormulaireCommande, {
+    attachTo: document.body,
+    props: {
+      visible: false,
+      'onUpdate:visible': (v) => wrapper.setProps({ visible: v }),
+      aujourdhui: '2026-10-22',
+    },
+  })
+  await wrapper.setProps({ visible: true }) // ouverture : le formulaire se remet à zéro
+  await flushPromises()
+}
+const bouton = (nom) => document.querySelector(`[data-test="${nom}"]`)
+async function cliquer(nom) {
+  bouton(nom).click()
+  await flushPromises()
+}
+async function saisir(id, valeur) {
+  const champ = document.getElementById(id)
+  champ.value = valeur
+  champ.dispatchEvent(new Event('input'))
+  await flushPromises()
+}
+// Remplit la commande d'un coup (l'écran 2 des formules arrive en V5.3c2)
+async function remplir(champs) {
+  wrapper
+    .findComponent(EcranInfos)
+    .vm.$emit('update:modelValue', { ...commandeVide('2026-10-22'), ...champs })
+  await flushPromises()
+}
+const COMPLETE = {
+  nom_client: 'Mairie de Caen',
+  nombre_couverts: 20,
+  formules: [{ formule_id: 'f1', nom: 'Brunch', couverts: 20, produits_exclus: [] }],
+}
+const ecranVisible = (n) => {
+  const ecran = document.querySelector(`[data-test="ecran-${n}"]`)
+  return !!ecran && ecran.closest('[role="tabpanel"]')?.style.display !== 'none'
+}
+
+beforeEach(() => {
+  setActivePinia(createPinia())
+  vi.clearAllMocks()
+})
+afterEach(() => wrapper?.unmount())
+
+describe('FormulaireCommande', () => {
+  it('commence au premier écran, sans bouton « Précédent »', async () => {
+    await ouvrir()
+    expect(document.getElementById('commande-client')).not.toBeNull()
+    expect(bouton('precedent')).toBeNull()
+  })
+
+  it('refuse de passer à l’écran suivant tant que l’écran 1 est incomplet', async () => {
+    await ouvrir()
+    await cliquer('suivant')
+    expect(useNotificationsStore().notifications[0]).toMatchObject({ type: 'error' })
+    expect(ecranVisible(2)).toBe(false)
+  })
+
+  it('passe à l’écran 2 quand l’écran 1 est complet, et peut revenir', async () => {
+    await ouvrir()
+    await saisir('commande-client', 'Mairie de Caen')
+    await cliquer('suivant')
+    expect(ecranVisible(2)).toBe(true)
+    await cliquer('precedent')
+    expect(document.getElementById('commande-client').value).toBe('Mairie de Caen')
+  })
+
+  it('« Quitter » sans rien saisir : ferme sans rien demander', async () => {
+    await ouvrir()
+    await cliquer('quitter')
+    expect(bouton('quitter-sans-enregistrer')).toBeNull()
+    expect(wrapper.props('visible')).toBe(false)
+  })
+
+  it('« Quitter » après une saisie : continuer, ou quitter sans enregistrer', async () => {
+    await ouvrir()
+    await saisir('commande-client', 'Mairie de Caen')
+    await cliquer('quitter')
+    await cliquer('continuer')
+    expect(wrapper.props('visible')).toBe(true)
+    expect(document.getElementById('commande-client').value).toBe('Mairie de Caen')
+
+    await cliquer('quitter')
+    await cliquer('quitter-sans-enregistrer')
+    expect(wrapper.props('visible')).toBe(false)
+    expect(apiPost).not.toHaveBeenCalled()
+  })
+
+  it('« Mettre en attente » enregistre la commande, non validée', async () => {
+    apiPost.mockResolvedValue({ id: 'cmd-1' })
+    await ouvrir()
+    await remplir(COMPLETE)
+    await cliquer('quitter')
+    await cliquer('mettre-en-attente')
+    expect(apiPost).toHaveBeenCalledWith(
+      '/commandes/complete',
+      expect.objectContaining({ nom_client: 'Mairie de Caen', validated: false }),
+    )
+    expect(wrapper.emitted('enregistree')).toHaveLength(1)
+    expect(wrapper.props('visible')).toBe(false)
+  })
+
+  it('« Mettre en attente » refusé si la commande est incomplète (sans formule ni produit)', async () => {
+    await ouvrir()
+    await saisir('commande-client', 'Mairie de Caen')
+    await cliquer('quitter')
+    await cliquer('mettre-en-attente')
+    expect(apiPost).not.toHaveBeenCalled()
+    expect(useNotificationsStore().notifications[0].message).toMatch(
+      /mettre la commande en attente/,
+    )
+    expect(wrapper.props('visible')).toBe(true)
+  })
+
+  it('« Mettre en attente » : erreur du serveur affichée, rien n’est fermé', async () => {
+    apiPost.mockRejectedValue(new ApiError('Une commande identique existe déjà', 409))
+    await ouvrir()
+    await remplir(COMPLETE)
+    await cliquer('quitter')
+    await cliquer('mettre-en-attente')
+    expect(useNotificationsStore().notifications[0].message).toBe(
+      'Une commande identique existe déjà',
+    )
+    expect(wrapper.props('visible')).toBe(true)
+  })
+
+  it('pas de croix de fermeture : on quitte par le bouton « Quitter »', async () => {
+    await ouvrir()
+    expect(document.querySelector('.p-dialog-close-button')).toBeNull()
+  })
+})

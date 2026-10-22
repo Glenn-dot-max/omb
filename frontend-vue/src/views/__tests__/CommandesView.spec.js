@@ -145,6 +145,14 @@ describe('CommandesView', () => {
     expect(apiDelete).not.toHaveBeenCalled()
   })
 
+  it('« Nouvelle commande » ouvre le formulaire', async () => {
+    await monter()
+    expect(document.getElementById('commande-client')).toBeNull()
+    await wrapper.find('[data-test="nouvelle-commande"]').trigger('click')
+    await flushPromises()
+    expect(document.getElementById('commande-client')).not.toBeNull()
+  })
+
   it('affiche l’erreur du serveur', async () => {
     apiGet.mockRejectedValue(new ApiError('Utilisateur sans franchise associée', 400))
     await monter()

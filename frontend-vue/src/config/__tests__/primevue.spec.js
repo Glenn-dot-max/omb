@@ -20,4 +20,10 @@ describe('PrimeVue (thème de la marque)', () => {
     expect(wrapper.text()).toContain('Enregistrer')
     expect(wrapper.classes()).toContain('p-button')
   })
+
+  it('le choix actif des boutons de choix (SelectButton) prend la couleur principale', () => {
+    const choix = presetMarque.components.togglebutton.colorScheme.light
+    expect(choix.content.checkedBackground).toBe('{primary.color}')
+    expect(choix.root.checkedColor).toBe('{primary.contrast.color}')
+  })
 })

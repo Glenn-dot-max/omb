@@ -8,6 +8,7 @@ import { useConfirm } from 'primevue/useconfirm'
 import { blocsDeCommandes, filtrerCommandes } from '@/utils/commandes'
 import { dateIso, formaterDate } from '@/utils/planning'
 import CarteCommande from '@/components/commandes/CarteCommande.vue'
+import FormulaireCommande from '@/components/commandes/FormulaireCommande.vue'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
@@ -28,6 +29,7 @@ const aujourdhui = ref(dateIso(new Date())) // remplacée par la date de Paris d
 const chargement = ref(false)
 const franchises = ref([])
 const filtres = ref({ recherche: '', date: '', franchiseId: null })
+const formulaireOuvert = ref(false)
 
 const archivees = computed(() => onglet.value === 'archivees')
 const commandesFiltrees = computed(() => filtrerCommandes(commandes.value, filtres.value))
@@ -131,8 +133,19 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
 
 <template>
   <main class="container">
-    <h2>📦 Commandes</h2>
-
+    <div class="entete-page">
+      <h2>📦 Commandes</h2>
+      <Button
+        label="Nouvelle commande"
+        data-test="nouvelle-commande"
+        @click="formulaireOuvert = true"
+      />
+    </div>
+    <FormulaireCommande
+      v-model:visible="formulaireOuvert"
+      :aujourdhui="aujourdhui"
+      @enregistree="charger"
+    />
     <div class="form-card">
       <SelectButton
         :model-value="onglet"
@@ -228,6 +241,13 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
 </template>
 
 <style scoped>
+.entete-page {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .filtres {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

@@ -29,6 +29,18 @@ export const presetMarque = definePreset(Aura, {
       },
     },
   },
+  components: {
+    // Choix à boutons (SelectButton : service, note, onglets) : le choix actif en doré,
+    // comme les boutons principaux, au lieu du blanc sur gris d'Aura
+    togglebutton: {
+      colorScheme: {
+        light: {
+          root: { checkedColor: '{primary.contrast.color}' },
+          content: { checkedBackground: '{primary.color}' },
+        },
+      },
+    },
+  },
 })
 
 // Options communes à l'application ET aux tests

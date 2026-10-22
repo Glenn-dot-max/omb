@@ -6,6 +6,7 @@ import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
 import { dateIso, formaterDate, libelleSemaines } from '@/utils/planning'
 import { exporterPlanning } from '@/utils/exportPlanning'
+import { TYPES_PRESTATION } from '@/utils/typesPrestation'
 import TableauPlanning from '@/components/planning/TableauPlanning.vue'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -18,13 +19,6 @@ const utilisateur = useUtilisateurStore()
 const notifications = useNotificationsStore()
 
 // Valeurs attendues par le serveur (GET /planning/production)
-const TYPES_PRESTATION = [
-  { valeur: 'brunch', libelle: 'Brunch' },
-  { valeur: 'non-brunch', libelle: 'Non-Brunch' },
-  { valeur: 'pause petit déjeuner', libelle: 'Pause petit déjeuner' },
-  { valeur: 'mariage', libelle: 'Mariage' },
-  { valeur: 'NC', libelle: 'Non classé' },
-]
 const CATEGORIES = [
   { valeur: 'tous', libelle: 'Tous les produits' },
   { valeur: 'sucré', libelle: 'Produits sucrés' },
