@@ -113,6 +113,18 @@
 
 ## Qualité du code (petit ménage)
 
+### B14 — Vérifier côté serveur le mot de passe choisi par l'admin
+
+- **Ajouté le** : 2026-10-22 (revue de sécurité de la V3)
+- **Constat** : `UserCreate.password` (création d'un compte) n'applique pas `check_mot_de_passe`, et `PasswordReset.new_password` (réinitialisation par l'admin) ne vérifie que la longueur. L'écran Vue impose déjà les règles (mot de passe généré + `verifierNouveauMotDePasse`), mais un appel direct à l'API par un TECH_ADMIN peut poser un mot de passe faible.
+- **Ce qu'il faudra faire** : ajouter `check_mot_de_passe` (et la longueur minimale) sur ces deux champs dans `backend/models.py`, avec un test de réussite et un test de refus. Vérifier que l'ancienne page Admin (qui génère ses mots de passe) reste compatible tant qu'elle existe.
+
+### B15 — Les 4 erreurs `eslint` du frontend Vue
+
+- **Ajouté le** : 2026-10-22
+- **Constat** : `npx eslint src` (depuis `frontend-vue/`) signale 4 erreurs antérieures à la V3 : `__dirname` non défini dans `src/__tests__/theme.spec.js` (×2), affectation inutile de `body` dans `src/api/client.js`, et `toHaveBeenCalledOnce` + `toHaveBeenCalledWith` à remplacer par `toHaveBeenCalledExactlyOnceWith` dans `src/composables/__tests__/useAction.spec.js`. Sans effet sur les tests ni la construction.
+- **Ce qu'il faudra faire** : les corriger (pour `theme.spec.js`, lire les fichiers avec `import.meta.glob(…, { query: '?raw' })` comme `harmonisation.spec.js`), puis ajouter `npm run lint` aux vérifications avant commit, et plus tard à la CI (Sprint 5).
+
 ### B2 — Avertissements de dépréciation dans `pytest`
 
 - **Ajouté le** : 2026-10-09

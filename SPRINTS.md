@@ -8,10 +8,10 @@
 ## 📍 Où on en est (à mettre à jour à chaque session)
 
 - **Production** : Render déploie `main` — **Sprint P déployé le 2026-10-13**, P10 (cache busting) le 2026-10-14 (création de commande < 1 s, base à Francfort ; ancien projet Oregon supprimé le 2026-10-19). Python 3.13.
-- **Branches de travail** : `sprint/v2-6-primevue` (PrimeVue branché sur le thème, commité, pas encore fusionné) puis `sprint/v3-admin` (V3.1 en cours).
+- **Branche de travail** : aucune (V2.6 et V3 fusionnées dans `main` et déployées le 2026-10-22, branches supprimées).
 - **Décision du 2026-10-19** : le frontend passe à **Vue.js** (Sprint V, juste après l'existant). Règle : **ne plus faire de travail sur l'ancien frontend qui deviendrait inutile avec Vue** (sauf bug bloquant ou faille de sécurité en production).
 - **Réunion OMB du 2026-10-21** : ⏰ 2027-01-31 (fin du contrat) — **priorité absolue : terminer le planning de production** (Commandes + Planning en Vue/PrimeVue, avec les retours de la cuisine intégrés en V4 et V5). Ordre ensuite : fondations (Phase B) → **planning de service** → **pointage** (repris depuis le début avec Max et le père de Glenn) → pack hygiène. Détail dans [ROADMAP.md](ROADMAP.md) (journal du 2026-10-21).
-- **Prochaines tâches** : **V3 Admin** (V3.1 garde-fous backend, puis franchises, utilisateurs, harmonisation PrimeVue des pages V2). V0 à V2 et V1.8 terminés et en ligne, cachés sous `/app/`.
+- **Prochaines tâches** : **V4 Planning** (avec les retours de la cuisine). V0 à V3 terminés et en ligne, cachés sous `/app/` (Admin Vue sous `/app/admin`, 154 tests backend, 111 tests Vue).
 
 - Non prioritaire : [BACKLOG.md](BACKLOG.md).
 
@@ -297,17 +297,19 @@ Branche : `sprint/p-performance` (à créer depuis `v8`).
   - [x] V1.8 **Responsive (ordinateur + tablette)** (décision du 2026-10-21) : points de rupture communs **480 px** (téléphone), **768 px** (tablette portrait), **1024 px** (tablette paysage), notés en tête de `style.css` et dans `CLAUDE.md` ; règle tactile `@media (pointer: coarse)` → boutons/champs d'au moins 44 px de haut (sans effet à la souris) dans `style.css` et `login.css`. Correctif lié (2026-10-21) : `login.css` avait `overflow: hidden` sur `body` → impossible de défiler jusqu'au bouton sur tablette (clavier) ou petit écran ; remplacé par `overflow-x: hidden`.
 - [x] **V2 Pages simples** (3 à 4 jours, chaque page testée sur `/app/` en production) : mon compte, aide, changement de mot de passe, réinitialisation du mot de passe (+ réactiver « mot de passe oublié », `BACKLOG.md` **B1**).
 - [x] **V2.6 PrimeVue** : PrimeVue 4.5 + thème Aura, palette primaire branchée sur les variables de `theme.css` (`src/config/primevue.js`, test associé).
-- [ ] **V3 Admin** (3 à 4 jours) : franchises, utilisateurs (création, modification, réinitialisation du mot de passe, activation). Catégories et types : migrés avec Produits au Sprint 8 (tâche **8.4**).
-  - [ ] V3.1 Garde-fous backend : un admin ne peut ni se désactiver ni changer son propre rôle ; réponses utilisateur filtrées en liste blanche.
-  - [ ] V3.2 Onglet Franchises (`DataTable`, `Dialog`, `ConfirmDialog`).
-  - [ ] V3.3 Onglet Utilisateurs (filtre par franchise, création avec mot de passe provisoire généré, rôle et franchise, réinitialisation du mot de passe, activation).
-  - [ ] V3.4 Route `/admin` réservée au TECH_ADMIN, lien du menu, vérification tablette.
-  - [ ] V3.5 **Harmonisation PrimeVue des pages V2** (~½ jour) : `InputText`, `Password` avec `toggleMask` (remplace `ChampMotDePasse`), `Button` avec `:loading`, sur Mon compte, changement obligatoire, mot de passe oublié, réinitialisation. La barre de navigation et les notifications restent telles quelles jusqu'à la bascule.
+- [x] **V3 Admin** (terminé et déployé le 2026-10-22, revue de sécurité sans problème) : franchises, utilisateurs (création, modification, réinitialisation du mot de passe, activation). Catégories et types : migrés avec Produits au Sprint 8 (tâche **8.4**).
+  - [x] V3.1 Garde-fous backend : un admin ne peut ni se désactiver ni changer son propre rôle ; réponses utilisateur filtrées en liste blanche.
+  - [x] V3.2 Onglet Franchises (`DataTable`, `Dialog`, `ConfirmDialog`).
+  - [x] V3.3 Onglet Utilisateurs (filtre par franchise, création avec mot de passe provisoire généré, rôle et franchise, réinitialisation du mot de passe, activation).
+  - [x] V3.4 Route `/admin` réservée au TECH_ADMIN, lien du menu, vérification tablette.
+  - [x] V3.5 **Harmonisation PrimeVue des pages V2** : `InputText`, `Button` avec `:loading`, sur Mon compte, changement obligatoire, mot de passe oublié, réinitialisation ; `ChampMotDePasse` gardé mais construit avec `InputGroup` + `InputText` + `Button` (l'œil du `Password` de PrimeVue n'est ni atteignable au clavier ni annoncé aux lecteurs d'écran) ; styles de formulaire communs dans `src/styles/formulaires.css` (`.formulaire`, `.champ`, `.boutons`…) ; test `harmonisation.spec.js` qui refuse les anciennes classes `.btn`/`.form-group` dans les écrans Vue ; PrimeVue installé pour tous les tests dans `vitest.setup.js`. La barre de navigation et les notifications restent telles quelles jusqu'à la bascule.
 - [ ] **V4 Planning** (~1 semaine + retours cuisine) : filtres (dates, type de prestation, catégorie, franchise), calculs, **export Excel** (ExcelJS), notes. + **retours de la cuisine (réunion du 2026-10-21)** :
   - [ ] **Numéro de semaine** (ISO) en haut du tableau et en haut de l'export Excel.
   - [ ] Export Excel : **case en rouge quand une commande a une note** (la cuisine va alors lire le bon de commande) ; la zone de texte des notes est conservée (elle servira quand le commerce transmettra les bons par l'interface).
   - [ ] Export Excel : **sous-catégories séparées** par une bordure double et un intitulé en gras.
-  - [ ] Mariages : afficher le **nombre d'adultes et d'enfants** plutôt que le total.
+  - [-] Mariages : afficher le **nombre d'adultes et d'enfants** plutôt que le total → **déplacé en V5** : ces deux nombres n'existent pas encore en base (colonnes ajoutées en V5) ; l'affichage dans le planning sera fait avec.
+  - Découpage (2026-10-22) : **V4.1** fonctions de calcul pures (`src/utils/planning.js` : regroupement Sucré/Salé → catégorie → produits, totaux, numéro de semaine ISO, formats) · **V4.2** page Planning (filtres, appel API, commandes non validées, tableau à l'écran) · **V4.3** export Excel (ExcelJS installé par npm et chargé seulement au clic, + retours cuisine) · **V4.4** route, menu, comparaison avec l'ancien export, tablette.
+  - Constaté en préparant la V4 : l'ancienne page envoie `franchise=` alors que le backend attend `franchise_id=` → **le filtre par franchise de l'admin n'a jamais fonctionné** (toutes les franchises sont toujours affichées). Corrigé dans la page Vue ; l'ancienne page n'est pas corrigée (fin de vie).
   - Composants : `DataTable` (tableau), `DatePicker` (avec la traduction française de PrimeVue), `Select`/`MultiSelect` (filtres). Couleurs de l'export : lues dans la configuration de marque, pas écrites en dur.
 - [ ] **V5 Commandes** (2,5 à 3 semaines avec les retours cuisine) : liste (actives / archivées, filtres, franchise pour l'admin), archivage auto à l'ouverture, création en un appel, modification en un appel, duplication (formulaire pré-rempli), suppression, validation, exclusions de produits dans les formules, badges ; + **B10** (bouton « remonter en haut ») ; autoriser les apostrophes dans le nom du client (backend + écran). + **retours de la cuisine (réunion du 2026-10-21)** :
   - [ ] **Liste des commandes en blocs**, chaque commande dans un seul bloc : **Prochains jours** (aujourd'hui, demain, après-demain) · **Semaine en cours** (de J+3 jusqu'au dimanche ; vide si J+2 tombe déjà le dimanche ou après) · **Semaine prochaine** (lundi → dimanche suivants, sans ce qui est déjà dans « Prochains jours ») · **Plus tard** (replié par défaut, pour ne perdre aucune commande).
