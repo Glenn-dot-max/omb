@@ -4,6 +4,8 @@ import { apiPostPublic } from '@/api/client'
 import { allerALaConnexion } from '@/api/navigation'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
 
 const notifications = useNotificationsStore()
 const email = ref('')
@@ -19,26 +21,29 @@ const { executer: envoyer, enCours } = useAction(async () => {
   }
 })
 </script>
-
 <template>
   <main class="container">
     <h2>🔑 Mot de passe oublié</h2>
     <div class="form-card">
       <p v-if="messageEnvoye">📧 {{ messageEnvoye }}</p>
-      <form v-else @submit.prevent="envoyer">
+      <form v-else class="formulaire" @submit.prevent="envoyer">
         <p>Saisissez votre email : vous recevrez un lien pour choisir un nouveau mot de passe.</p>
-        <div class="form-group">
+        <div class="champ">
           <label for="email">Email *</label>
-          <input id="email" v-model="email" type="email" autocomplete="email" required />
+          <InputText id="email" v-model="email" type="email" autocomplete="email" required />
         </div>
-        <button type="submit" class="btn" :disabled="enCours">
-          {{ enCours ? 'Envoi…' : 'Recevoir le lien' }}
-        </button>
+        <div class="boutons">
+          <Button type="submit" label="Recevoir le lien" :loading="enCours" />
+        </div>
       </form>
       <p>
-        <button type="button" class="btn-secondary" @click="allerALaConnexion">
-          ← Retour à la connexion
-        </button>
+        <Button
+          type="button"
+          label="← Retour à la connexion"
+          severity="secondary"
+          text
+          @click="allerALaConnexion"
+        />
       </p>
     </div>
   </main>

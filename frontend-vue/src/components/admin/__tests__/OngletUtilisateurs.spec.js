@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import PrimeVue from 'primevue/config'
 import Select from 'primevue/select'
 import OngletUtilisateurs from '../OngletUtilisateurs.vue'
 import { useNotificationsStore } from '@/stores/notifications'
@@ -60,7 +59,7 @@ const ZOE = {
 let wrapper
 async function monter() {
   useUtilisateurStore().utilisateur = { id: 'admin-1', role: 'TECH_ADMIN' }
-  wrapper = mount(OngletUtilisateurs, { attachTo: document.body, global: { plugins: [PrimeVue] } })
+  wrapper = mount(OngletUtilisateurs, { attachTo: document.body })
   await flushPromises()
   return wrapper
 }

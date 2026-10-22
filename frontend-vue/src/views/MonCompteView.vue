@@ -1,16 +1,10 @@
 <script setup>
-import { computed } from 'vue'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 import FormulaireMotDePasse from '@/components/FormulaireMotDePasse.vue'
+import { libelleRole } from '@/utils/roles'
+import Button from 'primevue/button'
 
 const store = useUtilisateurStore()
-
-const LIBELLES_ROLES = {
-  TECH_ADMIN: 'Administrateur',
-  CATALOG_ADMIN: 'Administrateur du catalogue',
-  USER: 'Utilisateur',
-}
-const libelleRole = computed(() => LIBELLES_ROLES[store.utilisateur.role] || store.utilisateur.role)
 </script>
 
 <template>
@@ -30,7 +24,7 @@ const libelleRole = computed(() => LIBELLES_ROLES[store.utilisateur.role] || sto
         </div>
         <div class="info-item">
           <label>Rôle :</label>
-          <span>{{ libelleRole }}</span>
+          <span>{{ libelleRole(store.utilisateur.role) }}</span>
         </div>
       </div>
     </div>
@@ -42,9 +36,13 @@ const libelleRole = computed(() => LIBELLES_ROLES[store.utilisateur.role] || sto
 
     <div class="form-card">
       <h3>🚪 Déconnexion</h3>
-      <button type="button" class="btn-secondary" @click="store.deconnecter()">
-        Se déconnecter
-      </button>
+      <Button
+        type="button"
+        label="Se déconnecter"
+        severity="secondary"
+        outlined
+        @click="store.deconnecter()"
+      />
     </div>
   </main>
 </template>

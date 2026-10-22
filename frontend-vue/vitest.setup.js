@@ -12,3 +12,8 @@ window.matchMedia ??= vi.fn((requete) => ({
   addListener: vi.fn(),
   removeListener: vi.fn(),
 }))
+
+// PrimeVue installé pour rous les composants montés dans les tests (comme app.use dans main.js)
+import { config } from '@vue/test-utils'
+import PrimeVue from 'primevue/config'
+config.global.plugins.push(PrimeVue)

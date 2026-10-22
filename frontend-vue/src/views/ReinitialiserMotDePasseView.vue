@@ -6,6 +6,7 @@ import { allerALaConnexion } from '@/api/navigation'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
 import ChampMotDePasse from '@/components/ChampMotDePasse.vue'
+import Button from 'primevue/button'
 import { verifierNouveauMotDePasse } from '@/utils/motDePasse'
 
 // Page ouverte depuis le lien de l'email : …/reinitialiser-mot-de-passe?token=…
@@ -39,8 +40,8 @@ const { executer: reinitialiser, enCours } = useAction(async () => {
         ❌ Lien invalide : utilisez le lien reçu par email, ou faites une nouvelle demande.
       </p>
       <p v-else-if="reussi">✅ Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.</p>
-      <form v-else @submit.prevent="reinitialiser">
-        <div class="form-group">
+      <form v-else class="formulaire" @submit.prevent="reinitialiser">
+        <div class="champ">
           <label for="nouveau-mot-de-passe">Nouveau mot de passe *</label>
           <ChampMotDePasse
             id="nouveau-mot-de-passe"
@@ -51,7 +52,7 @@ const { executer: reinitialiser, enCours } = useAction(async () => {
             >Minimum 8 caractères, avec majuscule, minuscule et chiffre</small
           >
         </div>
-        <div class="form-group">
+        <div class="champ">
           <label for="confirmation-mot-de-passe">Confirmer le mot de passe *</label>
           <ChampMotDePasse
             id="confirmation-mot-de-passe"
@@ -59,22 +60,19 @@ const { executer: reinitialiser, enCours } = useAction(async () => {
             autocomplete="new-password"
           />
         </div>
-        <button type="submit" class="btn" :disabled="enCours">
-          {{ enCours ? 'Enregistrement…' : 'Enregistrer le mot de passe' }}
-        </button>
+        <div class="boutons">
+          <Button type="submit" label="Enregistrer le mot de passe" :loading="enCours" />
+        </div>
       </form>
       <p>
-        <button type="button" class="btn-secondary" @click="allerALaConnexion">
-          ← Aller à la connexion
-        </button>
+        <Button
+          type="button"
+          label="← Aller à la connexion"
+          severity="secondary"
+          text
+          @click="allerALaConnexion"
+        />
       </p>
     </div>
   </main>
 </template>
-
-<style scoped>
-.aide-champ {
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-</style>

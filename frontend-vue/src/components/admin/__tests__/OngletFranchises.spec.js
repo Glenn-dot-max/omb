@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import PrimeVue from 'primevue/config'
 import OngletFranchises from '../OngletFranchises.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import { apiGet, apiPost, apiPut, apiDelete, ApiError } from '@/api/client'
@@ -42,7 +41,7 @@ const CAEN = {
 let wrapper
 async function monter() {
   // attachTo : la fenêtre (Dialog) s'affiche dans document.body, hors du composant
-  wrapper = mount(OngletFranchises, { attachTo: document.body, global: { plugins: [PrimeVue] } })
+  wrapper = mount(OngletFranchises, { attachTo: document.body })
   await flushPromises()
   return wrapper
 }

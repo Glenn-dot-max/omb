@@ -401,24 +401,6 @@ function demanderChangementStatut(utilisateur) {
   gap: 8px;
   flex-wrap: wrap;
 }
-.formulaire {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.champ {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.ligne {
-  display: flex;
-  gap: 8px;
-}
-.ligne :first-child {
-  flex: 1;
-  min-width: 0;
-}
 .mot-de-passe {
   font-family: monospace;
   font-size: 1.4rem;

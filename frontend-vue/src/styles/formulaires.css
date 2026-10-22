@@ -1,0 +1,30 @@
+/* Mise en page commune des formulaires des écrans Vue (avec les composants PrimeVue).
+   Chargé une fois dans main.js : les composants n'ont plus à recopier ces règles. */
+.formulaire {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aide-champ {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+/* Un champ et son bouton côte à côte (ex. mot de passe + « Générer ») */
+.ligne {
+  display: flex;
+  gap: 8px;
+}
+.ligne > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.boutons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}

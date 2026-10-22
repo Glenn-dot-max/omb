@@ -1,6 +1,8 @@
 // Thème (couleurs de la marque) puis CSS de l'ancien frontend, partagés pendant la migration
 import '../../frontend/css/theme.css'
 import '../../frontend/css/style.css'
+// Mise en page des formulaires des écrans Vue
+import './styles/formulaires.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

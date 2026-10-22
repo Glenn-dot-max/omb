@@ -236,14 +236,4 @@ function demanderChangementStatut(franchise) {
   gap: 8px;
   flex-wrap: wrap;
 }
-.formulaire {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.champ {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
 </style>

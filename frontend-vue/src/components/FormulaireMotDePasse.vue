@@ -4,6 +4,7 @@ import { apiPost, saveToken } from '@/api/client'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
 import ChampMotDePasse from '@/components/ChampMotDePasse.vue'
+import Button from 'primevue/button'
 import { verifierNouveauMotDePasse } from '@/utils/motDePasse'
 
 // Formulaire de changement de mot de passe, utilisé par « Mon compte » et par
@@ -43,17 +44,17 @@ const { executer: changerMotDePasse, enCours } = useAction(async () => {
 </script>
 
 <template>
-  <form @submit.prevent="changerMotDePasse">
-    <div class="form-group">
+  <form class="formulaire" @submit.prevent="changerMotDePasse">
+    <div class="champ">
       <label for="ancien-mot-de-passe">{{ props.libelleAncien }}</label>
       <ChampMotDePasse id="ancien-mot-de-passe" v-model="ancien" autocomplete="current-password" />
     </div>
-    <div class="form-group">
+    <div class="champ">
       <label for="nouveau-mot-de-passe">Nouveau mot de passe *</label>
       <ChampMotDePasse id="nouveau-mot-de-passe" v-model="nouveau" autocomplete="new-password" />
       <small class="aide-champ">Minimum 8 caractères, avec majuscule, minuscule et chiffre</small>
     </div>
-    <div class="form-group">
+    <div class="champ">
       <label for="confirmation-mot-de-passe">Confirmer le nouveau mot de passe *</label>
       <ChampMotDePasse
         id="confirmation-mot-de-passe"
@@ -61,15 +62,8 @@ const { executer: changerMotDePasse, enCours } = useAction(async () => {
         autocomplete="new-password"
       />
     </div>
-    <button type="submit" class="btn" :disabled="enCours">
-      {{ enCours ? 'Enregistrement…' : '✅ Changer mon mot de passe' }}
-    </button>
+    <div class="boutons">
+      <Button type="submit" label="Changer mon mot de passe" :loading="enCours" />
+    </div>
   </form>
 </template>
-
-<style scoped>
-.aide-champ {
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-</style>
