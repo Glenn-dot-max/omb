@@ -3,8 +3,14 @@ import { ref, watch } from 'vue'
 import { apiPost } from '@/api/client'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
-import { commandeVide, erreurEtape, donneesPourLeServeur } from '@/utils/nouvelleCommande'
+import {
+  commandeVide,
+  erreurEtape,
+  donneesPourLeServeur,
+  partsProduites,
+} from '@/utils/nouvelleCommande'
 import EcranInfos from '@/components/commandes/EcranInfos.vue'
+import EcranContenu from '@/components/commandes/EcranContenu.vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Stepper from 'primevue/stepper'
@@ -106,7 +112,9 @@ const { executer: mettreEnAttente, enCours: miseEnAttenteEnCours } = useAction((
           <EcranInfos v-model="commande" :aujourdhui="aujourdhui" />
         </StepPanel>
         <StepPanel value="2">
-          <p data-test="ecran-2">Formules et produits (V5.3c2)</p>
+          <div data-test="ecran-2">
+            <EcranContenu v-model="commande" :couverts-proposes="partsProduites(commande)" />
+          </div>
         </StepPanel>
         <StepPanel value="3">
           <p data-test="ecran-3">Récapitulatif (V5.3c3)</p>

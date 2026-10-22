@@ -5,11 +5,11 @@ import FormulaireCommande from '../FormulaireCommande.vue'
 import EcranInfos from '../EcranInfos.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import { commandeVide } from '@/utils/nouvelleCommande'
-import { apiPost, ApiError } from '@/api/client'
+import { apiPost, apiGet, ApiError } from '@/api/client'
 
 vi.mock('@/api/client', async () => {
   const vrai = await vi.importActual('@/api/client')
-  return { ApiError: vrai.ApiError, apiPost: vi.fn() }
+  return { ApiError: vrai.ApiError, apiPost: vi.fn(), apiGet: vi.fn() }
 })
 vi.mock('@/api/navigation', () => ({ allerALaConnexion: vi.fn() }))
 
@@ -37,7 +37,7 @@ async function saisir(id, valeur) {
   champ.dispatchEvent(new Event('input'))
   await flushPromises()
 }
-// Remplit la commande d'un coup (l'écran 2 des formules arrive en V5.3c2)
+// Remplit la commande d'un coup (sans passer par les écrans)
 async function remplir(champs) {
   wrapper
     .findComponent(EcranInfos)
@@ -57,6 +57,7 @@ const ecranVisible = (n) => {
 beforeEach(() => {
   setActivePinia(createPinia())
   vi.clearAllMocks()
+  apiGet.mockResolvedValue([]) // catalogue de l'écran 2 (formules, produits, unités)
 })
 afterEach(() => wrapper?.unmount())
 
@@ -81,6 +82,19 @@ describe('FormulaireCommande', () => {
     expect(ecranVisible(2)).toBe(true)
     await cliquer('precedent')
     expect(document.getElementById('commande-client').value).toBe('Mairie de Caen')
+  })
+
+  it('écran 2 : refuse d’aller au récapitulatif sans formule ni produit, accepte avec', async () => {
+    await ouvrir()
+    await saisir('commande-client', 'Mairie de Caen')
+    await cliquer('suivant')
+    await cliquer('suivant')
+    expect(ecranVisible(3)).toBe(false)
+    expect(useNotificationsStore().notifications.at(-1).message).toMatch(/au moins une formule/)
+
+    await remplir(COMPLETE)
+    await cliquer('suivant')
+    expect(ecranVisible(3)).toBe(true)
   })
 
   it('« Quitter » sans rien saisir : ferme sans rien demander', async () => {
