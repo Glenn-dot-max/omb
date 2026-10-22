@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from auth import get_current_user
 from database import get_supabase_client
 from models import CommandeComplete, CommandeModification
-from utils import verify_commande_ownership, check_acces_catalogue
+from utils import verify_commande_ownership, check_acces_catalogue, noter_historique
 from datetime import datetime, date, time, timedelta
 from uuid import UUID
 import logging
@@ -149,6 +149,17 @@ def get_commande(commande_id: str, current_user: dict = Depends(get_current_user
         raise HTTPException(status_code=404, detail="Commande not found")
     return response.data[0]
 
+@router.get("/{commande_id}/historique")
+def get_historique_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
+    """Historique d'une commande de MA franchise (TECH_ADMIN : toutes), le plus récent d'abord"""
+    verify_commande_ownership(supabase, commande_id, current_user)
+    response = supabase.table("commande_historique")\
+        .select("action, details, user_email, created_at")\
+        .eq("commande_id", commande_id)\
+        .order("created_at", desc=True)\
+        .execute()
+    return response.data
+
 @router.post("/complete")
 def create_commande_complete(commande: CommandeComplete, current_user: dict = Depends(get_current_user)):
     """Crée une commande AVEC ses formules (et leurs exclusions) et ses produits, en un seul appel.
@@ -214,6 +225,16 @@ def create_commande_complete(commande: CommandeComplete, current_user: dict = De
         logger.error(f"Échec de création du contenu de la commande {commande_id} : annulation", exc_info=True)
         supabase.table("carnet_commande").delete().eq("id", commande_id).execute()
         raise
+
+    noter_historique(supabase, commande_id, franchise_id, current_user, "creation", {
+        "nom_client": commande_data["nom_client"],
+        "delivery_date": commande_data["delivery_date"],
+        "delivery_hour": commande_data["delivery_hour"],
+        "nombre_couverts": commande_data["nombre_couverts"],
+        "validated": commande_data["validated"],
+        "formules": len(commande.formules),
+        "produits": len(commande.produits),
+    })
 
     return nouvelle_commande
 
@@ -368,6 +389,13 @@ def update_commande_complete(commande_id: str, modif: CommandeModification, curr
             for p in modif.produits_ajoutes
         ]).execute()
 
+    noter_historique(supabase, commande_id, franchise_id, current_user, "modification", {
+        "champs": champs,
+        "formules_modifiees": len(modif.formules_modifiees),
+        "formules_ajoutees": len(modif.formules_ajoutees),
+        "produits_ajoutes": len(modif.produits_ajoutes),
+    })
+
     return {"message": "Commande mise à jour", "id": commande_id}
 
 @router.delete("/{commande_id}")
@@ -378,7 +406,7 @@ def delete_commande(commande_id: str, current_user: dict = Depends(get_current_u
         if not current_user.get("franchise_id"):
             raise HTTPException(status_code=400, detail="Utilisateur sans franchise associée")
 
-    ownership_query = supabase.table("carnet_commande").select("id")\
+    ownership_query = supabase.table("carnet_commande").select("id, nom_client, delivery_date, franchise_id")\
         .eq("id", commande_id)
     if current_user["role"] != "TECH_ADMIN":
         ownership_query = ownership_query.eq("franchise_id", current_user["franchise_id"])
@@ -414,6 +442,13 @@ def delete_commande(commande_id: str, current_user: dict = Depends(get_current_u
         .eq("id", commande_id)\
         .execute()
 
+    # La commande n'existe plus, mais son historique reste (et garde la trace de la suppression)
+    commande = ownership.data[0]
+    noter_historique(supabase, commande_id, commande.get("franchise_id"), current_user, "suppression", {
+        "nom_client": commande.get("nom_client"),
+        "delivery_date": commande.get("delivery_date"),
+    })
+
     return {"message": "Commande deleted successfully"}
 
 
@@ -434,6 +469,8 @@ def validate_commande(commande_id: str, current_user: dict = Depends(get_current
 
         if not response.data:
             raise HTTPException(status_code=404, detail="Commande not found")
+
+        noter_historique(supabase, commande_id, response.data[0].get("franchise_id"), current_user, "validation")
         
         return {"message": "Commande validée avec succès", "commande": serialize_commande(response.data[0])}
     

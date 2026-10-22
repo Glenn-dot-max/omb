@@ -1,5 +1,8 @@
 import re
+import logging
 from fastapi import HTTPException
+
+logger = logging.getLogger(__name__)
 
 def get_or_404(supabase, table: str, id_value, select: str = "id", id_column: str = "id", detail: str = "Introuvable"):
     """Récupère la première ligne correspondante, ou lève une 404."""
@@ -64,3 +67,21 @@ def check_acces_catalogue(supabase, table: str, colonne: str, ids: list, franchi
             status_code=404,
             detail=f"{libelle} introuvable ou non disponible pour votre franchise"
         )
+
+
+def noter_historique(supabase, commande_id, franchise_id, current_user: dict, action: str, details: dict = None):
+    """Ajoute une ligne à l'historique d'une commande : qui (utilisateur), quoi (action), quand
+    (date posée par la base) et ce qui a changé (details). Les lignes ne sont jamais modifiées.
+    Une panne de l'historique ne doit pas empêcher d'enregistrer la commande : l'erreur est
+    écrite dans les logs, sans être renvoyée."""
+    try:
+        supabase.table("commande_historique").insert({
+            "commande_id": str(commande_id),
+            "franchise_id": franchise_id,
+            "user_id": current_user.get("user_id"),
+            "user_email": current_user.get("email"),
+            "action": action,
+            "details": details or {},
+        }).execute()
+    except Exception:
+        logger.error(f"Historique non enregistré ({action}, commande {commande_id})", exc_info=True)
