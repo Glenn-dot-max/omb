@@ -97,6 +97,60 @@ describe('FormulaireCommande', () => {
     expect(ecranVisible(3)).toBe(true)
   })
 
+  it('récapitulatif : « Créer la commande » enregistre la commande validée', async () => {
+    apiPost.mockResolvedValue({ id: 'cmd-1' })
+    await ouvrir()
+    await remplir(COMPLETE)
+    await cliquer('suivant')
+    await cliquer('suivant')
+    expect(ecranVisible(3)).toBe(true)
+    expect(bouton('creer').textContent).toContain('Créer la commande')
+
+    await cliquer('creer')
+    expect(apiPost).toHaveBeenCalledTimes(1)
+    expect(apiPost).toHaveBeenCalledWith(
+      '/commandes/complete',
+      expect.objectContaining({ nom_client: 'Mairie de Caen', validated: true }),
+    )
+    expect(wrapper.emitted('enregistree')).toHaveLength(1)
+    expect(wrapper.props('visible')).toBe(false)
+  })
+
+  it('récapitulatif : commande cochée « en attente » → enregistrée non validée', async () => {
+    apiPost.mockResolvedValue({ id: 'cmd-1' })
+    await ouvrir()
+    await remplir({ ...COMPLETE, en_attente: true })
+    await cliquer('suivant')
+    await cliquer('suivant')
+    expect(bouton('creer').textContent).toContain('Enregistrer en attente')
+    await cliquer('creer')
+    expect(apiPost.mock.calls[0][1].validated).toBe(false)
+  })
+
+  it('récapitulatif : erreur du serveur affichée, la saisie est gardée', async () => {
+    apiPost.mockRejectedValue(new ApiError('La date de livraison est dans le passé', 422))
+    await ouvrir()
+    await remplir(COMPLETE)
+    await cliquer('suivant')
+    await cliquer('suivant')
+    await cliquer('creer')
+    expect(useNotificationsStore().notifications.at(-1).message).toBe(
+      'La date de livraison est dans le passé',
+    )
+    expect(wrapper.props('visible')).toBe(true)
+    expect(ecranVisible(3)).toBe(true)
+  })
+
+  it('récapitulatif : « Modifier » revient à l’écran 1', async () => {
+    await ouvrir()
+    await remplir(COMPLETE)
+    await cliquer('suivant')
+    await cliquer('suivant')
+    await cliquer('modifier-1')
+    expect(document.getElementById('commande-client').value).toBe('Mairie de Caen')
+    expect(ecranVisible(3)).toBe(false)
+  })
+
   it('« Quitter » sans rien saisir : ferme sans rien demander', async () => {
     await ouvrir()
     await cliquer('quitter')

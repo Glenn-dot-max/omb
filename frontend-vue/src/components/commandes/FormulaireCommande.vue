@@ -11,6 +11,7 @@ import {
 } from '@/utils/nouvelleCommande'
 import EcranInfos from '@/components/commandes/EcranInfos.vue'
 import EcranContenu from '@/components/commandes/EcranContenu.vue'
+import EcranRecap from '@/components/commandes/EcranRecap.vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Stepper from 'primevue/stepper'
@@ -89,8 +90,11 @@ async function enregistrer(enAttente) {
 const { executer: mettreEnAttente, enCours: miseEnAttenteEnCours } = useAction(() =>
   enregistrer(true),
 )
+// Bouton final du récapitulatif : validée, ou en attente si la case est cochée à l'écran 1
+const { executer: creer, enCours: creationEnCours } = useAction(() =>
+  enregistrer(commande.value.en_attente),
+)
 </script>
-
 <template>
   <Dialog
     v-model:visible="visible"
@@ -117,7 +121,9 @@ const { executer: mettreEnAttente, enCours: miseEnAttenteEnCours } = useAction((
           </div>
         </StepPanel>
         <StepPanel value="3">
-          <p data-test="ecran-3">Récapitulatif (V5.3c3)</p>
+          <div data-test="ecran-3">
+            <EcranRecap :commande="commande" @aller="etape = $event" />
+          </div>
         </StepPanel>
       </StepPanels>
     </Stepper>
@@ -135,6 +141,13 @@ const { executer: mettreEnAttente, enCours: miseEnAttenteEnCours } = useAction((
             @click="precedent"
           />
           <Button v-if="etape !== '3'" label="Suivant" data-test="suivant" @click="suivant" />
+          <Button
+            v-else
+            :label="commande.en_attente ? 'Enregistrer en attente' : 'Créer la commande'"
+            :loading="creationEnCours"
+            data-test="creer"
+            @click="creer"
+          />
         </div>
       </div>
     </template>
