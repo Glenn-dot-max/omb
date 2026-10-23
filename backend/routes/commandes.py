@@ -131,9 +131,9 @@ def get_archived_commandes(current_user: dict = Depends(get_current_user)):
 
 @router.get("/{commande_id}")
 def get_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
-    """Get a single Non-archived commande by ID"""
+    """Une commande de la franchise, active ou archivée (une archivée peut être dupliquée)"""
 
-    query = supabase.table("carnet_commande").select("*").eq("id", commande_id).eq("archived", False)
+    query = supabase.table("carnet_commande").select("*").eq("id", commande_id)
 
     if current_user["role"] != "TECH_ADMIN":
         if not current_user.get("franchise_id"):
