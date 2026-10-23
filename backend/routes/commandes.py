@@ -319,16 +319,28 @@ def update_commande_complete(commande_id: str, modif: CommandeModification, curr
     # La commande existe et appartient à la franchise
     verify_commande_ownership(supabase, commande_id, current_user)
 
-    # Les formules modifiées appartiennent bien à CETTE commande
+    # Les formules modifiées ou retirées appartiennent bien à CETTE commande
     ids_modifies = [f.commande_formule_id for f in modif.formules_modifiees]
-    if ids_modifies:
+    ids_formules = ids_modifies + modif.formules_retirees
+    if ids_formules:
         lignes = supabase.table("commande_formules")\
             .select("id")\
             .eq("commande_id", commande_id)\
-            .in_("id", ids_modifies)\
+            .in_("id", ids_formules)\
             .execute()
-        if set(ids_modifies) - {ligne["id"] for ligne in lignes.data}:
+        if set(ids_formules) - {ligne["id"] for ligne in lignes.data}:
             raise HTTPException(status_code=404, detail="Formule de commande introuvable")
+
+    # Les produits modifiés ou retirés appartiennent bien à CETTE commande
+    ids_produits = [p.commande_produit_id for p in modif.produits_modifies] + modif.produits_retires
+    if ids_produits:
+        lignes = supabase.table("commande_produits")\
+            .select("id")\
+            .eq("commande_id", commande_id)\
+            .in_("id", ids_produits)\
+            .execute()
+        if set(ids_produits) - {ligne["id"] for ligne in lignes.data}:
+            raise HTTPException(status_code=404, detail="Produit de commande introuvable")
 
     # Les formules et produits ajoutés sont disponibles pour la franchise
     check_acces_catalogue(supabase, "franchise_formules", "formule_id",
@@ -341,7 +353,10 @@ def update_commande_complete(commande_id: str, modif: CommandeModification, curr
     # Informations de la commande (seulement les champs envoyés)
     champs = {
         k: v for k, v in modif.model_dump(
-            exclude={"formules_modifiees", "formules_ajoutees", "produits_ajoutes"}
+            exclude={
+                "formules_modifiees", "formules_ajoutees", "produits_ajoutes",
+                "formules_retirees", "produits_retires", "produits_modifies",
+            }
         ).items() if v is not None
     }
     # Les champs non envoyés ne sont pas modifiés : il faut donc effacer EXPLICITEMENT
@@ -406,12 +421,29 @@ def update_commande_complete(commande_id: str, modif: CommandeModification, curr
             for p in modif.produits_ajoutes
         ]).execute()
 
+    # Formules et produits retirés (leurs exclusions partent avec : ON DELETE CASCADE en base)
+    if modif.formules_retirees:
+        supabase.table("commande_formules").delete().in_("id", modif.formules_retirees).execute()
+    if modif.produits_retires:
+        supabase.table("commande_produits").delete().in_("id", modif.produits_retires).execute()
+
+    # Nouvelles quantités des produits déjà dans la commande
+    for p in modif.produits_modifies:
+        supabase.table("commande_produits")\
+            .update({"quantite": p.quantite})\
+            .eq("id", p.commande_produit_id)\
+            .execute()
+
     noter_historique(supabase, commande_id, franchise_id, current_user, "modification", {
         "champs": champs,
         "formules_modifiees": len(modif.formules_modifiees),
         "formules_ajoutees": len(modif.formules_ajoutees),
+        "formules_retirees": len(modif.formules_retirees),
         "produits_ajoutes": len(modif.produits_ajoutes),
+        "produits_modifies": len(modif.produits_modifies),
+        "produits_retires": len(modif.produits_retires),
     })
+
 
     return {"message": "Commande mise à jour", "id": commande_id}
 

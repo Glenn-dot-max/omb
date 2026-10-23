@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from auth import get_current_user
 from database import get_supabase_client
-from utils import get_or_404, verify_commande_ownership
+from utils import get_or_404, verify_commande_ownership, noter_historique
 
 router = APIRouter(prefix="/commande-formules", tags=["commande-formules"])
 supabase = get_supabase_client()
@@ -35,4 +35,9 @@ def delete_commande_formule(commande_formule_id: int, current_user: dict = Depen
     response = supabase.table("commande_formules").delete().eq("id", commande_formule_id).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail="Commande-Formule not found")
+
+    # Ancien frontend (retrait immédiat) : noté dans l'historique comme une modification
+    noter_historique(supabase, existing["commande_id"], current_user.get("franchise_id"), current_user,
+                     "modification", {"formules_retirees": 1})
+
     return {"message": "Commande-Formule deleted successfully"}

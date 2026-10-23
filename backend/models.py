@@ -308,11 +308,24 @@ class CommandeFormuleModifiee(BaseModel):
     class Config:
         extra = 'forbid'
 
+class CommandeProduitModifie(BaseModel):
+    """Un produit déjà dans la commande : sa nouvelle quantité"""
+    commande_produit_id: int
+    quantite: float = Field(gt=0, le=10000)
+
+    class Config:
+        extra = 'forbid'
+
 class CommandeModification(CarnetCommandeUpdate):
     """Les champs modifiables de la commande (tous optionnels) + les changements de son contenu"""
     formules_modifiees: List[CommandeFormuleModifiee] = Field(default_factory=list)
     formules_ajoutees: List[CommandeCompleteFormule] = Field(default_factory=list)
     produits_ajoutes: List[CommandeCompleteProduit] = Field(default_factory=list)
+    # V5.4c1 : retirer des formules / produits et changer une quantité, dans le MÊME appel
+    # (rien n'est retiré tant que la modification n'est pas enregistrée)
+    formules_retirees: List[int] = Field(default_factory=list)
+    produits_retires: List[int] = Field(default_factory=list)
+    produits_modifies: List[CommandeProduitModifie] = Field(default_factory=list)
 
     @model_validator(mode='after')
     def check_doublons(self):
@@ -327,6 +340,17 @@ class CommandeModification(CarnetCommandeUpdate):
         cles_produits = [(p.produit_id, p.unite) for p in self.produits_ajoutes]
         if len(cles_produits) != len(set(cles_produits)):
             raise ValueError("Un même produit avec la même unité ne peut apparaître qu'une fois dans la commande")
+        if len(self.formules_retirees) != len(set(self.formules_retirees)):
+            raise ValueError("Une même formule ne peut être retirée qu'une fois")
+        if set(self.formules_retirees) & set(ids_modifiees):
+            raise ValueError("Une formule ne peut pas être à la fois modifiée et retirée")
+
+        ids_produits_modifies = [p.commande_produit_id for p in self.produits_modifies]
+        if len(self.produits_retires) != len(set(self.produits_retires)) \
+                or len(ids_produits_modifies) != len(set(ids_produits_modifies)):
+            raise ValueError("Un même produit de la commande ne peut être retiré ou modifié qu'une fois")
+        if set(self.produits_retires) & set(ids_produits_modifies):
+            raise ValueError("Un produit ne peut pas être à la fois modifié et retiré")
 
         return self
 
