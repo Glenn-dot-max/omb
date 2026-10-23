@@ -253,9 +253,15 @@ describe('FormulaireCommande : modification', () => {
     expect(document.getElementById('commande-client').value).toBe('Mairie de Caen')
   })
 
+  it('horloge d’historique en haut de la fenêtre', async () => {
+    await ouvrir({ commandeId: 'cmd-1' })
+    expect(document.querySelector('.p-dialog-header [data-test="historique-cmd-1"]')).not.toBeNull()
+  })
+
   it('nouvelle commande : rien n’est chargé, titre « Nouvelle commande »', async () => {
     await ouvrir()
     expect(apiGet).not.toHaveBeenCalledWith('/commandes/cmd-1')
+    expect(document.querySelector('[data-test^="historique-"]')).toBeNull() // pas encore d'historique
     expect(document.body.textContent).toContain('Nouvelle commande')
     expect(document.getElementById('commande-client').value).toBe('')
   })

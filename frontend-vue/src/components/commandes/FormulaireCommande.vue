@@ -13,6 +13,7 @@ import { commandeDepuisServeur, modificationPourLeServeur } from '@/utils/modifi
 import EcranInfos from '@/components/commandes/EcranInfos.vue'
 import EcranContenu from '@/components/commandes/EcranContenu.vue'
 import EcranRecap from '@/components/commandes/EcranRecap.vue'
+import HistoriqueCommande from '@/components/commandes/HistoriqueCommande.vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Stepper from 'primevue/stepper'
@@ -150,12 +151,20 @@ const libelleFinal = computed(() => {
   <Dialog
     v-model:visible="visible"
     modal
-    :header="modification ? 'Modifier la commande' : 'Nouvelle commande'"
     :closable="false"
     :close-on-escape="false"
     :style="{ width: '48rem' }"
     :breakpoints="{ '768px': '100vw' }"
   >
+    <!-- Titre, et en modification l'horloge : l'historique complet dans un panneau à droite -->
+    <template #header>
+      <div class="entete-fenetre">
+        <span class="p-dialog-title">
+          {{ modification ? 'Modifier la commande' : 'Nouvelle commande' }}
+        </span>
+        <HistoriqueCommande v-if="modification" :commande-id="commandeId" panneau />
+      </div>
+    </template>
     <p v-if="chargement" class="chargement">Chargement de la commande…</p>
     <Stepper v-else v-model:value="etape" linear>
       <StepList>
@@ -259,6 +268,13 @@ const libelleFinal = computed(() => {
 </template>
 
 <style scoped>
+.entete-fenetre {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
 .chargement {
   text-align: center;
   opacity: 0.7;

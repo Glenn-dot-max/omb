@@ -33,11 +33,15 @@ const HISTORIQUE = [
 ]
 
 let wrapper
-async function ouvrirHorloge() {
-  wrapper = mount(HistoriqueCommande, { attachTo: document.body, props: { commandeId: 'c1' } })
+async function ouvrirHorloge(autresProps = {}) {
+  wrapper = mount(HistoriqueCommande, {
+    attachTo: document.body,
+    props: { commandeId: 'c1', ...autresProps },
+  })
   await wrapper.find('[data-test="historique-c1"]').trigger('click')
   await flushPromises()
 }
+
 const bandeau = () => document.querySelector('[data-test="bandeau-c1"]')
 
 beforeEach(() => vi.clearAllMocks())
@@ -90,5 +94,16 @@ describe('HistoriqueCommande (horloge)', () => {
     apiGet.mockRejectedValue(new ApiError('Erreur', 500))
     await ouvrirHorloge()
     expect(bandeau().textContent).toContain('Historique indisponible')
+  })
+
+  it('en panneau (fenêtre de la commande) : panneau à droite, tout est déplié', async () => {
+    apiGet.mockResolvedValue(HISTORIQUE)
+    await ouvrirHorloge({ panneau: true })
+    expect(bandeau()).toBeNull() // pas le petit bandeau
+    const panneau = document.querySelector('[data-test="panneau-c1"]')
+    expect(panneau.textContent).toContain('par Marie Durand')
+    expect(panneau.textContent).toContain('Couverts → 25') // déplié sans cliquer
+    expect(panneau.textContent).toContain('Client : Martin')
+    expect(document.querySelector('[data-test="deplier-0"]')).toBeNull() // pas de flèche
   })
 })
