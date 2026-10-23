@@ -9,7 +9,13 @@ import {
   donneesPourLeServeur,
   partsProduites,
 } from '@/utils/nouvelleCommande'
-import { commandeDepuisServeur, modificationPourLeServeur } from '@/utils/modificationCommande'
+import {
+  commandeDepuisServeur,
+  modificationPourLeServeur,
+  copieDeCommande,
+} from '@/utils/modificationCommande'
+import { pourMaFranchise } from '@/utils/contenuCommande'
+import { useUtilisateurStore } from '@/stores/utilisateur'
 import EcranInfos from '@/components/commandes/EcranInfos.vue'
 import EcranContenu from '@/components/commandes/EcranContenu.vue'
 import EcranRecap from '@/components/commandes/EcranRecap.vue'
@@ -24,7 +30,8 @@ import StepPanel from 'primevue/steppanel'
 
 // Commande en 3 écrans : 1. infos et service · 2. formules et produits · 3. récapitulatif.
 // Sans commandeId : nouvelle commande. Avec : la commande est chargée puis modifiée (V5.4c2b),
-// et seuls les changements sont envoyés au serveur.
+// et seuls les changements sont envoyés au serveur. Avec commandeId et copie : duplication,
+// la commande chargée sert de modèle à une NOUVELLE commande (V5.4c3).
 // On ne quitte que par le bouton « Quitter » (ni clic à côté, ni touche Échap, ni croix) :
 // si quelque chose a été saisi, on propose de continuer, de quitter sans enregistrer,
 // ou de mettre la commande en attente.
@@ -32,12 +39,18 @@ const visible = defineModel('visible', { type: Boolean, default: false })
 const props = defineProps({
   aujourdhui: { type: String, required: true },
   commandeId: { type: String, default: null },
+  copie: { type: Boolean, default: false },
 })
 const emit = defineEmits(['enregistree'])
 
 const notifications = useNotificationsStore()
+const utilisateur = useUtilisateurStore()
 
-const modification = computed(() => !!props.commandeId)
+const modification = computed(() => !!props.commandeId && !props.copie)
+const titre = computed(() => {
+  if (props.copie) return 'Dupliquer la commande'
+  return modification.value ? 'Modifier la commande' : 'Nouvelle commande'
+})
 const commande = ref(commandeVide(props.aujourdhui))
 const etape = ref('1')
 const chargement = ref(false)
@@ -66,9 +79,33 @@ watch(visible, async (ouvert) => {
     const noms = Object.fromEntries(
       [...catalogueFormules, ...catalogueProduits].map((e) => [e.id, e.name]),
     )
-    // Deux copies séparées : modifier le formulaire ne doit pas changer l'origine
-    origine = commandeDepuisServeur(ligne, formules, produits, noms)
-    commande.value = commandeDepuisServeur(ligne, formules, produits, noms)
+    if (props.copie) {
+      // Seulement ce qui est encore au catalogue de la franchise
+      const maFranchise = utilisateur.utilisateur?.franchise_id
+      const disponibles = new Set(
+        [
+          ...pourMaFranchise(catalogueFormules, maFranchise),
+          ...pourMaFranchise(catalogueProduits, maFranchise),
+        ].map((e) => e.id),
+      )
+      const { commande: copie, nonCopies } = copieDeCommande(
+        commandeDepuisServeur(ligne, formules, produits, noms),
+        props.aujourdhui,
+        disponibles,
+      )
+      // Deux objets séparés (structuredClone = copie complète) : modifier le formulaire
+      // ne doit pas changer l'origine
+      origine = copie
+      commande.value = structuredClone(copie)
+      if (nonCopies)
+        notifications.avertissement(
+          `${nonCopies} formule ou produit de la commande d'origine n'est plus disponible : pas copié.`,
+        )
+    } else {
+      // Deux copies séparées : modifier le formulaire ne doit pas changer l'origine
+      origine = commandeDepuisServeur(ligne, formules, produits, noms)
+      commande.value = commandeDepuisServeur(ligne, formules, produits, noms)
+    }
   } catch (e) {
     notifications.erreur(e.message)
     visible.value = false
@@ -160,7 +197,7 @@ const libelleFinal = computed(() => {
     <template #header>
       <div class="entete-fenetre">
         <span class="p-dialog-title">
-          {{ modification ? 'Modifier la commande' : 'Nouvelle commande' }}
+          {{ titre }}
         </span>
         <HistoriqueCommande v-if="modification" :commande-id="commandeId" panneau />
       </div>

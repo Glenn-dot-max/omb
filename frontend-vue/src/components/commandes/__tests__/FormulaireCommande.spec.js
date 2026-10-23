@@ -332,3 +332,45 @@ describe('FormulaireCommande : modification', () => {
     expect(wrapper.props('visible')).toBe(false)
   })
 })
+
+describe('FormulaireCommande : duplication', () => {
+  beforeEach(serveurAvecLaCommande)
+
+  it('pré-remplit une NOUVELLE commande, enregistrée par POST (sans horloge)', async () => {
+    apiPost.mockResolvedValue({ id: 'cmd-2' })
+    await ouvrir({ commandeId: 'cmd-1', copie: true })
+    expect(document.body.textContent).toContain('Dupliquer la commande')
+    expect(document.querySelector('[data-test^="historique-"]')).toBeNull()
+    expect(document.getElementById('commande-client').value).toBe('Copie - Mairie de Caen')
+
+    await cliquer('suivant')
+    await cliquer('suivant')
+    expect(bouton('creer').textContent).toContain('Créer la commande')
+    await cliquer('creer')
+    expect(apiPut).not.toHaveBeenCalled()
+    expect(apiPost).toHaveBeenCalledWith(
+      '/commandes/complete',
+      expect.objectContaining({
+        nom_client: 'Copie - Mairie de Caen',
+        delivery_date: '2026-11-02',
+        validated: true,
+        formules: [{ formule_id: 'f1', quantite_finale: 20, produits_exclus: [] }],
+      }),
+    )
+    expect(wrapper.emitted('enregistree')).toHaveLength(1)
+  })
+
+  it('prévient quand une formule n’est plus disponible (pas copiée)', async () => {
+    apiGet.mockImplementation(async (url) => {
+      if (url === '/commandes/cmd-1') return COMMANDE_EXISTANTE
+      if (url === '/commande-formules/commande/cmd-1')
+        return [{ id: 708, formule_id: 'f-retiree', quantite_finale: 20, produits_exclus: [] }]
+      return []
+    })
+    await ouvrir({ commandeId: 'cmd-1', copie: true })
+    expect(useNotificationsStore().notifications.at(-1)).toMatchObject({
+      type: 'warning',
+      message: expect.stringContaining('1 formule ou produit'),
+    })
+  })
+})

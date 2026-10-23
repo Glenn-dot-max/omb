@@ -11,7 +11,7 @@ const props = defineProps({
   aujourdhui: { type: String, required: true }, // 'AAAA-MM-JJ', date de Paris donnée par le serveur
   archivee: { type: Boolean, default: false },
 })
-defineEmits(['modifier', 'valider', 'supprimer'])
+defineEmits(['modifier', 'dupliquer', 'valider', 'supprimer'])
 
 const c = computed(() => props.commande)
 const enAttente = computed(() => c.value.validated === false)
@@ -48,25 +48,45 @@ const heure = computed(() => (c.value.delivery_hour || '').slice(0, 5))
 
     <p v-if="c.notes && c.notes.trim()" class="notes">📝 {{ c.notes }}</p>
 
-    <div v-if="!archivee" class="boutons">
+    <div class="boutons">
       <Button
-        label="Modifier"
+        label="Dupliquer"
         size="small"
         severity="secondary"
         outlined
-        :data-test="`modifier-${c.id}`"
-        @click="$emit('modifier', c)"
+        :data-test="`dupliquer-${c.id}`"
+        @click="$emit('dupliquer', c)"
       />
-      <template v-if="enAttente">
+      <!-- Une commande archivée peut seulement être dupliquée (refaire une ancienne commande) -->
+      <template v-if="!archivee">
         <Button
-          label="Confirmer la commande"
+          label="Modifier"
           size="small"
-          severity="success"
-          :data-test="`valider-${c.id}`"
-          @click="$emit('valider', c)"
+          severity="secondary"
+          outlined
+          :data-test="`modifier-${c.id}`"
+          @click="$emit('modifier', c)"
         />
+        <template v-if="enAttente">
+          <Button
+            label="Confirmer la commande"
+            size="small"
+            severity="success"
+            :data-test="`valider-${c.id}`"
+            @click="$emit('valider', c)"
+          />
+          <Button
+            label="Abandonner"
+            size="small"
+            severity="danger"
+            outlined
+            :data-test="`supprimer-${c.id}`"
+            @click="$emit('supprimer', c)"
+          />
+        </template>
         <Button
-          label="Abandonner"
+          v-else
+          label="Supprimer"
           size="small"
           severity="danger"
           outlined
@@ -74,15 +94,6 @@ const heure = computed(() => (c.value.delivery_hour || '').slice(0, 5))
           @click="$emit('supprimer', c)"
         />
       </template>
-      <Button
-        v-else
-        label="Supprimer"
-        size="small"
-        severity="danger"
-        outlined
-        :data-test="`supprimer-${c.id}`"
-        @click="$emit('supprimer', c)"
-      />
     </div>
   </article>
 </template>

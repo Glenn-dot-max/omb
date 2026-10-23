@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { commandeDepuisServeur, modificationPourLeServeur } from '../modificationCommande'
+import {
+  commandeDepuisServeur,
+  modificationPourLeServeur,
+  copieDeCommande,
+} from '../modificationCommande'
 import { ajouterFormule, retirerFormule, ajouterProduit, retirerProduit } from '../contenuCommande'
 
 // Ce que renvoie le serveur pour une commande existante
@@ -150,5 +154,45 @@ describe('modification envoyée au serveur : seulement ce qui a changé', () => 
       produits_ajoutes: [{ produit_id: 'p2', quantite: 5, unite: 'L' }],
       produits_retires: [31],
     })
+  })
+})
+
+describe('duplication : une NOUVELLE commande pré-remplie', () => {
+  const TOUT = new Set(['f1', 'f2', 'p1'])
+
+  it('même contenu, sans les identifiants de l’ancienne commande, nom « Copie - »', () => {
+    const { commande, nonCopies } = copieDeCommande(origine(), '2026-10-23', TOUT)
+    expect(commande.nom_client).toBe('Copie - Mairie de Caen')
+    expect(commande.formules).toEqual([
+      { formule_id: 'f1', nom: 'Brunch Salé', couverts: 20, produits_exclus: ['p9'] },
+      { formule_id: 'f2', nom: 'Brunch Sucré', couverts: 10, produits_exclus: [] },
+    ])
+    expect(commande.produits).toEqual([{ produit_id: 'p1', nom: 'Café', quantite: 2, unite: 'L' }])
+    expect(commande.ponderation).toBe(90)
+    expect(commande.nb_repas_personnel).toBe(3)
+    expect(nonCopies).toBe(0)
+  })
+
+  it('date : gardée si elle est à venir, sinon aujourd’hui (le serveur refuse le passé)', () => {
+    expect(copieDeCommande(origine(), '2026-10-23', TOUT).commande.delivery_date).toBe('2026-11-02')
+    expect(copieDeCommande(origine(), '2026-11-10', TOUT).commande.delivery_date).toBe('2026-11-10')
+  })
+
+  it('une copie d’une commande en attente est une commande normale (validée)', () => {
+    const enAttente = { ...origine(), en_attente: true }
+    expect(copieDeCommande(enAttente, '2026-10-23', TOUT).commande.en_attente).toBe(false)
+  })
+
+  it('formules et produits qui ne sont plus disponibles : pas copiés, et comptés', () => {
+    const { commande, nonCopies } = copieDeCommande(origine(), '2026-10-23', new Set(['f1']))
+    expect(commande.formules.map((f) => f.formule_id)).toEqual(['f1'])
+    expect(commande.produits).toEqual([])
+    expect(nonCopies).toBe(2)
+  })
+
+  it('l’original n’est pas modifié', () => {
+    const avant = origine()
+    copieDeCommande(avant, '2026-10-23', TOUT)
+    expect(avant).toEqual(origine())
   })
 })

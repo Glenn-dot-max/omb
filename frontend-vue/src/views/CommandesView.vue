@@ -30,16 +30,18 @@ const chargement = ref(false)
 const franchises = ref([])
 const filtres = ref({ recherche: '', date: '', franchiseId: null })
 const formulaireOuvert = ref(false)
-const commandeAModifier = ref(null) // id de la commande ouverte en modification ; null = nouvelle
+// Commande ouverte dans le formulaire : null = nouvelle ; un id = modifiée, ou copiée si enCopie
+const commandeAModifier = ref(null)
+const enCopie = ref(false)
 
-function nouvelleCommande() {
-  commandeAModifier.value = null
+function ouvrirFormulaire(id, copie) {
+  commandeAModifier.value = id
+  enCopie.value = copie
   formulaireOuvert.value = true
 }
-function modifier(commande) {
-  commandeAModifier.value = commande.id
-  formulaireOuvert.value = true
-}
+const nouvelleCommande = () => ouvrirFormulaire(null, false)
+const modifier = (commande) => ouvrirFormulaire(commande.id, false)
+const dupliquer = (commande) => ouvrirFormulaire(commande.id, true)
 
 const archivees = computed(() => onglet.value === 'archivees')
 const commandesFiltrees = computed(() => filtrerCommandes(commandes.value, filtres.value))
@@ -151,6 +153,7 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
       v-model:visible="formulaireOuvert"
       :aujourdhui="aujourdhui"
       :commande-id="commandeAModifier"
+      :copie="enCopie"
       @enregistree="charger"
     />
     <div class="form-card">
@@ -229,6 +232,7 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
             :commande="commande"
             :aujourdhui="aujourdhui"
             @modifier="modifier"
+            @dupliquer="dupliquer"
             @valider="valider"
             @supprimer="demanderSuppression"
           />
@@ -243,6 +247,7 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
         :commande="commande"
         :aujourdhui="aujourdhui"
         archivee
+        @dupliquer="dupliquer"
       />
     </div>
   </main>

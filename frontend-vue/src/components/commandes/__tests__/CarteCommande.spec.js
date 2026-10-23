@@ -53,6 +53,7 @@ describe('CarteCommande', () => {
     expect(wrapper.find('[data-test^="supprimer"]').exists()).toBe(false)
     expect(wrapper.find('[data-test^="valider"]').exists()).toBe(false)
     expect(wrapper.find('[data-test^="modifier"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="dupliquer-c1"]').exists()).toBe(true) // on peut la refaire
     expect(wrapper.find('[data-test="historique-c1"]').exists()).toBe(true)
   })
 
@@ -62,6 +63,12 @@ describe('CarteCommande', () => {
       await wrapper.find('[data-test="modifier-c1"]').trigger('click')
       expect(wrapper.emitted('modifier')[0][0].id).toBe('c1')
     }
+  })
+
+  it('« Dupliquer » envoie la commande à copier', async () => {
+    const wrapper = monter()
+    await wrapper.find('[data-test="dupliquer-c1"]').trigger('click')
+    expect(wrapper.emitted('dupliquer')[0][0].id).toBe('c1')
   })
 
   it('chaque commande a son horloge d’historique', () => {

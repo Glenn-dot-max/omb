@@ -1,7 +1,8 @@
 // Modifier une commande existante (même formulaire que la création) :
 // - commandeDepuisServeur : ce que renvoie le serveur → formulaire pré-rempli ;
 // - modificationPourLeServeur : uniquement ce qui a changé (PUT /commandes/{id}/complete),
-//   pour que l'historique montre les vrais changements et que rien d'autre ne soit réécrit.
+//   pour que l'historique montre les vrais changements et que rien d'autre ne soit réécrit ;
+// - copieDeCommande : duplication, une NOUVELLE commande pré-remplie (POST /commandes/complete).
 import { commandeVide, donneesPourLeServeur } from './nouvelleCommande'
 
 export function commandeDepuisServeur(ligne, formules, produits, noms) {
@@ -101,4 +102,34 @@ export function modificationPourLeServeur(origine, actuelle) {
   if (produitsRetires.length) modification.produits_retires = produitsRetires
 
   return modification
+}
+
+// Duplication : même contenu, mais une nouvelle commande (sans les identifiants de l'ancienne).
+// disponibles = ids des formules et produits encore au catalogue de la franchise :
+// les autres seraient refusés par le serveur, ils ne sont pas copiés mais comptés.
+export function copieDeCommande(c, aujourdhui, disponibles) {
+  const formules = c.formules.filter((f) => disponibles.has(f.formule_id))
+  const produits = c.produits.filter((p) => disponibles.has(p.produit_id))
+  return {
+    commande: {
+      ...c,
+      nom_client: `Copie - ${c.nom_client}`,
+      // Date passée refusée par le serveur : aujourd'hui à la place
+      delivery_date: c.delivery_date < aujourdhui ? aujourdhui : c.delivery_date,
+      en_attente: false,
+      formules: formules.map((f) => ({
+        formule_id: f.formule_id,
+        nom: f.nom,
+        couverts: f.couverts,
+        produits_exclus: [...f.produits_exclus],
+      })),
+      produits: produits.map((p) => ({
+        produit_id: p.produit_id,
+        nom: p.nom,
+        quantite: p.quantite,
+        unite: p.unite,
+      })),
+    },
+    nonCopies: c.formules.length - formules.length + (c.produits.length - produits.length),
+  }
 }

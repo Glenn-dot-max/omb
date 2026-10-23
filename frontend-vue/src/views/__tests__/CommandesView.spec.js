@@ -164,6 +164,13 @@ describe('CommandesView', () => {
     expect(document.getElementById('commande-client').value).toBe("L'Équipe")
   })
 
+  it('« Dupliquer » ouvre le formulaire avec une copie de cette commande', async () => {
+    await monter()
+    await wrapper.find('[data-test="dupliquer-b"]').trigger('click')
+    await flushPromises()
+    expect(document.getElementById('commande-client').value).toBe("Copie - L'Équipe")
+  })
+
   it('affiche l’erreur du serveur', async () => {
     apiGet.mockRejectedValue(new ApiError('Utilisateur sans franchise associée', 400))
     await monter()
