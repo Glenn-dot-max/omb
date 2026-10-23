@@ -48,7 +48,14 @@ describe('CarteCommande', () => {
     expect(wrapper.emitted('valider')[0][0].id).toBe('c1')
   })
 
-  it('commande archivée : aucune action', () => {
-    expect(monter({}, { archivee: true }).find('button').exists()).toBe(false)
+  it('commande archivée : aucune action, mais son historique reste consultable', () => {
+    const wrapper = monter({ validated: false }, { archivee: true })
+    expect(wrapper.find('[data-test^="supprimer"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test^="valider"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test="historique-c1"]').exists()).toBe(true)
+  })
+
+  it('chaque commande a son horloge d’historique', () => {
+    expect(monter().find('[data-test="historique-c1"]').exists()).toBe(true)
   })
 })

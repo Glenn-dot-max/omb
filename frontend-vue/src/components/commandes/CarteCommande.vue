@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { dateIso, formaterDate, jourCourt } from '@/utils/planning'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import HistoriqueCommande from '@/components/commandes/HistoriqueCommande.vue'
 
 // Une commande dans la liste. Les actions sont faites par la page (événements).
 const props = defineProps({
@@ -32,7 +33,10 @@ const heure = computed(() => (c.value.delivery_hour || '').slice(0, 5))
   <article class="carte-commande" :class="{ 'en-attente': enAttente }">
     <header class="entete">
       <h4 class="client">{{ c.nom_client }}</h4>
-      <span class="quand">📅 {{ libelleDate }} · ⏰ {{ heure }}</span>
+      <span class="quand">
+        📅 {{ libelleDate }} · ⏰ {{ heure }}
+        <HistoriqueCommande :commande-id="c.id" />
+      </span>
     </header>
 
     <div class="badges">
@@ -101,6 +105,9 @@ const heure = computed(() => (c.value.delivery_hour || '').slice(0, 5))
   overflow-wrap: anywhere;
 }
 .quand {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.9rem;
   white-space: nowrap;
 }

@@ -96,19 +96,38 @@ def test_suppression_notee_avec_le_client_et_la_date(client, auth_headers):
 
 # ---------- Lire l'historique d'une commande ----------
 
-def test_lire_l_historique_le_plus_recent_d_abord(client, auth_headers):
-    lignes = [{"action": "validation", "details": {}, "user_email": "user@test.com", "created_at": "2026-10-23T10:00:00+00:00"}]
+def test_lire_l_historique_le_plus_recent_d_abord_avec_le_nom_de_l_auteur(client, auth_headers):
+    """Chaque ligne affiche le NOM de la personne (table users), à défaut son email"""
+    lignes = [
+        {"action": "validation", "details": {}, "user_id": "u-1", "user_email": "paris@omb.fr", "created_at": "2026-10-23T11:00:00+00:00"},
+        {"action": "creation", "details": {}, "user_id": "u-2", "user_email": "caen@omb.fr", "created_at": "2026-10-23T10:00:00+00:00"},
+    ]
+    tables = {}
+    def table(nom):
+        t = tables.setdefault(nom, MagicMock())
+        if nom == "commande_historique":
+            t.select.return_value.eq.return_value.order.return_value.execute.return_value.data = lignes
+        if nom == "users":
+            # u-2 n'a pas de nom renseigné : on garde son email
+            t.select.return_value.in_.return_value.execute.return_value.data = [
+                {"id": "u-1", "full_name": "Marie Durand"},
+                {"id": "u-2", "full_name": None},
+            ]
+        return t
+
     with patch("routes.commandes.supabase") as mock_db, patch("routes.commandes.verify_commande_ownership") as verifier:
-        requete = mock_db.table.return_value.select.return_value.eq.return_value.order.return_value
-        requete.execute.return_value.data = lignes
+        mock_db.table.side_effect = table
         response = client.get("/commandes/cmd-1/historique", headers=auth_headers)
 
     assert response.status_code == 200
-    assert response.json() == lignes
+    assert response.json() == [
+        {"action": "validation", "details": {}, "auteur": "Marie Durand", "created_at": "2026-10-23T11:00:00+00:00"},
+        {"action": "creation", "details": {}, "auteur": "caen@omb.fr", "created_at": "2026-10-23T10:00:00+00:00"},
+    ]
     verifier.assert_called_once()  # la commande doit être de MA franchise
-    mock_db.table.assert_called_with("commande_historique")
-    mock_db.table.return_value.select.assert_called_once_with("action, details, user_email, created_at")
-    mock_db.table.return_value.select.return_value.eq.return_value.order.assert_called_once_with("created_at", desc=True)
+    tables["commande_historique"].select.return_value.eq.return_value.order.assert_called_once_with("created_at", desc=True)
+    tables["users"].select.assert_called_once_with("id, full_name")  # jamais password_hash
+
 
 def test_historique_d_une_commande_d_une_autre_franchise_404(client, auth_headers):
     with patch("routes.commandes.supabase") as mock_db:

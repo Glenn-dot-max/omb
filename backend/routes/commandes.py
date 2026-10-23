@@ -153,12 +153,29 @@ def get_commande(commande_id: str, current_user: dict = Depends(get_current_user
 def get_historique_commande(commande_id: str, current_user: dict = Depends(get_current_user)):
     """Historique d'une commande de MA franchise (TECH_ADMIN : toutes), le plus récent d'abord"""
     verify_commande_ownership(supabase, commande_id, current_user)
-    response = supabase.table("commande_historique")\
-        .select("action, details, user_email, created_at")\
+    lignes = supabase.table("commande_historique")\
+        .select("action, details, user_id, user_email, created_at")\
         .eq("commande_id", commande_id)\
         .order("created_at", desc=True)\
-        .execute()
-    return response.data
+        .execute().data
+
+    # Le nom des personnes (une seule requête pour toutes) ; à défaut, l'email gardé dans l'historique
+    ids = list({ligne["user_id"] for ligne in lignes if ligne.get("user_id")})
+    noms = {}
+    if ids:
+        utilisateurs = supabase.table("users").select("id, full_name").in_("id", ids).execute().data
+        noms = {u["id"]: u["full_name"] for u in utilisateurs if u.get("full_name")}
+
+    return [
+        {
+            "action": ligne["action"],
+            "details": ligne["details"],
+            "auteur": noms.get(ligne.get("user_id")) or ligne.get("user_email") or "Utilisateur inconnu",
+            "created_at": ligne["created_at"],
+        }
+        for ligne in lignes
+    ]
+
 
 @router.post("/complete")
 def create_commande_complete(commande: CommandeComplete, current_user: dict = Depends(get_current_user)):
