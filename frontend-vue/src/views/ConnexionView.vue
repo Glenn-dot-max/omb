@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
 import { apiPostPublic, saveToken, saveUser, getToken } from '@/api/client'
 import { useAction } from '@/composables/useAction'
 import { marque } from '@/config/marque'
@@ -72,6 +72,11 @@ const { executer: seConnecter, enCours } = useAction(async () => {
         </div>
         <Button type="submit" label="Se connecter" :loading="enCours" class="bouton-connexion" />
       </form>
+      <p class="oubli">
+        <RouterLink :to="{ name: 'mot-de-passe-oublie' }" data-test="mot-de-passe-oublie">
+          Mot de passe oublié ?
+        </RouterLink>
+      </p>
     </div>
   </main>
 </template>
@@ -133,6 +138,15 @@ const { executer: seConnecter, enCours } = useAction(async () => {
 }
 .entete p {
   margin: 0;
+  color: var(--color-brand-light);
+}
+.oubli {
+  margin: 20px 0 0;
+  text-align: center;
+}
+.oubli a {
+  display: inline-block;
+  padding: 10px; /* zone tactile d'au moins 44 px */
   color: var(--color-brand-light);
 }
 .erreur {

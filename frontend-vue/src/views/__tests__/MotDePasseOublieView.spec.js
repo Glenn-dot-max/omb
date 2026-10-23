@@ -7,12 +7,16 @@ import { useNotificationsStore } from '@/stores/notifications'
 
 vi.mock('@/api/client', () => ({ apiPostPublic: vi.fn() }))
 vi.mock('@/api/navigation', () => ({ allerALaConnexion: vi.fn() }))
+// Adresse de contact modifiable par test : sans adresse = envoi d'un lien par email (Resend, B1)
+const marque = vi.hoisted(() => ({ nom: 'Traiteur Test', contactMotDePasse: null }))
+vi.mock('@/config/marque', () => ({ marque }))
 
 let pinia
 beforeEach(() => {
   pinia = createPinia()
   setActivePinia(pinia)
   vi.clearAllMocks()
+  marque.contactMotDePasse = null
 })
 
 describe('MotDePasseOublieView', () => {
@@ -41,5 +45,16 @@ describe('MotDePasseOublieView', () => {
 
     expect(useNotificationsStore().notifications[0]).toMatchObject({ type: 'error' })
     expect(wrapper.find('form').exists()).toBe(true)
+  })
+
+  it('adresse de contact configurée : on écrit à cette adresse, pas de formulaire', async () => {
+    marque.contactMotDePasse = 'contact@traiteur-test.fr'
+    const wrapper = mount(MotDePasseOublieView, { global: { plugins: [pinia] } })
+
+    const lien = wrapper.find('a[href^="mailto:"]')
+    expect(lien.text()).toBe('contact@traiteur-test.fr')
+    expect(lien.attributes('href')).toContain('mailto:contact@traiteur-test.fr')
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(apiPostPublic).not.toHaveBeenCalled()
   })
 })

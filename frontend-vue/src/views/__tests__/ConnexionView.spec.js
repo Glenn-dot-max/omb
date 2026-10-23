@@ -33,6 +33,7 @@ async function monter() {
       { path: '/connexion', name: 'connexion', component: ConnexionView },
       { path: '/commandes', name: 'commandes', component: page },
       { path: '/changer-mot-de-passe', name: 'changer-mot-de-passe', component: page },
+      { path: '/mot-de-passe-oublie', name: 'mot-de-passe-oublie', component: page },
     ],
   })
   router.push('/connexion')
@@ -99,6 +100,13 @@ describe('ConnexionView', () => {
     expect(wrapper.find('[role="alert"]').text()).toContain('Compte désactivé')
     expect(saveToken).not.toHaveBeenCalled()
     expect(pageActuelle()).toBe('connexion')
+  })
+
+  it('« Mot de passe oublié ? » mène à la page qui explique quoi faire', async () => {
+    await monter()
+    await wrapper.find('[data-test="mot-de-passe-oublie"]').trigger('click')
+    await flushPromises()
+    expect(pageActuelle()).toBe('mot-de-passe-oublie')
   })
 
   it('déjà connecté : directement les commandes', async () => {

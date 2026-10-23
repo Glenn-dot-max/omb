@@ -28,6 +28,15 @@
   3. Retirer les lignes `<!--` et `-->` autour du lien dans `login.html`.
   4. Tester le parcours complet en production : demande → email reçu → lien → nouveau mot de passe → connexion ; puis réutiliser le même lien → « Lien invalide ou expiré » (token à usage unique).
 - **Effet de bord à connaître** : tant que le lien est commenté, `forgotPasswordLink` vaut `null` et la ligne `forgotPasswordLink.addEventListener(...)` (~ligne 228 de `login.html`) provoque une erreur dans la console à chaque affichage de la page de connexion. Sans conséquence visible pour l'utilisateur, mais disparaîtra en réactivant le lien. (Alternative si le lien doit rester masqué longtemps : protéger la ligne avec `if (forgotPasswordLink) { … }`.)
+- **Décision (Glenn, 2026-10-23)** : Resend sera configuré **plus tard, avec une boîte email propre à OMB** (Glenn n'a pas d'adresse OMB aujourd'hui). En attendant : réinitialisation **à la main** par un admin (Admin → Utilisateurs). Sur la page de connexion Vue, « Mot de passe oublié ? » mène à une page qui demande d'**écrire à Glenn** (`contactMotDePasse` dans `frontend-vue/src/config/marque.js`) : plus de « un lien vous a été envoyé » alors que rien ne part. Une fois Resend en place : mettre `contactMotDePasse: null` → le formulaire d'envoi du lien revient. Idée pour plus tard : `GET /auth/options` qui dit si l'envoi d'emails est configuré, et 503 « demandez à votre administrateur » sur `POST /auth/forgot-password` sans clé.
+- **Ce qu'il faudra avoir pour faire fonctionner Resend** :
+  1. le **nom de domaine d'OMB** (ex. `ohmybrunch.fr`), et **qui le gère** (OVH, Gandi, Wix, agence du site…) avec un **accès à sa zone DNS** (ou quelqu'un qui ajoute les enregistrements) ❓ (Max/Pascal) ;
+  2. l'**accord d'OMB** pour envoyer depuis un sous-domaine dédié (ex. `mail.ohmybrunch.fr`, sans toucher à leur messagerie) ;
+  3. une **boîte email OMB** pour créer le compte **Resend** (gratuit jusqu'à 3 000 emails/mois) ;
+  4. le **domaine vérifié** dans Resend (région Europe eu-west-1 ; enregistrements TXT SPF/DKIM + MX à ajouter dans la zone DNS ; statut « Verified ») ;
+  5. une **clé API** `re_…` (« Sending access », limitée au domaine ; affichée une seule fois, jamais dans le dépôt) ;
+  6. sur **Render** (service backend → Environment) : `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (ex. `no-reply@mail.ohmybrunch.fr`), `FRONTEND_URL` (adresse du site de production, sans `/` final) ;
+  7. un **utilisateur `TEST`** avec une adresse consultée par Glenn pour tester le parcours complet.
 - **Lié à** : 1.1, 1.8 (`SPRINTS.md`), Sprint 9.1 (emails sans « Oh My Brunch » en dur).
 
 ### B6 — Page « Historique et statistiques » (KPI + export Excel)
@@ -124,6 +133,17 @@
 - **Ajouté le** : 2026-10-22
 - **Constat** : `npx eslint src` (depuis `frontend-vue/`) signale 4 erreurs antérieures à la V3 : `__dirname` non défini dans `src/__tests__/theme.spec.js` (×2), affectation inutile de `body` dans `src/api/client.js`, et `toHaveBeenCalledOnce` + `toHaveBeenCalledWith` à remplacer par `toHaveBeenCalledExactlyOnceWith` dans `src/composables/__tests__/useAction.spec.js`. Sans effet sur les tests ni la construction.
 - **Ce qu'il faudra faire** : les corriger (pour `theme.spec.js`, lire les fichiers avec `import.meta.glob(…, { query: '?raw' })` comme `harmonisation.spec.js`), puis ajouter `npm run lint` aux vérifications avant commit, et plus tard à la CI (Sprint 5).
+
+### B16 — Une interface plus fidèle à l'ADN d'Oh My Brunch
+
+- **Ajouté le** : 2026-10-23 (demande de Glenn, après la page de connexion Vue)
+- **Pourquoi c'est reporté** : à faire **une fois le programme des sprints terminé** ; la priorité reste le planning de production (⏰ 2027-01-31).
+- **Idée** : refaire l'apparence de toute l'application Vue dans l'esprit de la marque (logo rond jaune et brun avec l'œuf au plat, couleurs `#fab500` / `#48291d`, typographie, ton chaleureux) : barre de navigation, cartes, tableaux, boutons, page de connexion, icônes.
+- **À savoir pour le faire** :
+  - **sans casser la marque blanche** : tout passe par `theme.css`, le preset PrimeVue (`config/primevue.js`) et `config/marque.js` ; aucune couleur ni aucun nom écrit en dur dans les composants → un autre traiteur garde sa propre identité ;
+  - partir d'une petite **charte** (couleurs, typographie, style des boutons) validée avec OMB avant d'écrire du code ;
+  - à faire avec ou juste après le **Sprint T** (theming) ; la barre de navigation et les notifications, encore celles de l'ancien frontend, seront refaites en Vue à cette occasion.
+- **Lié à** : Sprint T, B10, B13.
 
 ### B2 — Avertissements de dépréciation dans `pytest`
 
