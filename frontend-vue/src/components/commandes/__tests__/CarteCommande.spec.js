@@ -52,7 +52,16 @@ describe('CarteCommande', () => {
     const wrapper = monter({ validated: false }, { archivee: true })
     expect(wrapper.find('[data-test^="supprimer"]').exists()).toBe(false)
     expect(wrapper.find('[data-test^="valider"]').exists()).toBe(false)
+    expect(wrapper.find('[data-test^="modifier"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="historique-c1"]').exists()).toBe(true)
+  })
+
+  it('« Modifier » sur une commande validée comme sur une commande en attente', async () => {
+    for (const validated of [true, false]) {
+      const wrapper = monter({ validated })
+      await wrapper.find('[data-test="modifier-c1"]').trigger('click')
+      expect(wrapper.emitted('modifier')[0][0].id).toBe('c1')
+    }
   })
 
   it('chaque commande a son horloge d’historique', () => {

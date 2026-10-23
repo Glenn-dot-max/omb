@@ -5,22 +5,23 @@ import FormulaireCommande from '../FormulaireCommande.vue'
 import EcranInfos from '../EcranInfos.vue'
 import { useNotificationsStore } from '@/stores/notifications'
 import { commandeVide } from '@/utils/nouvelleCommande'
-import { apiPost, apiGet, ApiError } from '@/api/client'
+import { apiPost, apiGet, apiPut, ApiError } from '@/api/client'
 
 vi.mock('@/api/client', async () => {
   const vrai = await vi.importActual('@/api/client')
-  return { ApiError: vrai.ApiError, apiPost: vi.fn(), apiGet: vi.fn() }
+  return { ApiError: vrai.ApiError, apiPost: vi.fn(), apiGet: vi.fn(), apiPut: vi.fn() }
 })
 vi.mock('@/api/navigation', () => ({ allerALaConnexion: vi.fn() }))
 
 let wrapper
-async function ouvrir() {
+async function ouvrir(autresProps = {}) {
   wrapper = mount(FormulaireCommande, {
     attachTo: document.body,
     props: {
       visible: false,
       'onUpdate:visible': (v) => wrapper.setProps({ visible: v }),
       aujourdhui: '2026-10-22',
+      ...autresProps,
     },
   })
   await wrapper.setProps({ visible: true }) // ouverture : le formulaire se remet à zéro
@@ -213,5 +214,115 @@ describe('FormulaireCommande', () => {
   it('pas de croix de fermeture : on quitte par le bouton « Quitter »', async () => {
     await ouvrir()
     expect(document.querySelector('.p-dialog-close-button')).toBeNull()
+  })
+})
+
+// ---------- Modification d'une commande existante (V5.4c2b) ----------
+const COMMANDE_EXISTANTE = {
+  id: 'cmd-1',
+  nom_client: 'Mairie de Caen',
+  delivery_date: '2026-11-02',
+  delivery_hour: '10:00:00',
+  nombre_couverts: 20,
+  type_prestation: 'brunch',
+  coefficient_ponderation: 1,
+  avec_service: false,
+  notes: null,
+  validated: true,
+}
+function serveurAvecLaCommande() {
+  apiGet.mockImplementation(async (url) => {
+    if (url === '/commandes/cmd-1') return COMMANDE_EXISTANTE
+    if (url === '/commande-formules/commande/cmd-1')
+      return [{ id: 708, formule_id: 'f1', quantite_finale: 20, produits_exclus: [] }]
+    if (url === '/commande-produits/commande/cmd-1') return []
+    if (url === '/formules/') return [{ id: 'f1', name: 'Brunch Salé' }]
+    return [] // produits, unités
+  })
+}
+
+describe('FormulaireCommande : modification', () => {
+  beforeEach(serveurAvecLaCommande)
+
+  it('charge la commande et pré-remplit le formulaire', async () => {
+    await ouvrir({ commandeId: 'cmd-1' })
+    expect(apiGet).toHaveBeenCalledWith('/commandes/cmd-1')
+    expect(apiGet).toHaveBeenCalledWith('/commande-formules/commande/cmd-1')
+    expect(apiGet).toHaveBeenCalledWith('/commande-produits/commande/cmd-1')
+    expect(document.body.textContent).toContain('Modifier la commande')
+    expect(document.getElementById('commande-client').value).toBe('Mairie de Caen')
+  })
+
+  it('nouvelle commande : rien n’est chargé, titre « Nouvelle commande »', async () => {
+    await ouvrir()
+    expect(apiGet).not.toHaveBeenCalledWith('/commandes/cmd-1')
+    expect(document.body.textContent).toContain('Nouvelle commande')
+    expect(document.getElementById('commande-client').value).toBe('')
+  })
+
+  it('enregistre seulement ce qui a changé (PUT), puis ferme', async () => {
+    apiPut.mockResolvedValue({ id: 'cmd-1' })
+    await ouvrir({ commandeId: 'cmd-1' })
+    await saisir('commande-client', 'Mairie de Bayeux')
+    await cliquer('suivant')
+    await cliquer('suivant')
+    expect(bouton('creer').textContent).toContain('Enregistrer les modifications')
+    await cliquer('creer')
+    expect(apiPut).toHaveBeenCalledWith('/commandes/cmd-1/complete', {
+      nom_client: 'Mairie de Bayeux',
+    })
+    expect(apiPost).not.toHaveBeenCalled()
+    expect(wrapper.emitted('enregistree')).toHaveLength(1)
+    expect(wrapper.props('visible')).toBe(false)
+  })
+
+  it('rien de changé : rien n’est envoyé', async () => {
+    await ouvrir({ commandeId: 'cmd-1' })
+    await cliquer('suivant')
+    await cliquer('suivant')
+    await cliquer('creer')
+    expect(apiPut).not.toHaveBeenCalled()
+    expect(useNotificationsStore().notifications.at(-1).message).toMatch(/Aucune modification/)
+    expect(wrapper.props('visible')).toBe(false)
+  })
+
+  it('erreur du serveur à l’enregistrement : message affiché, la saisie est gardée', async () => {
+    apiPut.mockRejectedValue(new ApiError('Formule de commande introuvable', 404))
+    await ouvrir({ commandeId: 'cmd-1' })
+    await saisir('commande-client', 'Mairie de Bayeux')
+    await cliquer('suivant')
+    await cliquer('suivant')
+    await cliquer('creer')
+    expect(useNotificationsStore().notifications.at(-1).message).toBe(
+      'Formule de commande introuvable',
+    )
+    expect(wrapper.props('visible')).toBe(true)
+  })
+
+  it('« Quitter » sans changement : ferme sans rien demander', async () => {
+    await ouvrir({ commandeId: 'cmd-1' })
+    await cliquer('quitter')
+    expect(bouton('quitter-sans-enregistrer')).toBeNull()
+    expect(wrapper.props('visible')).toBe(false)
+  })
+
+  it('« Quitter » après un changement : on peut enregistrer les modifications', async () => {
+    apiPut.mockResolvedValue({ id: 'cmd-1' })
+    await ouvrir({ commandeId: 'cmd-1' })
+    await saisir('commande-client', 'Mairie de Bayeux')
+    await cliquer('quitter')
+    expect(bouton('mettre-en-attente')).toBeNull() // une commande validée reste validée
+    await cliquer('enregistrer-modifications')
+    expect(apiPut).toHaveBeenCalledWith('/commandes/cmd-1/complete', {
+      nom_client: 'Mairie de Bayeux',
+    })
+    expect(wrapper.props('visible')).toBe(false)
+  })
+
+  it('commande introuvable : message, et la fenêtre se ferme', async () => {
+    apiGet.mockRejectedValue(new ApiError('Commande not found', 404))
+    await ouvrir({ commandeId: 'cmd-1' })
+    expect(useNotificationsStore().notifications.at(-1).type).toBe('error')
+    expect(wrapper.props('visible')).toBe(false)
   })
 })

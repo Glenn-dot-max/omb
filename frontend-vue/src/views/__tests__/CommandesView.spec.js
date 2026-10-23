@@ -65,6 +65,9 @@ beforeEach(() => {
   apiGet.mockImplementation(async (url) => {
     if (url === '/admin/franchises') return [{ id: 'f-2', nom: 'OMB Lyon' }]
     if (url.includes('archived=true') || url === '/commandes/archived') return ARCHIVEES
+    if (url === '/commandes/b') return ACTIVES.commandes[1] // ouverture en modification
+    if (url.startsWith('/commande-')) return [] // formules et produits de la commande
+    if (['/formules/', '/produits/', '/unite/'].includes(url)) return [] // catalogue
     return ACTIVES
   })
 })
@@ -151,6 +154,14 @@ describe('CommandesView', () => {
     await wrapper.find('[data-test="nouvelle-commande"]').trigger('click')
     await flushPromises()
     expect(document.getElementById('commande-client')).not.toBeNull()
+  })
+
+  it('« Modifier » ouvre le formulaire pré-rempli avec cette commande', async () => {
+    await monter()
+    await wrapper.find('[data-test="modifier-b"]').trigger('click')
+    await flushPromises()
+    expect(appelsGet()).toContain('/commandes/b')
+    expect(document.getElementById('commande-client').value).toBe("L'Équipe")
   })
 
   it('affiche l’erreur du serveur', async () => {

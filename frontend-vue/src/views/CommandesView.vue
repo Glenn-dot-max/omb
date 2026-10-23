@@ -30,6 +30,16 @@ const chargement = ref(false)
 const franchises = ref([])
 const filtres = ref({ recherche: '', date: '', franchiseId: null })
 const formulaireOuvert = ref(false)
+const commandeAModifier = ref(null) // id de la commande ouverte en modification ; null = nouvelle
+
+function nouvelleCommande() {
+  commandeAModifier.value = null
+  formulaireOuvert.value = true
+}
+function modifier(commande) {
+  commandeAModifier.value = commande.id
+  formulaireOuvert.value = true
+}
 
 const archivees = computed(() => onglet.value === 'archivees')
 const commandesFiltrees = computed(() => filtrerCommandes(commandes.value, filtres.value))
@@ -135,15 +145,12 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
   <main class="container">
     <div class="entete-page">
       <h2>📦 Commandes</h2>
-      <Button
-        label="Nouvelle commande"
-        data-test="nouvelle-commande"
-        @click="formulaireOuvert = true"
-      />
+      <Button label="Nouvelle commande" data-test="nouvelle-commande" @click="nouvelleCommande" />
     </div>
     <FormulaireCommande
       v-model:visible="formulaireOuvert"
       :aujourdhui="aujourdhui"
+      :commande-id="commandeAModifier"
       @enregistree="charger"
     />
     <div class="form-card">
@@ -221,6 +228,7 @@ const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
             :key="commande.id"
             :commande="commande"
             :aujourdhui="aujourdhui"
+            @modifier="modifier"
             @valider="valider"
             @supprimer="demanderSuppression"
           />

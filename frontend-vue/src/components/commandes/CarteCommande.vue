@@ -11,7 +11,7 @@ const props = defineProps({
   aujourdhui: { type: String, required: true }, // 'AAAA-MM-JJ', date de Paris donnée par le serveur
   archivee: { type: Boolean, default: false },
 })
-defineEmits(['valider', 'supprimer'])
+defineEmits(['modifier', 'valider', 'supprimer'])
 
 const c = computed(() => props.commande)
 const enAttente = computed(() => c.value.validated === false)
@@ -49,6 +49,14 @@ const heure = computed(() => (c.value.delivery_hour || '').slice(0, 5))
     <p v-if="c.notes && c.notes.trim()" class="notes">📝 {{ c.notes }}</p>
 
     <div v-if="!archivee" class="boutons">
+      <Button
+        label="Modifier"
+        size="small"
+        severity="secondary"
+        outlined
+        :data-test="`modifier-${c.id}`"
+        @click="$emit('modifier', c)"
+      />
       <template v-if="enAttente">
         <Button
           label="Confirmer la commande"
