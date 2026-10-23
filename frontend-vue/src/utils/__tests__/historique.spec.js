@@ -63,6 +63,21 @@ describe('historique : ce qui a changé', () => {
     ])
   })
 
+  it('modification : formules et produits retirés, quantités changées (V5.4c1)', () => {
+    expect(
+      resumeDetails('modification', {
+        champs: {},
+        formules_retirees: 1,
+        produits_modifies: 2,
+        produits_retires: 1,
+      }),
+    ).toEqual([
+      '1 formule(s) retirée(s)',
+      '2 quantité(s) de produit modifiée(s)',
+      '1 produit(s) retiré(s)',
+    ])
+  })
+
   it('suppression : le client et la date de la commande supprimée', () => {
     expect(
       resumeDetails('suppression', { nom_client: 'Martin', delivery_date: '2026-11-02' }),

@@ -71,7 +71,11 @@ export function resumeDetails(action, details) {
       .map(([champ, valeur]) => `${CHAMPS[champ][0]} → ${valeurLisible(champ, valeur)}`)
     if (d.formules_modifiees) lignes.push(`${d.formules_modifiees} formule(s) modifiée(s)`)
     if (d.formules_ajoutees) lignes.push(`${d.formules_ajoutees} formule(s) ajoutée(s)`)
+    if (d.formules_retirees) lignes.push(`${d.formules_retirees} formule(s) retirée(s)`)
     if (d.produits_ajoutes) lignes.push(`${d.produits_ajoutes} produit(s) ajouté(s)`)
+    if (d.produits_modifies)
+      lignes.push(`${d.produits_modifies} quantité(s) de produit modifiée(s)`)
+    if (d.produits_retires) lignes.push(`${d.produits_retires} produit(s) retiré(s)`)
     return lignes
   }
   if (action === 'suppression') {
