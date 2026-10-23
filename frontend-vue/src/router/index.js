@@ -43,6 +43,12 @@ const router = createRouter({
       name: 'commandes',
       component: () => import('../views/CommandesView.vue'),
     },
+    {
+      path: '/connexion',
+      name: 'connexion',
+      component: () => import('../views/ConnexionView.vue'),
+      meta: { publique: true },
+    },
     // Pages publiques (sans connexion)
     {
       path: '/mot-de-passe-oublie',

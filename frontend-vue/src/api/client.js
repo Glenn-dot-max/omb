@@ -16,6 +16,11 @@ export function saveToken(token) {
   localStorage.setItem(TOKEN_KEY, token)
 }
 
+// Utilisateur renvoyé à la connexion : encore lu par l'ancien frontend (Produits, Formules)
+export function saveUser(utilisateur) {
+  localStorage.setItem(USER_KEY, JSON.stringify(utilisateur))
+}
+
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY)
 }
@@ -47,7 +52,8 @@ export function getErrorMessage(body) {
   return body?.detail || 'Erreur inattendue, veuillez réessayer.'
 }
 
-// publique = true : page sans connexion (mot de passe oublié, réinitialisation) -> pas de token
+// publique = true : page sans connexion (mot de passe oublié, réinitialisation)
+// -> pas de token, et un 401 y veut dire « mauvais identifiants », pas « session expirée »
 async function request(method, endpoint, data, { publique = false } = {}) {
   const options = { method, headers: {} }
   if (!publique) {
@@ -74,7 +80,7 @@ async function request(method, endpoint, data, { publique = false } = {}) {
   }
 
   // Token expiré ou invalide : on oublie la session et on renvoie vers la connexion
-  if (response.status === 401) {
+  if (response.status === 401 && !publique) {
     removeToken()
     allerALaConnexion()
     throw new ApiError('Session expirée, veuillez vous reconnecter.', 401)

@@ -7,6 +7,7 @@ import {
   getErrorMessage,
   ApiError,
   saveToken,
+  saveUser,
   getToken,
 } from '../client'
 import { allerALaConnexion } from '../navigation'
@@ -126,6 +127,13 @@ describe('token', () => {
     expect(getToken()).toBe('nouveau-jeton')
     expect(localStorage.getItem('omb_token')).toBe('nouveau-jeton')
   })
+  it('saveUser enregistre l’utilisateur pour l’ancien frontend (même clé omb_user)', () => {
+    saveUser({ email: 'paris@omb.fr', role: 'USER' })
+    expect(JSON.parse(localStorage.getItem('omb_user'))).toEqual({
+      email: 'paris@omb.fr',
+      role: 'USER',
+    })
+  })
 })
 
 describe('appels publics (sans connexion)', () => {
@@ -145,6 +153,17 @@ describe('appels publics (sans connexion)', () => {
     await expect(apiPostPublic('/auth/reset-password', {})).rejects.toThrow(
       'Lien invalide ou expiré',
     )
+    expect(localStorage.getItem('omb_token')).toBe('jeton-123')
+  })
+
+  it('401 sur une page publique (mauvais mot de passe) : le message du serveur, pas « session expirée »', async () => {
+    localStorage.setItem('omb_token', 'jeton-123')
+    fetch.mockResolvedValue(reponse(401, { detail: 'Email ou mot de passe incorrect' }))
+
+    await expect(apiPostPublic('/auth/login', {})).rejects.toThrow(
+      'Email ou mot de passe incorrect',
+    )
+    expect(allerALaConnexion).not.toHaveBeenCalled()
     expect(localStorage.getItem('omb_token')).toBe('jeton-123')
   })
 })
