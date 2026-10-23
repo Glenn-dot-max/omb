@@ -41,7 +41,7 @@ def test_login_success(client):
         "franchise_id": "franchise-abc",
         "role": "USER",
         "franchises": {"nom": "Paris"},
-        "is_active": True,
+        "active": True,
     }]
 
     mock_response = MagicMock()
@@ -56,6 +56,31 @@ def test_login_success(client):
 
     assert response.status_code == 200
     assert "access_token" in response.json()
+
+def test_login_compte_desactive(client):
+    """Compte désactivé dans l'admin : connexion refusée (403), même avec le bon mot de passe"""
+    fake_user = [{
+        "id": "user-123",
+        "email": "test@omb.fr",
+        "password_hash": hash_password("password123"),
+        "franchise_id": "franchise-abc",
+        "role": "USER",
+        "franchises": None,
+        "active": False,
+    }]
+    mock_response = MagicMock()
+    mock_response.data = fake_user
+
+    with patch("routes.auth.supabase") as mock_db:
+        mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_response
+        response = client.post("/auth/login", json={
+            "email": "test@omb.fr",
+            "password": "password123"
+        })
+
+    assert response.status_code == 403
+    assert "désactivé" in response.json()["detail"]
+    assert "access_token" not in response.json()
 
 def test_login_wrong_password(client):
     """Login avec mauvais mot de passe -> 401 """

@@ -41,12 +41,16 @@ def login(request: Request, credentials: LoginRequest):
     # 2. Vérifier le mot de passe
     if not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+
+    # 3. Compte désactivé dans l'adin : pas de token (sinon chaque requête serait refusée ensuite)
+    if not user.get("active", False):
+        raise HTTPException(status_code=403, detail="Compte désactivé : contactez votre administrateur.")
     
     franchise_nom = None
     if user.get("franchises"):
         franchise_nom = user["franchises"]["nom"]
     
-    # 3. Créer le token JWT
+    # 4. Créer le token JWT
     token_data = {
         "user_id": user["id"],
         "email": user["email"],
@@ -56,7 +60,7 @@ def login(request: Request, credentials: LoginRequest):
     
     access_token = create_access_token(token_data)
     
-    # 4. Retourner le token et les infos utilisateur
+    # 5. Retourner le token et les infos utilisateur
     return {
         "access_token": access_token,
         "token_type": "bearer",
