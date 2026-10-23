@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import AppNavbar from '@/components/AppNavbar.vue'
 import AppNotifications from '@/components/AppNotifications.vue'
+import BoutonHautDePage from '@/components/BoutonHautDePage.vue'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 
@@ -13,6 +14,8 @@ const store = useUtilisateurStore()
   <AppNavbar v-if="store.estConnecte" />
   <RouterView />
   <AppNotifications />
+  <!-- B10 : « Remonter en haut » sur toutes les pages (visible seulement après défilement) -->
+  <BoutonHautDePage />
   <!-- Fenêtre de confirmation partagée par tous les écrans (useConfirm) -->
   <ConfirmDialog />
 </template>

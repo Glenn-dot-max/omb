@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { dateIso, formaterDate, jourCourt } from '@/utils/planning'
+import { pluriel } from '@/utils/texte'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import HistoriqueCommande from '@/components/commandes/HistoriqueCommande.vue'
@@ -40,7 +41,7 @@ const heure = computed(() => (c.value.delivery_hour || '').slice(0, 5))
     </header>
 
     <div class="badges">
-      <Tag :value="`🍽️ ${c.nombre_couverts} couverts`" severity="secondary" />
+      <Tag :value="`🍽️ ${pluriel(c.nombre_couverts, 'couvert')}`" severity="secondary" />
       <Tag :value="c.avec_service ? 'Avec service' : 'Sans service'" severity="secondary" />
       <Tag :value="c.type_prestation || 'non-brunch'" severity="secondary" />
       <Tag v-if="enAttente" value="En attente de validation" severity="warn" />

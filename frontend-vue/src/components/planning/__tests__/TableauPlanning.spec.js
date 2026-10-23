@@ -9,12 +9,16 @@ const PLANNING = {
         id: 'c1',
         client: 'Dupont',
         heure: '09:00:00',
+        couverts: 20,
         produits: { p1: { quantite: 40, source: 'formule' } },
       },
       {
         id: 'c2',
         client: '<b>Martin</b>',
         heure: '12:30:00',
+        couverts: 60,
+        nb_adultes: 50,
+        nb_enfants: 10,
         produits: {
           p1: { quantite: 5, source: 'suppl' },
           p2: { quantite: 2.5, source: 'formule' },
@@ -32,6 +36,7 @@ const PLANNING = {
         id: 'c3',
         client: 'Durand',
         heure: '08:00:00',
+        couverts: 1,
         produits: { p1: { quantite: 10, source: 'formule' } },
       },
     ],
@@ -60,6 +65,14 @@ describe('TableauPlanning', () => {
     expect(texte).toContain('Viennoiseries')
     expect(texte).toContain('Salé')
     expect(texte).toContain('Tartes')
+  })
+
+  it('sous chaque client : ses couverts, ou adultes/enfants pour un mariage (avec la légende)', () => {
+    const wrapper = monter()
+    const entetes = wrapper.findAll('.couverts').map((e) => e.text())
+    expect(entetes).toEqual(['20 couverts', '50/10', '1 couvert'])
+    expect(wrapper.text()).not.toContain('60 couverts')
+    expect(wrapper.find('.legende').text()).toContain('Mariage : adultes/enfants')
   })
 
   it('affiche les quantités par commande, le total du jour et le total de la période', () => {

@@ -323,6 +323,9 @@ def get_planning_production(
                 "client": commande.get('nom_client', ''),
                 "heure": commande.get("delivery_hour", ""),
                 "couverts": commande.get("nombre_couverts", 0),
+                # Mariages : adultes et enfants (None pour les autres commandes)
+                "nb_adultes": commande.get("nb_adultes"),
+                "nb_enfants": commande.get("nb_enfants"),
                 "avec_service": bool(commande.get("avec_service", commande.get("service", False))),
                 "notes": commande.get("notes", ""),
                 "produits": {}

@@ -11,6 +11,7 @@ import {
   quantiteCommande,
   totalJour,
   totalGeneral,
+  convives,
 } from '../planning'
 
 // Réponse du serveur (GET /planning/production), réduite à l'essentiel
@@ -157,5 +158,16 @@ describe('organisation du planning', () => {
     expect(totalJour(jour27, 'p1')).toBe(45)
     expect(totalJour(PLANNING['2026-10-26'], 'p1')).toBe(0)
     expect(totalGeneral(PLANNING, 'p1')).toBe(45)
+  })
+})
+
+describe('convives', () => {
+  it('mariage : adultes/enfants', () => {
+    expect(convives({ couverts: 60, nb_adultes: 50, nb_enfants: 10 })).toBe('50/10')
+    expect(convives({ couverts: 1, nb_adultes: 1, nb_enfants: 0 })).toBe('1/0')
+  })
+  it('autre commande : rien (on garde le nombre de couverts)', () => {
+    expect(convives({ couverts: 20, nb_adultes: null, nb_enfants: null })).toBeNull()
+    expect(convives({ couverts: 20 })).toBeNull()
   })
 })

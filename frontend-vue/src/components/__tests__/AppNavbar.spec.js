@@ -35,6 +35,7 @@ beforeEach(() => {
       { path: '/aide', name: 'aide', component: page },
       { path: '/admin', name: 'admin', component: page },
       { path: '/planning', name: 'planning', component: page },
+      { path: '/commandes', name: 'commandes', component: page },
     ],
   })
 })
@@ -80,7 +81,7 @@ describe('AppNavbar', () => {
     expect(router.currentRoute.value.name).toBe('mon-compte')
     wrapper.unmount()
   })
-  it('le lien Planning mène à la page Vue, les pages pas encore migrées à l’ancien frontend', () => {
+  it('les liens Planning et Commandes mènent aux pages Vue, les autres à l’ancien frontend', () => {
     const { wrapper } = monter({ email: 'paris@omb.fr', role: 'USER', franchise_nom: 'Paris' })
     const href = (texte) =>
       wrapper
@@ -88,7 +89,8 @@ describe('AppNavbar', () => {
         .find((a) => a.text().includes(texte))
         .attributes('href')
     expect(href('Planning')).toBe('/planning')
-    expect(href('Commandes')).toBe('/pages/commandes.html')
+    expect(href('Commandes')).toBe('/commandes')
+    expect(href('Produits')).toBe('/pages/produits.html')
     wrapper.unmount()
   })
   it('le lien Aide mène à la page Vue (sans recharger)', () => {

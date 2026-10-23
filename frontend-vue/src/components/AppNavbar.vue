@@ -13,7 +13,7 @@ const menuOuvert = ref(false)
 const liens = [
   { texte: 'Produits', href: '/pages/produits.html' },
   { texte: 'Formules', href: '/pages/formules.html' },
-  { texte: 'Commandes', href: '/pages/commandes.html' },
+  { texte: 'Commandes', route: 'commandes' },
   { texte: 'Planning', route: 'planning' },
 ]
 

@@ -29,6 +29,11 @@ describe('CarteCommande', () => {
     expect(wrapper.text()).toContain('Sans gluten')
   })
 
+  it('« 1 couvert » au singulier', () => {
+    expect(monter({ nombre_couverts: 1 }).text()).toContain('1 couvert')
+    expect(monter({ nombre_couverts: 1 }).text()).not.toContain('1 couverts')
+  })
+
   it('date : « Aujourd’hui », ou le jour et la date', () => {
     expect(monter({ delivery_date: '2026-10-21' }).text()).toContain("Aujourd'hui")
     expect(monter({ delivery_date: '2026-10-26' }).text()).toContain('Lun 26/10/2026')

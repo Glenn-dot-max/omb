@@ -9,7 +9,9 @@ import {
   formaterDate,
   formaterQuantite,
   jourCourt,
+  convives,
 } from '@/utils/planning'
+import { pluriel } from '@/utils/texte'
 
 // Tableau de production : une ligne par produit, une colonne par commande (regroupées par jour),
 // avec les totaux par jour et sur la période si demandé. Les calculs viennent de utils/planning.js.
@@ -33,6 +35,9 @@ const nombreDeColonnes = computed(
 const jourMois = (iso) => formaterDate(iso).slice(0, 5) // 'JJ/MM'
 const heureCourte = (heure) => (heure || '').slice(0, 5) // 'HH:MM:SS' -> 'HH:MM'
 const afficher = (quantite) => (quantite ? formaterQuantite(quantite) : '-')
+// Sous le client : « 50/10 » (adultes/enfants) pour un mariage, sinon « 20 couverts »
+const libelleCouverts = (commande) =>
+  convives(commande) || (commande.couverts ? pluriel(commande.couverts, 'couvert') : '')
 </script>
 
 <template>
@@ -44,6 +49,7 @@ const afficher = (quantite) => (quantite ? formaterQuantite(quantite) : '-')
       ou en plus de la formule)
     </li>
     <li v-if="afficherTotaux"><span class="pastille pastille-total"></span> Totaux</li>
+    <li><strong>50/10</strong> Mariage : adultes/enfants</li>
   </ul>
   <div class="tableau-defilable">
     <table class="tableau-planning">
@@ -65,6 +71,9 @@ const afficher = (quantite) => (quantite ? formaterQuantite(quantite) : '-')
             <th v-for="commande in jour.commandes" :key="commande.id" class="entete-commande">
               {{ commande.client }}<br /><span class="heure">{{
                 heureCourte(commande.heure)
+              }}</span>
+              <span v-if="libelleCouverts(commande)" class="couverts">{{
+                libelleCouverts(commande)
               }}</span>
             </th>
             <th v-if="!jour.commandes.length" class="entete-commande">-</th>
@@ -149,6 +158,11 @@ td {
   font-size: 0.8rem;
   white-space: normal;
   min-width: 70px;
+}
+.couverts {
+  display: block;
+  font-weight: normal;
+  font-size: 0.8rem;
 }
 .heure,
 .unite {

@@ -107,3 +107,11 @@ export function totalJour(jour, produitId) {
 export function totalGeneral(planning, produitId) {
   return Object.values(planning).reduce((total, jour) => total + totalJour(jour, produitId), 0)
 }
+
+// Mariage : « 50/10 » = adultes/enfants (demande de la cuisine, expliqué dans la légende) ;
+// autre commande : null
+export function convives(commande) {
+  const { nb_adultes: adultes, nb_enfants: enfants } = commande
+  if (adultes == null || enfants == null) return null
+  return `${adultes}/${enfants}`
+}

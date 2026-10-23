@@ -25,6 +25,8 @@ const RESULTAT = {
           client: 'Martin',
           heure: '12:30:00',
           couverts: 10,
+          nb_adultes: 8,
+          nb_enfants: 2,
           avec_service: true,
           notes: 'Sans gluten',
           produits: {
@@ -85,7 +87,7 @@ describe('export Excel du planning', () => {
     ])
     expect(['E5', 'E6', 'E7', 'E8'].map((c) => f.getCell(c).value)).toEqual([
       'Martin',
-      10,
+      '8/2', // mariage : adultes/enfants
       '12:30',
       'Avec',
     ])
@@ -96,7 +98,7 @@ describe('export Excel du planning', () => {
     expect(['C4', 'C5', 'C6', 'C7', 'C8', 'C9'].map((c) => f.getCell(c).value)).toEqual([
       'Produit',
       'Client',
-      'Nombre de couverts',
+      'Couverts (mariage : adultes/enfants)',
       'Heure de livraison',
       'Service',
       'Notes',

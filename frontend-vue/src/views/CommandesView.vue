@@ -7,6 +7,7 @@ import { useAction } from '@/composables/useAction'
 import { useConfirm } from 'primevue/useconfirm'
 import { blocsDeCommandes, filtrerCommandes } from '@/utils/commandes'
 import { dateIso, formaterDate } from '@/utils/planning'
+import { pluriel } from '@/utils/texte'
 import CarteCommande from '@/components/commandes/CarteCommande.vue'
 import FormulaireCommande from '@/components/commandes/FormulaireCommande.vue'
 import Button from 'primevue/button'
@@ -140,7 +141,6 @@ const periode = (bloc) =>
   bloc.fin
     ? `du ${formaterDate(bloc.debut)} au ${formaterDate(bloc.fin)}`
     : `à partir du ${formaterDate(bloc.debut)}`
-const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
 </script>
 
 <template>

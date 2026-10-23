@@ -51,3 +51,29 @@ def test_planning_production_avec_ponderation(client, auth_headers):
     produits = response.json()["planning"][DEMAIN]["commandes"][0]["produits"]
     assert produits["p1"]["quantite"] == 14.0  # formule : 10 couverts × 1,5 = 15, × 90 % = 13,5 → 14
     assert produits["p2"]["quantite"] == 14.0  # produit ajouté : 15 × 90 % = 13,5 → 14
+
+
+def test_planning_mariage_donne_adultes_et_enfants(client, auth_headers):
+    """Mariage : le planning renvoie les adultes et les enfants (la cuisine veut les deux nombres)"""
+    base = {**FAUSSE_BASE, "carnet_commande": [{
+        **FAUSSE_BASE["carnet_commande"][0],
+        "type_prestation": "mariage", "nombre_couverts": 60, "nb_adultes": 50, "nb_enfants": 10,
+    }]}
+    with patch("routes.planning.supabase") as mock_db, patch("routes.planning.get_cached", return_value=None):
+        mock_db.table.side_effect = lambda nom: FausseRequete(base[nom])
+        response = client.get(
+            f"/planning/production?date_debut={DEMAIN}&date_fin={DEMAIN}", headers=auth_headers
+        )
+
+    commande = response.json()["planning"][DEMAIN]["commandes"][0]
+    assert (commande["couverts"], commande["nb_adultes"], commande["nb_enfants"]) == (60, 50, 10)
+
+def test_planning_hors_mariage_sans_adultes_ni_enfants(client, auth_headers):
+    with patch("routes.planning.supabase") as mock_db, patch("routes.planning.get_cached", return_value=None):
+        mock_db.table.side_effect = lambda nom: FausseRequete(FAUSSE_BASE[nom])
+        response = client.get(
+            f"/planning/production?date_debut={DEMAIN}&date_fin={DEMAIN}", headers=auth_headers
+        )
+
+    commande = response.json()["planning"][DEMAIN]["commandes"][0]
+    assert (commande["couverts"], commande["nb_adultes"], commande["nb_enfants"]) == (10, None, None)

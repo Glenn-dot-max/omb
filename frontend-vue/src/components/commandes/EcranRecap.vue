@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { libelleType } from '@/utils/typesPrestation'
+import { pluriel } from '@/utils/texte'
 import { partsProduites } from '@/utils/nouvelleCommande'
 import { formaterDate, jourCourt } from '@/utils/planning'
 import Button from 'primevue/button'
@@ -13,7 +14,6 @@ defineEmits(['aller'])
 
 const c = computed(() => props.commande)
 const estMariage = computed(() => c.value.type_prestation === 'mariage')
-const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`
 </script>
 
 <template>

@@ -4,6 +4,7 @@ import { apiGet } from '@/api/client'
 import { useUtilisateurStore } from '@/stores/utilisateur'
 import { useNotificationsStore } from '@/stores/notifications'
 import { useAction } from '@/composables/useAction'
+import { pluriel } from '@/utils/texte'
 import { dateIso, formaterDate, libelleSemaines } from '@/utils/planning'
 import { exporterPlanning } from '@/utils/exportPlanning'
 import { TYPES_PRESTATION } from '@/utils/typesPrestation'
@@ -189,8 +190,9 @@ const commandesNonValidees = computed(() => resultat.value?.commandes_non_valide
         <ul>
           <li v-for="commande in commandesNonValidees" :key="commande.id">
             {{ commande.nom_client }} : {{ formaterDate(commande.delivery_date) }} à
-            {{ (commande.delivery_hour || '').slice(0, 5) }} ({{ commande.nombre_couverts }}
-            couverts)
+            {{ (commande.delivery_hour || '').slice(0, 5) }} ({{
+              pluriel(commande.nombre_couverts, 'couvert')
+            }})
           </li>
         </ul>
       </Message>

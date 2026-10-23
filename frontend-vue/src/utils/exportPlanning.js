@@ -10,6 +10,7 @@ import {
   formaterDate,
   jourCourt,
   libelleSemaines,
+  convives,
 } from './planning'
 
 // Couleur d'une variable du thème (theme.css) au format Excel 'FFRRGGBB' : marque blanche.
@@ -74,7 +75,8 @@ export function remplirFeuille(feuille, resultat, options = {}) {
   const LIGNE_DATES = 4
   const lignesCommande = [
     ['Client', (c) => c.client],
-    ['Nombre de couverts', (c) => c.couverts || ''],
+    // Mariage : « 50/10 » (adultes/enfants), sinon le nombre de couverts
+    ['Couverts (mariage : adultes/enfants)', (c) => convives(c) || c.couverts || ''],
     ['Heure de livraison', (c) => (c.heure || '').slice(0, 5)],
     ['Service', (c) => (c.avec_service ? 'Avec' : 'Sans')],
     ['Notes', (c) => (c.notes && c.notes.trim() ? 'VOIR NOTES' : '')],
