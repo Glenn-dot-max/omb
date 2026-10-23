@@ -125,6 +125,7 @@ function ajouterLeProduit() {
           input-id="recherche-formule"
           placeholder="Tapez une partie du nom…"
           dropdown
+          dropdown-mode="current"
           data-test="recherche-formule"
           @complete="suggestionsFormules = chercher(formules, $event.query)"
           @option-select="choisirFormule"
@@ -200,6 +201,7 @@ function ajouterLeProduit() {
             input-id="recherche-produit"
             placeholder="Tapez une partie du nom…"
             dropdown
+            dropdown-mode="current"
             data-test="recherche-produit"
             @complete="suggestionsProduits = chercher(produits, $event.query)"
             @option-select="produitChoisi = $event.value"

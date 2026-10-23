@@ -147,6 +147,12 @@ describe('EcranContenu : produits ajoutés', () => {
     expect(commande().produits[0].quantite).toBe(24)
   })
 
+  it('la flèche du menu propose ce qui correspond au texte déjà tapé', async () => {
+    await monter()
+    expect(recherche('recherche-produit').props('dropdownMode')).toBe('current')
+    expect(recherche('recherche-formule').props('dropdownMode')).toBe('current')
+  })
+
   it('refuse d’ajouter sans avoir choisi un produit', async () => {
     await monter()
     await wrapper.find('[data-test="ajouter-produit"]').trigger('click')

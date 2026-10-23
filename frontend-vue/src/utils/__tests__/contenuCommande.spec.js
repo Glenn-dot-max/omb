@@ -39,8 +39,11 @@ describe('recherche (contient, sans accents ni majuscules)', () => {
     expect(chercher(FORMULES, 'DEJ').map((f) => f.id)).toEqual(['2'])
     expect(chercher(FORMULES, 'u').map((f) => f.id)).toEqual(['1', '2', '3'])
   })
-  it('texte vide : toute la liste', () => {
-    expect(chercher(FORMULES, '  ')).toHaveLength(3)
+  it('texte vide : toute la liste, dans une NOUVELLE liste à chaque fois', () => {
+    // PrimeVue n'ouvre le menu que si la liste proposée change : renvoyer deux fois
+    // la même liste bloquait le menu (clic sur la flèche sans effet)
+    expect(chercher(FORMULES, '  ')).toEqual(FORMULES)
+    expect(chercher(FORMULES, '  ')).not.toBe(FORMULES)
   })
 })
 

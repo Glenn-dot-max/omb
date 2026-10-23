@@ -15,7 +15,8 @@ export function pourMaFranchise(elements, franchiseId) {
 // Recherche « contient », sans accents ni majuscules (demande de la cuisine)
 export function chercher(elements, texte, champ = 'name') {
   const recherche = sansAccents(texte.trim())
-  if (!recherche) return elements
+  // Toujours une nouvelle liste : PrimeVue (AutoComplete) n'ouvre son menu que si la liste change
+  if (!recherche) return [...elements]
   return elements.filter((e) => sansAccents(e[champ] || '').includes(recherche))
 }
 
