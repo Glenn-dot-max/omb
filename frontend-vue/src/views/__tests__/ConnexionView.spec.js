@@ -17,7 +17,9 @@ vi.mock('@/api/client', async () => {
 })
 vi.mock('@/api/navigation', () => ({ allerALaConnexion: vi.fn() }))
 // Une autre marque que celle d'OMB : la page doit afficher celle de la configuration
-vi.mock('@/config/marque', () => ({ marque: { nom: 'Traiteur Test', emoji: '🍽️' } }))
+vi.mock('@/config/marque', () => ({
+  marque: { nom: 'Traiteur Test', emoji: '🍽️', logo: '/assets/logo-test.svg' },
+}))
 
 const UTILISATEUR = { id: 'u-1', email: 'paris@omb.fr', role: 'USER', must_change_password: false }
 
@@ -54,9 +56,13 @@ beforeEach(() => {
 afterEach(() => wrapper?.unmount())
 
 describe('ConnexionView', () => {
-  it('affiche le nom de la marque configurée', async () => {
+  it('affiche le nom et le logo de la marque configurée (aussi en filigrane)', async () => {
     await monter()
     expect(wrapper.text()).toContain('Traiteur Test')
+    const logo = wrapper.find('img.logo')
+    expect(logo.attributes('src')).toBe('/assets/logo-test.svg')
+    expect(logo.attributes('alt')).toBe('Traiteur Test')
+    expect(wrapper.find('.page-connexion').attributes('style')).toContain('/assets/logo-test.svg')
   })
 
   it('connexion réussie : token et utilisateur enregistrés, puis les commandes', async () => {

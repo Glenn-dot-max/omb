@@ -25,6 +25,14 @@ describe('ChampMotDePasse', () => {
     expect(champ.attributes('type')).toBe('password')
   })
 
+  it('l’œil est dans le champ (même bloc), sans emoji coloré', () => {
+    const wrapper = monter()
+    const bloc = wrapper.find('.champ-mot-de-passe')
+    expect(bloc.find('input').exists()).toBe(true)
+    expect(bloc.find('button svg').exists()).toBe(true)
+    expect(wrapper.find('button').text()).toBe('')
+  })
+
   it("le bouton n'envoie pas le formulaire", () => {
     expect(monter().find('button').attributes('type')).toBe('button')
   })

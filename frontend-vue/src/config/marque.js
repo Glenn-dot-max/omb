@@ -5,4 +5,6 @@
 export const marque = {
   nom: 'Oh My Brunch',
   emoji: '🥐',
+  // Logo de l'ancien frontend (même site, dossier assets/) : page de connexion
+  logo: '/assets/logo-rond.svg',
 }
