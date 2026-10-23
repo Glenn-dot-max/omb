@@ -95,15 +95,18 @@ function ajouterLeProduit() {
     notifications.avertissement('Indiquez une quantité et une unité.')
     return
   }
-  const avant = commande.value.produits.length
-  commande.value = ajouterProduit(
+  // On compare avec le résultat calculé ici, pas en relisant commande.value : la nouvelle valeur
+  // n'est renvoyée par le parent (v-model) qu'au prochain rendu, après cette fonction.
+  const nouvelle = ajouterProduit(
     commande.value,
     produitChoisi.value,
     quantiteProduit.value,
     uniteChoisie.value,
   )
-  if (commande.value.produits.length === avant) {
+  if (nouvelle === commande.value) {
     notifications.avertissement('Ce produit est déjà dans la commande avec cette unité.')
+  } else {
+    commande.value = nouvelle
   }
   produitChoisi.value = null
   rechercheProduit.value = ''

@@ -136,6 +136,16 @@ describe('EcranContenu : produits ajoutés', () => {
     expect(commande().produits).toEqual([
       { produit_id: 'p1', nom: 'Café', quantite: 58, unite: 'unité' },
     ])
+    // Bug du 2026-10-23 : le produit était ajouté ET l'avertissement « déjà dans la commande » s'affichait
+    expect(useNotificationsStore().notifications).toEqual([])
+  })
+
+  it('prévient si le produit est déjà dans la commande avec la même unité', async () => {
+    await monter({ produits: [{ produit_id: 'p1', nom: 'Café', quantite: 2, unite: 'unité' }] })
+    await choisir('recherche-produit', PRODUITS[0])
+    await wrapper.find('[data-test="ajouter-produit"]').trigger('click')
+    expect(commande().produits).toHaveLength(1)
+    expect(useNotificationsStore().notifications.at(-1).message).toMatch(/déjà dans la commande/)
   })
 
   it('premier produit : la quantité proposée suit les parts, même modifiées après l’ouverture', async () => {
